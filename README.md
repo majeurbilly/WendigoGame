@@ -1,3 +1,4 @@
+```
 /wendigo-game/
 │
 ├── main.py                   # Lance le serveur FastAPI
@@ -10,3 +11,4 @@
 │   └── actions_log.py
 ├── static/                   # Front-end ou fichiers client (HTML, JS)
 └── templates/                # Pour Jinja si besoin d’un rendu côté serveur
+```
