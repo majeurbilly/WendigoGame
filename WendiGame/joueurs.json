@@ -8,4 +8,9 @@
   "prenom" : "Billy",
   "email" : "billy.halle.bh@gmail.com",
   "motDePasse" : "1234"
+}, {
+  "nom" : "Hallé",
+  "prenom" : "Billy",
+  "email" : "billy.halle.bh@gmail.com",
+  "motDePasse" : "12345"
 } ]

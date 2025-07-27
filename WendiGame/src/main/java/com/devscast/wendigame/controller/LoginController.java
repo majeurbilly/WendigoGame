@@ -18,7 +18,7 @@ import java.util.List;
 @RestController
 public class LoginController {
 
-    private static final Path PATH = Paths.get("chemin/vers/joueurs.json");
+    private static final Path PATH = Paths.get("joueurs.json");
 
     @PostMapping("/api/login")
     public ResponseEntity<?> login(@RequestBody Joueur credentials) throws IOException {
@@ -30,14 +30,12 @@ public class LoginController {
         List<Joueur> joueurs = new ObjectMapper().readValue(contenu, new TypeReference<List<Joueur>>() {});
 
         for (Joueur joueur : joueurs) {
-            if (joueur.getNom().equals(credentials.getNom()) &&
+            if (joueur.getPrenom().equals(credentials.getPrenom()) &&
                     joueur.getMotDePasse().equals(credentials.getMotDePasse())) {
-                return ResponseEntity.ok(joueur); // succès
+                return ResponseEntity.ok(joueur);
             }
         }
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Identifiants invalides");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Identifiants incorrects");
     }
-
 }
-
