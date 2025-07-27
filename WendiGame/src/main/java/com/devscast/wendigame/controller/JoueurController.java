@@ -3,18 +3,11 @@ package com.devscast.wendigame.controller;
 import com.devscast.wendigame.model.Joueur;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,24 +16,70 @@ import java.util.List;
 public class JoueurController {
 
     private static final Path PATH = Paths.get("joueurs.json");
+    private final ObjectMapper mapper = new ObjectMapper();
 
+    // ➕ Ajouter un joueur
     @PostMapping
     public ResponseEntity<String> creerJoueur(@RequestBody Joueur joueur) throws IOException {
         List<Joueur> joueurs = new ArrayList<>();
 
-        // Lire le fichier existant s'il existe
         if (Files.exists(PATH)) {
             String contenu = Files.readString(PATH);
-            joueurs = new ObjectMapper().readValue(contenu, new TypeReference<List<Joueur>>() {});
+            joueurs = mapper.readValue(contenu, new TypeReference<List<Joueur>>() {});
         }
 
         joueurs.add(joueur);
 
-        // Réécriture du fichier
-        String jsonFinal = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(joueurs);
+        String jsonFinal = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(joueurs);
         Files.writeString(PATH, jsonFinal, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("Joueur ajouté !");
+        return ResponseEntity.status(201).body("✅ Joueur ajouté avec succès !");
+    }
+
+    // 📋 Récupérer la liste des joueurs
+    @GetMapping("/joueurs")
+    public ResponseEntity<String> getJoueurs() throws IOException {
+        if (!Files.exists(PATH)) {
+            return ResponseEntity.status(404).body("⚠️ Aucun joueur enregistré pour le moment.");
+        }
+
+        String json = Files.readString(PATH);
+        return ResponseEntity.ok(json);
+    }
+
+    // ✅ Marquer un joueur comme "prêt"
+    @PostMapping("/setpret")
+    public ResponseEntity<String> setPret(@RequestBody Joueur joueurRecu) throws IOException {
+        if (!Files.exists(PATH)) {
+            return ResponseEntity.status(404).body("❌ Fichier joueurs introuvable.");
+        }
+
+        String contenu = Files.readString(PATH);
+        List<Joueur> joueurs = mapper.readValue(contenu, new TypeReference<List<Joueur>>() {});
+
+        boolean updated = false;
+        for (Joueur joueur : joueurs) {
+            if (joueur.getPrenom().equalsIgnoreCase(joueurRecu.getPrenom())) {
+                joueur.setPret(true);
+                updated = true;
+                break;
+            }
+        }
+
+        if (!updated) {
+            return ResponseEntity.status(404).body("🚫 Joueur non trouvé : " + joueurRecu.getPrenom());
+        }
+
+        String jsonFinal = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(joueurs);
+        Files.writeString(PATH, jsonFinal, StandardOpenOption.TRUNCATE_EXISTING);
+
+        return ResponseEntity.ok("✅ Statut 'prêt' mis à jour pour " + joueurRecu.getPrenom());
+    }
+
+    // 🔄 Rafraîchissement pour les autres clients (placeholder)
+    @PostMapping("/rafraichir")
+    public ResponseEntity<String> rafraichir() {
+        // À implémenter plus tard avec WebSocket ou Server Sent Events
+        return ResponseEntity.ok("🔁 Rafraîchissement global déclenché !");
     }
 }
-

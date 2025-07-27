@@ -38,4 +38,12 @@ public class LoginController {
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Identifiants incorrects");
     }
+    @PostMapping("/api/preparation")
+    public ResponseEntity<?> mettrePret(@RequestBody Joueur joueur) throws IOException {
+        // Charger les joueurs
+        // Mettre joueur.pret = true
+        // Sauvegarder
+        return ResponseEntity.ok("Joueur prêt");
+    }
+
 }

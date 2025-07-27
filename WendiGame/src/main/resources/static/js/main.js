@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const cree_profil_page = document.querySelector("#cree_profil_page");
     const waiting_page = document.querySelector("#waiting_page");
     const game_home_page = document.querySelector("#game_home_page");
+    const lobby_page = document.querySelector("#lobby_page");
 
     button_cree_profil.addEventListener("click", () => {
         login_page.classList.add("hidden");
@@ -38,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 login_page.classList.add("hidden");
                 cree_profil_page.classList.add("hidden"); // 👈 ajoute cette ligne
                 document.body.style.backgroundColor = "#454544";
-                game_home_page.classList.remove("hidden");
+                lobby_page.classList.remove("hidden");
             })
             .catch(error => {
                 console.error("❌ Erreur connexion :", error);

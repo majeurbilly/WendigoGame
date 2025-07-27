@@ -2,15 +2,12 @@
   "nom" : "Hallé",
   "prenom" : "Billy",
   "email" : "billy.halle.bh@gmail.com",
-  "motDePasse" : "123"
+  "motDePasse" : "123",
+  "pret" : true
 }, {
   "nom" : "Hallé",
-  "prenom" : "Billy",
+  "prenom" : "Killy",
   "email" : "billy.halle.bh@gmail.com",
-  "motDePasse" : "1234"
-}, {
-  "nom" : "Hallé",
-  "prenom" : "Billy",
-  "email" : "billy.halle.bh@gmail.com",
-  "motDePasse" : "12345"
+  "motDePasse" : "123",
+  "pret" : false
 } ]

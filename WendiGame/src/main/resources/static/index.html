@@ -67,6 +67,35 @@
         <a id="btn_succes_cree_profil" href="#" class="button">Rejoindre la page d'acceuil</a>
     </div>
 </div>
+<!-- 🎮 Lobby Multijoueur -->
+<div id="lobby_page" class="lobby-container hidden">
+    <header class="lobby-header">
+        <h1>🎯 Salle d’attente</h1>
+    </header>
+
+    <main class="lobby-main">
+        <!-- Liste des joueurs -->
+        <section class="players-section">
+            <h2>Joueurs connectés</h2>
+            <ul id="playersList"></ul>
+        </section>
+
+        <!-- Statut du jeu -->
+        <section class="status-section">
+            <div id="gameStatus">🕓 En attente que tous les joueurs soient prêts…</div>
+        </section>
+
+        <!-- Bouton d’action individuel -->
+        <section class="action-section">
+            <!-- ⚠️ Ce bouton est affiché uniquement pour le joueur actuellement connecté -->
+            <button id="readyButton" class="btn-ready hidden">Je suis prêt ✅</button>
+        </section>
+    </main>
+</div>
+
+
+
+
 
 <!-- Menu principale du joueur -->
 <div id="game_home_page" class="hidden">
@@ -83,5 +112,6 @@
     </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
 <script src="js/main.js"></script>
+<script src="js/lobby.js"></script>
 </body>
 </html>

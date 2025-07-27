@@ -12,4 +12,5 @@ public class Joueur {
     private String prenom;
     private String email;
     private String motDePasse;
+    private boolean pret;
 }
