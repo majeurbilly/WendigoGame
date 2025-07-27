@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/> <!-- for phone -->
+    <link rel="stylesheet" href="css/main.css"/>
+    <title>WendiGame</title>
+</head>
+<body>
+<!-- Menu de connexion -->
+<div id="login_page" class="">
+    <div class="container-fluid">
+        <div class="row vh-100"> <!-- vh-100 = hauteur 100% de la fenêtre -->
+            <!-- Colonne gauche : formulaire -->
+            <div class="col-md-6 d-flex align-items-center justify-content-center bg-dark text-white">
+                <form class="w-75">
+                    <h1 class="text-center mb-4">Bienvenue !</h1>
+                    <p class="text-center mb-4">As-tu crée ton compte!? 😎</p>
+
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Nom d'utilisateur</label>
+                        <input type="text" class="form-control" id="username" placeholder="Entrer votre nom">
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Mot de passe</label>
+                        <input type="password" class="form-control" id="password" placeholder="••••••••">
+                    </div>
+
+                    <!-- Bouton connexion -->
+                    <button type="submit" class="btn btn-light w-100">Se connecter</button>
+
+                    <!-- Lien création profil -->
+                    <div class="btn_cree_profil text-center mt-3">
+                        <a id="btn_cree_profil" href="#" class="text-light text-decoration-underline">Créer un nouveau profil</a>
+                    </div>
+                </form>
+            </div>
+            <!-- Colonne droite : image -->
+            <div class="col-md-6 p-0">
+                <img src="img/img1.jpg" alt="illustration" class="img-fluid h-100 w-100 object-fit-cover">
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Menu de création de compte -->
+<form id="cree_profil_page" class="formulaire">
+    <h2>Créer votre profil</h2>
+    <input type="text" id="nom" placeholder="Nom" required />
+    <input type="text" id="prenom" placeholder="Prénom" required />
+    <input type="text" id="pseudo" placeholder="Nom d'utilisateur (pseudo)" required />
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="mot_de_passe" placeholder="Mot de passe" required />
+    <button type="submit">Créer le profil</button>
+</form>
+
+<!-- Succes inscription page -->
+<div id="waiting_page" class="hidden success-card">
+    <h1>🎉 Inscription réussie, beauté ! 🎉</h1>
+    <p class="message">Bienvenue dans l'aventure. Ton compte est prêt !</p>
+    <div class="btn_succes_cree_profil">
+        <a id="btn_succes_cree_profil" href="#" class="button">Rejoindre la page d'acceuil</a>
+    </div>
+</div>
+
+<!-- Menu principale du joueur -->
+
+    <div id="game_home_page" class="hidden">
+        <header class="main-header">
+            <h1>Page principale</h1>
+        </header>
+
+        <section>
+            <header class="section-header">
+                <h2>Section spéciale</h2>
+            </header>
+            <p>Contenu de la section ici…</p>
+        </section>
+    </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

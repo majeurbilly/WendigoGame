@@ -1,0 +1,11 @@
+[ {
+  "nom" : "Hallé",
+  "prenom" : "Billy",
+  "email" : "billy.halle.bh@gmail.com",
+  "motDePasse" : "123"
+}, {
+  "nom" : "Hallé",
+  "prenom" : "Billy",
+  "email" : "billy.halle.bh@gmail.com",
+  "motDePasse" : "1234"
+} ]
