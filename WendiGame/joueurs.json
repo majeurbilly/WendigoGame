@@ -10,4 +10,10 @@
   "email" : "billy.halle.bh@gmail.com",
   "motDePasse" : "123",
   "pret" : true
+}, {
+  "nom" : "nom",
+  "prenom" : "prenom",
+  "email" : "lol@live.fr",
+  "motDePasse" : "123",
+  "pret" : true
 } ]
