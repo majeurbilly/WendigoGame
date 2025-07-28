@@ -1,5 +1,7 @@
 package com.devscast.wendigame.controller;
 
+import com.devscast.wendigame.config.WebSocketService;
+import com.devscast.wendigame.dto.CommandeDTO;
 import com.devscast.wendigame.model.Joueur;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -82,4 +84,17 @@ public class JoueurController {
         // À implémenter plus tard avec WebSocket ou Server Sent Events
         return ResponseEntity.ok("🔁 Rafraîchissement global déclenché !");
     }
+
+    @PostMapping("/lancerPartie")
+    public ResponseEntity<Void> lancerPartie(@RequestBody CommandeDTO commande) {
+        webSocketService.envoyerTous("lancer", "La partie commence !");
+        return ResponseEntity.ok().build();
+    }
+
+    private final WebSocketService webSocketService;
+
+    public JoueurController(WebSocketService webSocketService) {
+        this.webSocketService = webSocketService;
+    }
+
 }

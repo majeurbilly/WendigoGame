@@ -35,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             .then(joueur => {
                 console.log("🎮 Connecté :", joueur);
+                sessionStorage.setItem("prenom", joueur.prenom);
                 alert(`Bienvenue ${joueur.prenom} !`);
                 login_page.classList.add("hidden");
                 cree_profil_page.classList.add("hidden"); // 👈 ajoute cette ligne
