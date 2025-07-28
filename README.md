@@ -1,14 +1,38 @@
 ```
-/wendigo-game/
-│
-├── main.py                   # Lance le serveur FastAPI
-├── websocket_manager.py      # Gestion des connexions et des événements WebSocket
-├── game_manager.py           # Logique du jeu : rôles, tours, votes
-├── models/                   # Modèles Pydantic pour les données échangées
-│   └── player.py
-│   └── game_state.py
-├── database/                 # Connexion DB (SQLite, PostgreSQL…)
-│   └── actions_log.py
-├── static/                   # Front-end ou fichiers client (HTML, JS)
-└── templates/                # Pour Jinja si besoin d’un rendu côté serveur
+WendiGame/
+├── .gradle/
+├── .idea/
+├── build/
+├── gradle/
+├── src/
+│   └── main/
+│       ├── java/
+│       │   └── com/
+│       │       └── devscast/
+│       │           └── wendigame/
+│       │               ├── config/
+│       │               │   ├── JoueurService.java
+│       │               │   └── WebSocketService.java
+│       │               ├── controller/
+│       │               │   ├── ChatController.java
+│       │               │   ├── JoueurController.java
+│       │               │   └── LoginController.java
+│       │               ├── dto/
+│       │               │   └── CommandeDTO.java
+│       │               ├── model/
+│       │               │   ├── ChatMessage.java
+│       │               │   ├── Joueur.java
+│       │               │   └── PartieStatus.java
+│       │               └── WendiGameApplication.java
+│       └── resources/
+│           ├── static/
+│           │   ├── css/
+│           │   │   ├── main.css
+│           │   │   └── stryle.css
+│           │   ├── img/
+│           │   └── js/
+│           │       ├── lobby.js
+│           │       └── main.js
+│           └── index.html
+
 ```
