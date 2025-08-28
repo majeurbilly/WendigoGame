@@ -4,6 +4,8 @@ from starlette.websockets import WebSocket
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+logger.info("salut je suis connection_manager")
+
 
 # =============================================================================
 # 🔌 GESTIONNAIRE DE CONNEXIONS - LE CERVEAU DES CONNEXIONS

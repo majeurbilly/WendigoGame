@@ -29,7 +29,6 @@ from datetime import datetime
 import uvicorn
 
 from connection_manager import ConnectionManager
-
 # =============================================================================
 # 📝 CONFIGURATION DES LOGS (MESSAGES DE DEBUG)
 # =============================================================================
@@ -124,16 +123,7 @@ class Joueur(BaseModel):
     email: str                     # Email
     is_online: bool = False       # Est-il connecté ?
 
-# =============================================================================
-# 🔗 INTÉGRATION DES ROUTES API
-# =============================================================================
-# On importe toutes les routes API définies dans controllers.py
-# Ces routes gèrent les opérations CRUD (Créer, Lire, Modifier, Supprimer)
-from controllers import api_router
 
-# On ajoute ces routes à notre application
-# Toutes les routes commençant par /api seront gérées ici
-app.include_router(api_router)
 
 # =============================================================================
 # 🛣️ ROUTES DE BASE - LES PAGES PRINCIPALES

@@ -3,17 +3,17 @@
   "prenom" : "kelly",
   "email" : "billy.halle.bh@gmail.com",
   "motDePasse" : "123",
-  "pret" : true
+  "pret" : false
 }, {
   "nom" : "Hallé",
   "prenom" : "Billy",
   "email" : "billy.halle.bh@gmail.com",
   "motDePasse" : "123",
-  "pret" : true
+  "pret" : false
 }, {
   "nom" : "Hallé",
   "prenom" : "gui",
   "email" : "billy.halle.bh@gmail.com",
   "motDePasse" : "123",
-  "pret" : true
+  "pret" : false
 } ]

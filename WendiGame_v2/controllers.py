@@ -9,12 +9,23 @@ from models import (
     CommandeDTO, APIResponse, PartieStatus
 )
 from services import joueur_service, lobby_service, chat_service
-from main import manager
+from main import manager, app
+
+
 
 logger = logging.getLogger(__name__)
-
+logger.info("salut je suis controller")
 # Router principal
 api_router = APIRouter(prefix="/api", tags=["API"])
+
+
+# =============================================================================
+# 🔗 INTÉGRATION DES ROUTES API
+# =============================================================================
+# On ajoute ces routes à notre application
+# Toutes les routes commençant par /api seront gérées ici
+app.include_router(api_router)
+
 
 # ==================== ROUTES JOUEUR ====================
 
