@@ -1,0 +1,360 @@
+.lobby-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  min-height: 100vh;
+  color: #ffffff;
+}
+
+.lobby-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.lobby-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.game-description {
+  font-size: 1.1rem;
+  color: #b8b8b8;
+  margin-bottom: 20px;
+}
+
+.game-info {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.game-info span {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.lobby-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 30px;
+}
+
+/* Sélection des chaises */
+.chair-selection {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 25px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.chair-selection h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #4ecdc4;
+}
+
+.chairs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.chair {
+  aspect-ratio: 1;
+  border-radius: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.chair.available {
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  border-color: #3498db;
+}
+
+.chair.available:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(52, 152, 219, 0.3);
+  border-color: #5dade2;
+}
+
+.chair.occupied {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  border-color: #27ae60;
+  cursor: default;
+}
+
+.chair.my-chair {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  border-color: #e74c3c;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.chair-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.chair-available {
+  font-size: 0.8rem;
+  color: #bdc3c7;
+}
+
+.player-info {
+  text-align: center;
+}
+
+.player-name {
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+
+.player-ready {
+  font-size: 0.7rem;
+}
+
+.player-ready.ready {
+  color: #2ecc71;
+}
+
+.player-ready.not-ready {
+  color: #f39c12;
+}
+
+/* Liste des joueurs */
+.players-list {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 25px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.players-list h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #4ecdc4;
+}
+
+.players-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.player-card {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+}
+
+.player-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+}
+
+.player-details {
+  flex: 1;
+}
+
+.player-name {
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #ffffff;
+}
+
+.player-chair {
+  font-size: 0.8rem;
+  color: #b8b8b8;
+  margin-bottom: 3px;
+}
+
+.player-status {
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.player-status.ready {
+  color: #2ecc71;
+}
+
+.player-status.not-ready {
+  color: #f39c12;
+}
+
+.creator-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.2rem;
+  filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+}
+
+/* Actions du lobby */
+.lobby-actions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.action-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 150px;
+}
+
+.ready-button {
+  background: linear-gradient(45deg, #27ae60, #2ecc71);
+  color: white;
+}
+
+.ready-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(39, 174, 96, 0.4);
+}
+
+.start-button {
+  background: linear-gradient(45deg, #e74c3c, #c0392b);
+  color: white;
+  font-size: 1.1rem;
+  padding: 15px 30px;
+}
+
+.start-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+}
+
+.leave-button {
+  background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+  color: white;
+}
+
+.leave-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(149, 165, 166, 0.4);
+}
+
+/* Messages d'erreur */
+.error-message {
+  background: rgba(231, 76, 60, 0.2);
+  border: 1px solid #e74c3c;
+  color: #e74c3c;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.error-message button {
+  background: none;
+  border: none;
+  color: #e74c3c;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  text-align: center;
+  font-size: 1.5rem;
+  padding: 50px;
+  color: #4ecdc4;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .lobby-container {
+    padding: 10px;
+  }
+  
+  .lobby-header h1 {
+    font-size: 2rem;
+  }
+  
+  .chairs-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+  }
+  
+  .players-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .lobby-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .action-button {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-info {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .chairs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

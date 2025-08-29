@@ -48,7 +48,7 @@ async def register_user(
         new_user = User(
             username=user_data.username,
             email=user_data.email,
-            hashed_password=hashed_password,
+            password_hash=hashed_password,
             is_active=True
         )
         
@@ -76,7 +76,7 @@ async def login_user(
         # Rechercher l'utilisateur
         user = db.query(User).filter(User.username == login_data.username).first()
         
-        if not user or not verify_password(login_data.password, user.hashed_password):
+        if not user or not verify_password(login_data.password, user.password_hash):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Nom d'utilisateur ou mot de passe incorrect"
@@ -94,7 +94,7 @@ async def login_user(
         return {
             "access_token": access_token,
             "token_type": "bearer",
-            "user": UserResponse.from_orm(user)
+            "user": UserResponse.from_orm(user).dict()
         }
         
     except HTTPException:
@@ -116,7 +116,7 @@ async def login_user_form(
         # Rechercher l'utilisateur
         user = db.query(User).filter(User.username == form_data.username).first()
         
-        if not user or not verify_password(form_data.password, user.hashed_password):
+        if not user or not verify_password(form_data.password, user.password_hash):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Nom d'utilisateur ou mot de passe incorrect"
@@ -215,14 +215,14 @@ async def change_password(
     """Changer le mot de passe de l'utilisateur connecté"""
     try:
         # Vérifier l'ancien mot de passe
-        if not verify_password(current_password, current_user.hashed_password):
+        if not verify_password(current_password, current_user.password_hash):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Mot de passe actuel incorrect"
             )
         
         # Mettre à jour le mot de passe
-        current_user.hashed_password = get_password_hash(new_password)
+        current_user.password_hash = get_password_hash(new_password)
         
         db.commit()
         

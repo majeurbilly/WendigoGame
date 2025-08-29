@@ -66,7 +66,7 @@ const Dashboard: React.FC = () => {
   const handleJoinGame = async (gameId: string) => {
     try {
       await apiService.joinGame(gameId);
-      navigate(`/game/${gameId}`);
+      navigate(`/lobby/${gameId}`);
     } catch (error: any) {
       setError('Erreur lors de la connexion au jeu');
       console.error('Join game error:', error);
@@ -76,6 +76,10 @@ const Dashboard: React.FC = () => {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleGoHome = () => {
+    navigate('/');
   };
 
   const getStatusColor = (status: string) => {
@@ -125,9 +129,14 @@ const Dashboard: React.FC = () => {
           <h1>🐺 Wendigo Game</h1>
           <div className="user-info">
             <span>Bienvenue, {user?.username}!</span>
-            <button onClick={handleLogout} className="logout-button">
-              Déconnexion
-            </button>
+            <div className="user-actions">
+              <button onClick={handleGoHome} className="home-button">
+                🏠 Accueil
+              </button>
+              <button onClick={handleLogout} className="logout-button">
+                Déconnexion
+              </button>
+            </div>
           </div>
         </div>
       </header>

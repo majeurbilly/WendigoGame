@@ -36,6 +36,14 @@ class GameService:
     def create_game(self, game_data: GameCreate, creator_id: str) -> Game:
         """Créer un nouveau jeu"""
         try:
+            # Vérifier s'il y a déjà un lobby actif (un seul lobby global)
+            existing_game = self.db.query(Game).filter(
+                Game.status == GameStatus.LOBBY
+            ).first()
+            
+            if existing_game:
+                raise GameError("Impossible de créer un nouveau lobby - Il y en a déjà un en cours !")
+            
             # Vérifier les limites de joueurs
             if game_data.min_players < 8 or game_data.max_players > 29:
                 raise GameError("Le nombre de joueurs doit être entre 8 et 29")
@@ -49,8 +57,8 @@ class GameService:
                 description=game_data.description,
                 min_players=game_data.min_players,
                 max_players=game_data.max_players,
-                creator_id=creator_id,
-                status=GameStatus.CREATED,
+                created_by=creator_id,
+                status=GameStatus.LOBBY,
                 current_players=0
             )
             
@@ -72,7 +80,7 @@ class GameService:
                 raise GameError("Jeu non trouvé")
             
             # Vérifier le statut du jeu
-            if game.status != GameStatus.CREATED:
+            if game.status != GameStatus.LOBBY:
                 raise GameError("Impossible de rejoindre ce jeu")
             
             # Vérifier si le joueur est déjà dans le jeu
@@ -120,7 +128,7 @@ class GameService:
                 raise GameError("Jeu non trouvé")
             
             # Vérifier le statut du jeu
-            if game.status != GameStatus.CREATED:
+            if game.status != GameStatus.LOBBY:
                 raise GameError("Impossible de quitter ce jeu")
             
             # Trouver le joueur
@@ -173,7 +181,7 @@ class GameService:
                 raise GameError("Jeu non trouvé")
             
             # Vérifier le statut du jeu
-            if game.status != GameStatus.CREATED:
+            if game.status != GameStatus.LOBBY:
                 raise GameError("Impossible de sélectionner une chaise à ce stade")
             
             # Vérifier la position de la chaise
@@ -467,6 +475,33 @@ class GameService:
         return self.db.query(Player).filter(
             and_(Player.game_id == game_id, Player.user_id == user_id)
         ).first()
+    
+    def get_games(self, status_filter: Optional[str] = None, limit: int = 50, offset: int = 0) -> List[Game]:
+        """Récupérer la liste des jeux disponibles"""
+        try:
+            query = self.db.query(Game)
+            
+            # Filtrer par statut si spécifié
+            if status_filter:
+                if status_filter.upper() == "CREATED":
+                    query = query.filter(Game.status == GameStatus.LOBBY)
+                elif status_filter.upper() == "WAITING":
+                    query = query.filter(Game.status == GameStatus.WAITING)
+                elif status_filter.upper() == "ACTIVE":
+                    query = query.filter(Game.status == GameStatus.ACTIVE)
+                elif status_filter.upper() == "FINISHED":
+                    query = query.filter(Game.status == GameStatus.FINISHED)
+            
+            # Trier par date de création (plus récent en premier)
+            query = query.order_by(Game.created_at.desc())
+            
+            # Limiter et paginer
+            query = query.offset(offset).limit(limit)
+            
+            return query.all()
+            
+        except Exception as e:
+            raise GameError(f"Erreur lors de la récupération des jeux: {str(e)}")
     
     def can_start_game(self, game_id: str) -> bool:
         """Vérifier si un jeu peut être démarré"""

@@ -32,17 +32,21 @@ class GameManager:
         """Créer un nouveau lobby de jeu"""
         try:
             from app.services.game_service import get_game_service
+            from app.schemas.game import GameCreate
+            
             game_service = get_game_service(self.db)
             
-            return game_service.create_game(
+            # Créer l'objet GameCreate à partir des données
+            game_create = GameCreate(
                 name=game_data["name"],
                 description=game_data.get("description", ""),
                 min_players=game_data["min_players"],
-                max_players=game_data["max_players"],
-                creator_id=creator_id,
-                day_phase_duration=game_data.get("day_phase_duration", 10),
-                night_phase_duration=game_data.get("night_phase_duration", 5),
-                evening_phase_duration=game_data.get("evening_phase_duration", 3)
+                max_players=game_data["max_players"]
+            )
+            
+            return game_service.create_game(
+                game_data=game_create,
+                creator_id=creator_id
             )
             
         except Exception as e:
