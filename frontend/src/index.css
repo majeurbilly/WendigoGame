@@ -1,13 +1,30 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@import "tailwindcss";
+
+/* Vos styles personnalisés pour Wendigo Game */
+:root {
+  --wendigo-primary: #1a1a2e;
+  --wendigo-secondary: #16213e;
+  --wendigo-accent: #0f3460;
+  --wendigo-danger: #e94560;
+  --wendigo-success: #00b894;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: linear-gradient(135deg, var(--wendigo-primary), var(--wendigo-secondary));
+  color: white;
+  min-height: 100vh;
+}
+
+/* Animations pour les phases de jeu */
+.phase-transition {
+  transition: all 0.5s ease-in-out;
+}
+
+.phase-day {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+}
+
+.phase-night {
+  background: linear-gradient(135deg, #2c3e50, #34495e);
 }
