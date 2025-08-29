@@ -18,6 +18,7 @@
 - **Interface claire** : Affichage des rôles, chat structuré, votes organisés
 - **Équilibrage parfait** : Attribution automatique des rôles selon le nombre de joueurs
 - **📱 Système de vibration séquentielle** : Réveil aléatoire des joueurs la nuit
+- **🪑 Système de sélection de chaises** : Interface numérique pour valider la position physique
 
 **Résultat :** Le meilleur des deux mondes - la richesse sociale du jeu de table avec la précision et l'organisation du numérique !
 
@@ -51,91 +52,123 @@ WendiGame/
 #### 🐺 **Équipe des Méchants (Loups)**
 1. **Skinwalker** - Loup métamorphe *old*
    - Pouvoir : Peut voter avec les autres loups pour tuer un joueur la nuit.
+   - Phase d'action : La nuit
 
 2. **Bouc Émissaire** - Loup sacrifié *old*
    - Pouvoir : Connaît l'identité des autres loups mais ne peut pas voter avec eux.
+   - Phase d'action : La nuit
 
 3. **Warlord** - Chef de guerre *old*
    - Ne fait pas partie du groupe des Loups mais gagne avec eux. Peut une fois par partie protéger un Loup d'une attaque, et connaît l'identité des Loups.
+   - Phase d'action : Le jour
 
 4. **Sbire** - Serviteur loyal *new*
    - Pouvoir : Ne fait pas partie du groupe des loups mais gagne avec eux. Peut une fois par partie protéger un loup d'une attaque.
+   - Phase d'action : Aucune
 
 5. **Marchand de Sable** - Maître des rêves *new*
-   - Pouvoir : Peut endormir un joueur par nuit, l'empêchant d'utiliser son pouvoir.
+   - Pouvoir : Peut endormir le village et passé pardessus la phase d'accusation. Donc on passe de la phase de jour a la phase de nuit directement. Une fois activé durant la nuit le pouvoir sera actif au prochain tour.
+   - Phase d'action : La nuit
 
 6. **Pestiféré** - Loup maudit *old*
    - Pouvoir : Sa morsure contamine : si sa cible decide de ne pas ce suicidé, elle devient infectée et rejoint les loups au bout de 2 nuits.
+   - Phase d'action : La nuit
 
 #### 🛡️ **Équipe des Villageois (Défenseurs)**
 1. **Voyante** - Détective *old*
    - Pouvoir : Peut révéler l'identité d'un joueur et la connaitre
+   - Phase d'action : La nuit
 
 2. **Épouvantail** - Protecteur des champs *old*
-   - Pouvoir : Peut protéger un joueur chaque nuit contre une attaque.
+   - Pouvoir : Peut protéger une fois par partie les deux joueur assit a sa gauche et a sa droite contre une attaque.       
+   - Phase d'action : La nuit
+
 
 3. **Corbeau** - Messager nocturne *old*
    - Pouvoir : Peut désigner un joueur chaque nuit ; ce joueur reçoit un vote supplémentaire automatique au prochain conseil.
+   - Phase d'action : La nuit
+
 
 4. **Renard** - Chasseur rusé *old*
-   - Pouvoir : Peut flairer 3 joueurs au cours de la partie pour savoir si un loup est parmi eux.
+   - Pouvoir : Peut flairer les 3 joueurs a sa gauche 1 fois durant la partie pour savoir si un loup est parmi eux.
+   - Phase d'action : La nuit
+
 
 5. **Rêveur** - Voyant des songes *old*
    - Chaque nuit, peut voir quel joueur est désigné par les Loups comme cible.
+   - Phase d'action : Le jour
 
 6. **Poltergeist** - Esprit perturbateur *old*
-   - Une fois mort, peut s'exprimer à voix haute la première nuit suivant sa mort pour semer la confusion.
+   - Il peut dessigner un joueur et ouvrir un chat privé avec cette personne tout le long de la partie, mais une fois mort.
+   - Phase d'action : La jour
 
 7. **Coroner** - Expert médico-légal *old*
    - Pouvoir : Une fois par partie, lorsqu'un joueur meurt, il peut déterminer si la mort a été causée par un Méchant ou un Villageois.
+   - Phase d'action : La jour
 
 8. **Psychopompe** - Guide des âmes *old*
    - Pouvoir : Une fois par partie, peut prendre aléatoirement le pouvoir d'un joueur mort et l'utiliser pendant la nuit suivante.
+   - Phase d'action : La nuit
 
 9. **Ensorceleuse** - Magicienne de charme *erreur*
    - Pouvoir : Peut hanter un joueur chaque nuit, ce qui empêche son pouvoir de fonctionner.
+   - Phase d'action : La nuit
 
 10. **Sorcière** - Guérisseuse *old*
     - Pouvoir : Au début de la partie, choisit Potion de protection (devient Villageois) ou Poison (devient Méchant).
+    - Phase d'action : La nuit
 
 11. **Chaperon** - Protectrice des innocents *old*
     - Pouvoir : Ne peut pas mourir tant que le Chasseur est en vie. Si le Chasseur meurt, elle perd cette immunité.
+    - Phase d'action : Aucune
 
 12. **Chasseur** - Combattant principal *old*
     - Pouvoir : Quand il est tué (par les loups ou par vote), il peut immédiatement abattre un joueur de son choix.
+    - Phase d'action : A sa mort
 
 13. **Jumeaux** - Duo inséparable *old*
-    - Pouvoir : Les deux connaissent leur identité mutuelle dès le début.
+    - Pouvoir : Les deux connaissent leur identité mutuelle dès le début. Et on un chat privé ensemble.
+    - Phase d'action : Aucune
 
 14. **Insomniaque** - Veilleur nocturne *old*
-    - Pouvoir : Peut espionner un joueur chaque nuit pour savoir si cette personne a utilisé son pouvoir (active) ou non (inactive). Insensible aux pouvoirs qui endorment (ex. Marchand de sable)
+    - Pouvoir : Peut espionner un joueur chaque nuit pour savoir si cette personne a utilisé son pouvoir (active) ou non (inactive) durant cette nuit. Insensible aux pouvoirs qui endorment (ex. Marchand de sable)
+    - Phase d'action : La nuit
 
 15. **Courtisane** - Séductrice *old*
     - Pouvoir : Chaque nuit, peut dormir chez un joueur voisin ; si ce joueur est un Loup elle meurt, sinon elle est protégée si les Loups la ciblent.
+    - Phase d'action : La nuit
 
 16. **Salvateur** - Sauveur de l'humanité *old* 
     - Pouvoir : Une fois par partie, peut ramener un joueur à la vie.
+    - Phase d'action : La nuit
 
 17. **Avocat du Diable** - Défenseur controversé *new*
     - Pouvoir : Peut choisir un joueur par jour et annuler les votes contre lui. Si le joueur protégé est un loup, il meurt lui-même à la place.
+    - Phase d'action : La nuit
 
 18. **Guerrier** - Combattant d'élite *new*
-    - Pouvoir : Peut défier un joueur en duel (la nuit). Si c'est un loup, le loup meurt. S'il échoue, il tuera un villageois.
+    - Pouvoir : Peut défier un joueur en duel (la nuit). Si c'est un loup, le loup meurt. S'il échoue, il tuera un villageois et perdera son pouvoir. Si il reussit il retrouvera son pouvoir.
+    - Phase d'action : La nuit
 
 19. **Curieux** - Investigateur *erreur*
     - Pouvoir : Peut une fois par partie obtenir directement le rôle exact d'un joueur.
+    - Phase d'action : La jour
 
 20. **Médium** - Communique avec les morts *old*
-    - Pouvoir : Peut poser une question à un joueur mort, qui doit répondre du mieux possible à sa connaissance.
+    - Pouvoir : Peut avoir acces au chat des fantome de facon anonyme. Les autres dans le chat ne seront pas qui est le joueur.
+    - Phase d'action : Aucune
 
 21. **Ancien** - Sage du village *old*
     - Pouvoir : Connaît au début de la partie le nombre exact de joueurs Méchants vivants, et perd cette information une fois mort.
+    - Phase d'action : Aucune
 
 22. **Garde du Corps** - Protecteur personnel *new*
     - Pouvoir : Peut protéger un joueur contre toute attaque une fois par partie.
+    - Phase d'action : La nuit
 
 23. **Shérif** - Gardien de la loi *new*
     - Pouvoir : Peut désigner un joueur par jour et le mettre en prison (ne vote pas, ne joue pas la nuit).
+    - Phase d'action : La jour
 
 #### 👻 **Rôle Post-Mortem - Fantôme**
 **Fantôme** - Esprit du village *new*
@@ -178,6 +211,7 @@ Une partie de WendiGame suit une boucle précise qui transforme le jeu classique
 - **Sortie du lobby** : Tous les joueurs quittent automatiquement le lobby
 - **Interface de jeu** : Redirection vers l'interface de partie
 - **Attribution des rôles** : Distribution aléatoire des 29 rôles selon le nombre de joueurs
+- **Système de chaises** : Les joueurs doivent sélectionner la chaise où ils sont physiquement assis
 
 #### **La boucle de base**
 ```
@@ -186,7 +220,38 @@ Sinon → Fin de Partie
 ```
 
 #### **Phase Jour (Social) - 10 minutes**
-Les joueurs discutent librement, échangent des informations et préparent leurs accusations. C'est le moment de la stratégie d'équipe et des premières suspicions.
+**Système de Sélection de Chaises :**
+- **Disposition physique** : Les chaises sont disposées en cercle dans la pièce
+- **Nombre de chaises** : Exactement le même nombre que de joueurs vivants
+- **Sélection de chaise** : Chaque joueur doit sélectionner la chaise où il est physiquement assis
+- **Interface numérique** : Les chaises sont numérotées et affichées à l'écran
+- **Sélection unique** : Un joueur ne peut sélectionner qu'une seule chaise à la fois
+- **Timing de sélection** : Les chaises ne deviennent sélectionnables qu'à partir de 8 minutes de la phase Jour
+- **Chaises exclusives** : Une fois qu'un joueur sélectionne une chaise, elle devient indisponible pour les autres joueurs
+- **Défaut de sélection** : Si un joueur n'a pas sélectionné sa chaise dans les 2 dernières minutes, il est exclu de la phase d'accusation mais peut toujours être mis sur le bûcher
+
+**Processus de Sélection :**
+1. **Arrivée physique** : Les joueurs s'assoient sur les chaises disposées en cercle
+2. **Connexion numérique** : Chaque joueur se connecte et rejoint le lobby
+3. **Attente de sélection** : Les chaises ne sont pas encore sélectionnables (0-8 minutes)
+4. **Ouverture de sélection** : À 8 minutes, les chaises deviennent sélectionnables
+5. **Sélection de chaise** : Le joueur sélectionne le numéro de la chaise où il est assis
+6. **Confirmation et verrouillage** : La sélection est validée, la chaise devient indisponible pour les autres
+7. **Fin de sélection** : À 10 minutes, toutes les sélections sont définitives
+
+**Conséquences de la Non-Sélection :**
+- **Exclusion du vote d'accusation** : Le joueur ne peut pas voter pour accuser quelqu'un
+- **Vulnérabilité au bûcher** : Il peut toujours être accusé et mis sur le bûcher par les autres
+- **Participation limitée** : Il peut discuter mais pas participer activement aux accusations
+
+**Avantages de ce Système :**
+- **Lien physique-numérique** : Connexion directe entre l'espace physique et l'interface
+- **Stratégie de placement** : Les joueurs peuvent choisir leur position stratégiquement
+- **Gestion des absences** : Les chaises vides correspondent aux joueurs morts
+- **Immersion renforcée** : L'espace physique devient partie intégrante du jeu
+- **Course contre la montre** : Les 2 dernières minutes créent une tension stratégique
+- **Choix irréversible** : Une fois sélectionnée, la chaise est verrouillée pour les autres
+- **Coordination d'équipe** : Les joueurs doivent se coordonner pour ne pas se bloquer mutuellement
 
 #### **Phase Soir (Accusations Dynamiques)**
 **Système de vote d'accusation :**
@@ -414,6 +479,10 @@ On annonce les morts de la nuit. Le village se réorganise avec les nouvelles in
 - **Flexibilité** : Possibilité de jouer avec ou sans certains aspects numériques
 - **Historique complet** : Traçabilité totale de tous les événements de la partie
 - **Analyse post-partie** : Possibilité de revoir et analyser les moments clés
+- **Immersion physique** : L'espace et le placement deviennent partie intégrante du jeu
+- **Stratégie spatiale** : Les joueurs peuvent choisir leur position pour des avantages tactiques
+- **Tension temporelle** : Les 2 dernières minutes créent une course contre la montre stratégique
+- **Coordination d'équipe** : Les joueurs doivent se coordonner pour ne pas se bloquer mutuellement
 
 ## 📱 Interface Frontend - Expérience Mobile-First
 
@@ -465,9 +534,19 @@ Wendigo Game est conçu comme une **application web responsive mobile-first** qu
   - **Actif** : Pouvoir utilisable
   - **Cooldown** : Pouvoir en recharge
 
+#### **Système de Sélection de Chaises**
+- **Interface de chaises** : Affichage des chaises numérotées disposées en cercle
+- **Sélection de chaise** : Interface pour choisir la chaise où le joueur est physiquement assis
+- **Timing de sélection** : Les chaises ne deviennent sélectionnables qu'à partir de 8 minutes de la phase Jour
+- **Chaises exclusives** : Une fois sélectionnée, une chaise devient indisponible pour les autres joueurs
+- **Validation de sélection** : Confirmation visuelle de la chaise sélectionnée
+- **Gestion des conflits** : Prévention de la sélection de la même chaise par plusieurs joueurs
+- **Timer de sélection** : Compte à rebours des 2 dernières minutes pour finaliser la sélection
+- **Indicateur de disponibilité** : Affichage visuel des chaises disponibles/occupées
+
 #### **Système de Bûcher et Votes**
 - **Bûcher d'accusation** : Affichage en temps réel des votes d'accusation
-- **Vote d'accusation** : Interface pour voter contre un joueur
+- **Vote d'accusation** : Interface pour voter contre un joueur (uniquement pour ceux ayant sélectionné une chaise)
 - **Défense** : Zone de défense pour le joueur sur le bûcher
 - **Vote de condamnation** : Interface pour tuer ou épargner
 - **Historique des votes** : Accès à tous les votes passés et présents
@@ -823,37 +902,7 @@ class GameManager:
 
 ## 🚀 Démarrage Rapide
 
-### Installation
-```bash
-# Cloner le projet
-git clone <repository>
-cd WendiGame_v2
-
-# Méthode moderne recommandée avec uv
-uv sync
-uv run main.py
-
-# Ou avec uv directement (sans sync préalable)
-uv run main.py
-
-# Méthode legacy avec pip (non recommandée)
-python -m venv venv
-source venv/bin/activate  # ou venv\Scripts\activate sur Windows
-pip install fastapi uvicorn websockets
-python main.py
-```
-
-### Test
-```bash
-# Ouvrir dans le navigateur
-http://localhost:8000
-
-# Avec uv (recommandé)
-uv run main.py
-
-# Ou avec port spécifique
-uv run --port 8000 main.py
-```
+Voir le [README principal](../README.md) pour les instructions de démarrage.
 
 ## 🤝 Contribution
 
