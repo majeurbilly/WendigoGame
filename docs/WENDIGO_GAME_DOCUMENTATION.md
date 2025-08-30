@@ -485,40 +485,83 @@ On annonce les morts de la nuit. Le village se réorganise avec les nouvelles in
 - **Tension temporelle** : Les 2 dernières minutes créent une course contre la montre stratégique
 - **Coordination d'équipe** : Les joueurs doivent se coordonner pour ne pas se bloquer mutuellement
 
-## 📱 Interface Frontend - Expérience Mobile-First
+## 📱 Interface Frontend - Expérience Mobile-First avec Callstack
 
 ### 🎯 **Vue d'ensemble de l'Interface**
 
 Wendigo Game est conçu comme une **application web responsive mobile-first** qui offre une expérience de jeu immersive et intuitive pour les joueurs de Loup-Garou. L'interface est optimisée pour les téléphones cellulaires via le navigateur, avec un design moderne et des animations fluides.
 
-### 🚀 **Architecture de l'Interface**
+### 🧩 **Architecture Callstack - Composants Réutilisables**
 
-#### **1. Page de Connexion**
-- **Bouton de connexion** pour les utilisateurs existants
-- **Bouton de création de compte** pour les nouveaux joueurs
+Notre frontend utilise l'architecture **Callstack** pour créer des composants hautement réutilisables et maintenables. Cette approche nous permet de :
+
+- **Développer rapidement** avec des composants prêts à l'emploi
+- **Maintenir la cohérence** visuelle dans toute l'application
+- **Faciliter les tests** avec des composants isolés
+- **Réduire la duplication** de code
+
+#### **Structure Callstack Recommandée**
+```
+src/
+├── components/
+│   ├── common/           # Composants génériques Callstack
+│   │   ├── Button.tsx    # Bouton avec variantes (primary, secondary, danger, success, ghost)
+│   │   ├── Card.tsx      # Conteneur avec variantes (elevated, flat, interactive)
+│   │   ├── Modal.tsx     # Popup modal réutilisable
+│   │   ├── Input.tsx     # Champs de saisie stylisés
+│   │   ├── Badge.tsx     # Badges et étiquettes
+│   │   └── index.ts      # Exports centralisés
+│   ├── game/             # Composants spécifiques au jeu
+│   │   ├── PhaseIndicator.tsx  # Indicateur de phase jour/nuit
+│   │   ├── PlayerCard.tsx      # Carte de joueur avec rôles
+│   │   ├── ChairSelector.tsx   # Sélecteur de chaises en cercle
+│   │   ├── VoteSystem.tsx      # Système de vote et bûcher
+│   │   ├── ChatSystem.tsx      # Chat restreint (loups/fantômes)
+│   │   └── index.ts      # Exports centralisés
+│   ├── auth/             # Composants d'authentification
+│   │   ├── LoginForm.tsx # Formulaire de connexion
+│   │   ├── RegisterForm.tsx # Formulaire d'inscription
+│   │   └── index.ts      # Exports centralisés
+│   └── lobby/            # Composants de lobby
+│       ├── LobbyList.tsx # Liste des lobbys disponibles
+│       ├── LobbyChat.tsx # Chat de lobby
+│       ├── PlayerList.tsx # Liste des joueurs dans le lobby
+│       └── index.ts      # Exports centralisés
+```
+
+### 🚀 **Architecture de l'Interface avec Callstack**
+
+#### **1. Page de Connexion - Composants Callstack**
+- **`LoginForm`** : Formulaire de connexion avec validation
+- **`RegisterForm`** : Formulaire d'inscription avec validation
+- **`Button`** (variante primary) : Boutons d'action
+- **`Card`** (variante elevated) : Conteneur du formulaire
+- **`Input`** : Champs de saisie stylisés
 - Design épuré et accueillant
 
-#### **2. Système de Lobby**
-- **Affichage des lobbys disponibles** avec statut (ouvert/fermé)
-- **Création de lobby personnalisé** :
-  - Définition du nombre minimum/maximum de joueurs
-  - Paramètres de jeu configurables
-- **Rejoindre n'importe quel lobby ouvert**
+#### **2. Système de Lobby - Composants Callstack**
+- **`LobbyList`** : Affichage des lobbys disponibles avec statut (ouvert/fermé)
+- **`LobbyChat`** : Chat en temps réel dans le lobby
+- **`PlayerList`** : Liste des joueurs avec statut "Prêt"
+- **`Button`** (variantes) : Créer lobby, rejoindre, confirmer prêt
+- **`Card`** (variante interactive) : Cartes de lobby cliquables
+- **`Modal`** : Configuration des paramètres de lobby
+- **`Badge`** : Indicateurs de statut (ouvert, fermé, plein)
 - **Remplissage progressif** du lobby en temps réel
 - **Système de confirmation** : chaque joueur confirme qu'il est prêt
 - **Vérification automatique** des conditions de début de partie
 - **Redirection automatique** vers l'interface de partie
 
-### 🎯 **Interface de Partie - Écran Principal**
+### 🎯 **Interface de Partie - Écran Principal avec Callstack**
 
-#### **Header Épuré**
+#### **Header Épuré - Composants Callstack**
 - **Logo du jeu** (coin supérieur gauche)
-- **Menu hamburger discret** (≡) en haut à droite
+- **Menu hamburger discret** (≡) en haut à droite avec **`Modal`** pour le menu
 - Design minimaliste et professionnel
 
-#### **Zone Centrale - Cœur du Jeu**
-- **Nom du joueur** affiché clairement
-- **Phase actuelle** avec indicateur visuel :
+#### **Zone Centrale - Cœur du Jeu - Composants Callstack**
+- **`PlayerCard`** : Affichage du nom du joueur et informations personnelles
+- **`PhaseIndicator`** : Phase actuelle avec indicateur visuel :
   - 🌞 **Jour** (10:00) - Interface claire et lumineuse
   - 🌙 **Nuit** (30s) - Interface sombre et bleutée
 - **Compteur de phase** :
@@ -526,17 +569,17 @@ Wendigo Game est conçu comme une **application web responsive mobile-first** qu
   - Chiffres en temps réel
   - Animation de décompte avec changement de couleur
 
-#### **Boutons Principaux - Interface Mobile-First**
-- **Zone Notes** : Accès aux notes personnelles sur les joueurs
-- **Fiche Personnelle** : Informations du joueur (nom, rôle, équipe, couleur)
-- **Règles du Jeu** : Guide complet et accessible
-- **Bouton Action** : Utilisation des pouvoirs selon la phase
+#### **Boutons Principaux - Interface Mobile-First - Composants Callstack**
+- **`Button`** (variante ghost) : Zone Notes - Accès aux notes personnelles sur les joueurs
+- **`Button`** (variante secondary) : Fiche Personnelle - Informations du joueur (nom, rôle, équipe, couleur)
+- **`Button`** (variante secondary) : Règles du Jeu - Guide complet et accessible
+- **`Button`** (variante primary/danger) : Bouton Action - Utilisation des pouvoirs selon la phase
   - **Bloqué** : Pouvoir non disponible (affichage visuel)
   - **Actif** : Pouvoir utilisable
   - **Cooldown** : Pouvoir en recharge
 
-#### **Système de Sélection de Chaises**
-- **Interface de chaises** : Affichage des chaises numérotées disposées en cercle
+#### **Système de Sélection de Chaises - Composants Callstack**
+- **`ChairSelector`** : Interface de chaises numérotées disposées en cercle
 - **Sélection de chaise** : Interface pour choisir la chaise où le joueur est physiquement assis
 - **Timing de sélection** : Les chaises ne deviennent sélectionnables qu'à partir de 8 minutes de la phase Jour
 - **Chaises exclusives** : Une fois sélectionnée, une chaise devient indisponible pour les autres joueurs
@@ -545,14 +588,15 @@ Wendigo Game est conçu comme une **application web responsive mobile-first** qu
 - **Timer de sélection** : Compte à rebours des 2 dernières minutes pour finaliser la sélection
 - **Indicateur de disponibilité** : Affichage visuel des chaises disponibles/occupées
 
-#### **Système de Bûcher et Votes**
-- **Bûcher d'accusation** : Affichage en temps réel des votes d'accusation
+#### **Système de Bûcher et Votes - Composants Callstack**
+- **`VoteSystem`** : Bûcher d'accusation avec affichage en temps réel des votes
 - **Vote d'accusation unique** : Interface pour voter contre un joueur (une seule accusation par jour)
-- **Plaidoirie** : Zone de plaidoirie pour le joueur sur le bûcher (1 minute)
-- **Vote de condamnation** : Interface pour tuer ou épargner
+- **Plaidoirie** : Zone de plaidoirie pour le joueur sur le bûcher (1 minute) avec **`Modal`**
+- **Vote de condamnation** : Interface pour tuer ou épargner avec **`Button`** (variantes primary/danger)
 - **Historique des votes** : Accès à tous les votes passés et présents
 
-#### **Système de Chat Restreint**
+#### **Système de Chat Restreint - Composants Callstack**
+- **`ChatSystem`** : Gestion centralisée de tous les types de chat
 - **Chat des vivants** : Désactivé pendant la partie (seulement en lobby)
 - **Chat des loups** : Accessible uniquement aux loups pendant la phase Jour (1 message/jour, max 15 caractères)
 - **Chat des fantômes** : Accessible uniquement aux joueurs morts (Fantômes)
@@ -560,36 +604,37 @@ Wendigo Game est conçu comme une **application web responsive mobile-first** qu
 - **Communication stratégique** : Les Fantômes peuvent discuter entre eux
 - **Influence indirecte** : Les Fantômes peuvent observer et influencer les vivants
 
-#### **Système d'Historique Complet de Partie**
-- **Journal des événements** : Tous les coups, actions et événements sont enregistrés
+#### **Système d'Historique Complet de Partie - Composants Callstack**
+- **`GameHistory`** : Journal des événements avec tous les coups, actions et événements enregistrés
 - **Timeline interactive** : Navigation chronologique dans l'historique de la partie
-- **Filtres intelligents** : Recherche par phase, joueur, type d'action ou résultat
+- **Filtres intelligents** : Recherche par phase, joueur, type d'action ou résultat avec **`Input`** et **`Badge`**
 - **Détails complets** : Chaque action avec son contexte, timing et impact
 - **Statistiques en temps réel** : Compteurs de votes, actions réussies/échouées
-- **Export de partie** : Possibilité de sauvegarder l'historique complet
+- **Export de partie** : Possibilité de sauvegarder l'historique complet avec **`Button`** (variante secondary)
 
-### 🍔 **Menu Hamburger Complet**
+### 🍔 **Menu Hamburger Complet - Composants Callstack**
 
-#### **Navigation Principale**
-- **Règles du jeu** : Guide complet et détaillé
-- **Notes personnelles** : Système de prise de notes avancé
-- **Fiches joueurs** : Profils détaillés de tous les participants
-- **Historique de partie** : Timeline complète des événements et actions
-- **Statistiques** : Métriques et compteurs en temps réel
-- **Bouton pouvoir** : Accès rapide aux capacités
-- **Déconnexion** : Sortie sécurisée du jeu
+#### **Navigation Principale - Composants Callstack**
+- **`Modal`** : Conteneur principal du menu hamburger
+- **`Button`** (variante ghost) : Règles du jeu - Guide complet et détaillé
+- **`Button`** (variante ghost) : Notes personnelles - Système de prise de notes avancé
+- **`Button`** (variante ghost) : Fiches joueurs - Profils détaillés de tous les participants
+- **`Button`** (variante ghost) : Historique de partie - Timeline complète des événements et actions
+- **`Button`** (variante ghost) : Statistiques - Métriques et compteurs en temps réel
+- **`Button`** (variante primary) : Bouton pouvoir - Accès rapide aux capacités
+- **`Button`** (variante danger) : Déconnexion - Sortie sécurisée du jeu
 
-#### **Système de Notes Avancé**
-- **Nom complet du joueur** sélectionné
-- **Zone de notes personnelles** (champ texte libre)
-- **Sélecteur de rôle suspecté** avec émojis :
+#### **Système de Notes Avancé - Composants Callstack**
+- **`Input`** : Nom complet du joueur sélectionné
+- **`Input`** (textarea) : Zone de notes personnelles (champ texte libre)
+- **Sélecteur de rôle suspecté** avec émojis utilisant **`Badge`** :
   - 👨‍🌾 Villageois
   - 🧛 Loup-Garou
   - 🔮 Voyante
   - 🛡️ Garde
   - 🧪 Sorcière
   - Et autres rôles...
-- **Sauvegarde automatique** des notes
+- **`Button`** (variante success) : Sauvegarde automatique des notes
 - **Persistance** : les notes restent même si la phase change
 
 ## 📱 **Système de Vibration Séquentielle - Réveil Aléatoire des Joueurs**
