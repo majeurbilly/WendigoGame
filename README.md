@@ -1,21 +1,92 @@
-# 🐺 Wendigo Game - Jeu de Loup-Garou Hybride
+```
+### **📋 Étape 4 : Démarrage du Développement**
+
+```bash
+# Démarrer le développement mobile
+npm run dev:mobile
+
+# Démarrer le développement web
+npm run dev:web
+
+# Ou avec yarn
+yarn dev:mobile
+yarn dev:web
+```
+
+### **�� Composants Prioritaires à Développer**
+
+#### **Semaine 1-2 : Composants de Base**
+1. **Button.tsx** - Bouton avec 5 variantes
+2. **Card.tsx** - Conteneur réutilisable
+3. **Modal.tsx** - Fenêtres modales
+4. **Input.tsx** - Champs de saisie
+
+#### **Semaine 3-4 : Composants de Jeu**
+1. **PhaseIndicator.tsx** - Indicateur jour/nuit
+2. **PlayerCard.tsx** - Cartes des joueurs
+3. **ChairSelector.tsx** - Sélecteur de chaises
+4. **VoteSystem.tsx** - Système de vote
+
+### **🔧 Commandes de Test**
+
+```bash
+# Test sur mobile
+npm run dev:mobile
+
+# Test sur web
+npm run dev:web
+
+# Test sur Android
+cd mobile && expo start --android
+
+# Test sur iOS
+cd mobile && expo start --ios
+```
+
+### **📊 Structure Finale Obtenue**
+
+✅ **Dossiers créés** : `shared`, `mobile`, `web`  
+✅ **Composants organisés** : `common`, `game`, `auth`, `lobby`  
+✅ **Structure mobile** : `screens`, `navigation`, `services`  
+✅ **Structure web** : `pages`, `services`  
+✅ **Fichiers de base** : `App.tsx`, `package.json` partout  
+
+### **🎉 Félicitations !**
+
+Vous avez maintenant une **structure React Native unifiée complète** qui vous permettra de :
+
+- **Développer une seule fois** et déployer partout
+- **Partager 95% du code** entre mobile et web
+- **Maintenir la cohérence** visuelle sur toutes les plateformes
+- **Optimiser les performances** natives sur mobile
+
+**Voulez-vous que je vous aide à :**
+1. **Configurer les package.json** avec le contenu approprié ?
+2. **Développer un composant de base** (comme Button.tsx) ?
+3. **Configurer Expo** pour le développement ?
+4. **Autre chose** de spécifique ?
+
+# 🐺 Wendigo Game - Jeu de Loup-Garou Hybride avec Architecture React Native Unifiée
 
 ## 📋 Vue d'ensemble
 
-Wendigo Game est un jeu de loup-garou innovant qui combine les avantages du jeu physique traditionnel avec la puissance du numérique. Avec 29 rôles uniques et actifs, le jeu offre une expérience immersive et équilibrée grâce à une gestion automatique des phases, des pouvoirs et de l'équilibrage.
+**Wendigo Game** est un jeu de loup-garou révolutionnaire qui combine les avantages du jeu physique traditionnel avec la puissance du numérique. Avec **29 rôles uniques et actifs**, le jeu offre une expérience immersive et équilibrée grâce à une gestion automatique des phases, des pouvoirs et de l'équilibrage.
+
+**🎯 Innovation majeure :** Architecture **React Native unifiée** qui permet de développer une seule fois et déployer partout (mobile Android/iOS + web) avec **95% de code partagé**.
 
 ## 🎯 Fonctionnalités Principales
 
 ### ✅ **29 Rôles Uniques et Actifs**
-- Aucun rôle passif - tous les joueurs participent activement
-- Système de pouvoirs équilibré et automatique
-- Rôles spécialisés avec des mécaniques uniques
+- **Aucun rôle passif** - tous les joueurs participent activement
+- **Système de pouvoirs équilibré** et automatique
+- **Rôles spécialisés** avec des mécaniques uniques
+- **Équilibrage dynamique** selon le nombre de joueurs (8-29)
 
-### ✅ **Architecture Hybride**
-- **Backend** : FastAPI + SQLAlchemy + WebSockets
-- **Frontend** : React + TypeScript + WebSockets
-- **Base de données** : PostgreSQL (production) / SQLite (développement)
-- **Containerisation** : Docker + Docker Compose
+### ✅ **Architecture Hybride Unifiée Révolutionnaire**
+- **Backend** : .NET Core + Entity Framework + SignalR
+- **Frontend** : **React Native + React Native Web** (code unifié)
+- **Base de données** : SQL Server (production) / LocalDB (développement)
+- **Cross-platform** : Mobile (Android/iOS) + Web avec **une seule base de code**
 
 ### ✅ **Systèmes de Jeu Avancés**
 - **Lobby System** : Gestion des parties et des joueurs
@@ -28,31 +99,82 @@ Wendigo Game est un jeu de loup-garou innovant qui combine les avantages du jeu 
 
 ## 🏗️ Architecture Technique
 
-### **Backend (FastAPI)**
+### **Backend (.NET Core)**
 ```
 backend/
-├── app/
-│   ├── api/v1/           # Endpoints API REST
-│   ├── core/             # Configuration et utilitaires
-│   ├── models/           # Modèles SQLAlchemy
-│   ├── schemas/          # Schémas Pydantic
-│   ├── services/         # Logique métier
-│   └── websocket/        # Gestion WebSocket
-├── data/                 # Données initiales
-└── pyproject.toml        # Configuration Python
+├── Wendigame.API/           # Projet principal .NET Core
+│   ├── Controllers/         # Endpoints API REST
+│   ├── Models/              # Modèles Entity Framework
+│   ├── Data/                # Contexte de base de données
+│   ├── Services/            # Logique métier
+│   ├── Hubs/                # Hubs SignalR pour temps réel
+│   └── Program.cs           # Point d'entrée
+└── README.md
 ```
 
-### **Frontend (React)**
+### **Frontend Unifié (React Native + React Native Web)**
 ```
 frontend/
-├── src/
-│   ├── components/       # Composants React
-│   ├── context/          # Contexts React
-│   ├── services/         # Services API et WebSocket
-│   ├── types/            # Types TypeScript
-│   └── App.tsx           # Application principale
-├── public/               # Assets statiques
-└── package.json          # Configuration Node.js
+├── shared/                    # Code partagé entre mobile et web
+│   ├── components/            # Composants React Native communs
+│   │   ├── common/           # Composants de base (Button, Card, Modal, Input, Badge)
+│   │   ├── game/             # Composants de jeu (PhaseIndicator, PlayerCard, ChairSelector, VoteSystem, ChatSystem, GameHistory)
+│   │   ├── auth/             # Composants d'authentification (LoginForm, RegisterForm)
+│   │   └── lobby/            # Composants de lobby (LobbyList, LobbyChat, PlayerList)
+│   ├── types/                 # Types TypeScript partagés
+│   ├── utils/                 # Utilitaires communs
+│   └── constants/             # Constantes partagées
+├── mobile/                    # Application React Native
+│   ├── src/
+│   │   ├── screens/          # Écrans spécifiques au mobile
+│   │   ├── navigation/       # Navigation mobile (React Navigation)
+│   │   └── services/         # Services adaptés au mobile
+│   ├── App.tsx               # Point d'entrée mobile
+│   └── package.json          # Dépendances React Native
+└── web/                       # Version web avec React Native Web
+    ├── src/
+    │   ├── pages/            # Pages web spécifiques
+    │   └── services/         # Services adaptés au web
+    ├── App.tsx               # Point d'entrée web
+    └── package.json          # Dépendances React Native Web
+```
+
+## 🚀 **NOUVELLE ARCHITECTURE REACT NATIVE UNIFIÉE**
+
+### **🌟 Pourquoi cette Approche Révolutionnaire ?**
+
+**Objectif Principal :** Permettre à **tous les joueurs d'ouvrir une URL et de jouer immédiatement**, tout en préparant le terrain pour des applications mobiles natives immersives.
+
+**Stratégie de Déploiement :**
+1. **Phase 1 (Immédiate)** : Site web accessible via URL (95% du besoin couvert)
+2. **Phase 2 (Long terme)** : Applications App Store/Play Store pour immersion totale
+3. **Progression naturelle** : Du web vers le mobile natif
+
+### **🎯 Avantages de React Native + Web :**
+
+**1. Codebase Unique :**
+- **Un seul codebase** pour développer les composants de jeu
+- **Partage de code** entre mobile et web (95% de code commun)
+- **Développement centralisé** : Une seule équipe, une seule base de code
+
+**2. Écosystème Riche :**
+- **React Native Web** traduit automatiquement les composants RN en HTML
+- **Expo** gère Android, iOS et Web avec le même projet
+- **Libraries compatibles** : Callstack, UI kits, etc.
+
+**3. Expérience Native :**
+- **API Vibration** native pour le système de réveil séquentiel
+- **Performance native** : Pas de WebView lourd comme Cordova
+- **Rendu natif** : Interface fluide et responsive
+
+### **🔄 Workflow de Développement :**
+```
+1. Développement React Native → Composants de jeu
+2. Ajout de React Native Web → Traduction automatique en HTML
+3. Test sur Web → Validation des fonctionnalités
+4. Test sur Mobile → Validation de l'expérience native
+5. Déploiement Web → Accès immédiat pour tous
+6. Publication Mobile → Expérience immersive complète
 ```
 
 ## 📋 **PRÉREQUIS - Ce dont vous avez besoin**
@@ -60,10 +182,12 @@ frontend/
 ### **💻 Votre ordinateur :**
 - ✅ **Windows 10/11** ou **macOS** ou **Linux**
 - ✅ **Connexion Internet** (pour télécharger les dépendances)
-- ✅ **2 Go d'espace libre** minimum
+- ✅ **4 Go d'espace libre** minimum (pour le développement)
 
 ### **🔧 Logiciels nécessaires :**
-- ✅ **Python 3.8+** (sera installé automatiquement si manquant)
+- ✅ **.NET 10.0 SDK** (sera installé automatiquement si manquant)
+- ✅ **Node.js 18+** (pour React Native et Expo)
+- ✅ **Expo CLI** (sera installé automatiquement)
 - ✅ **Navigateur web** (Chrome, Firefox, Edge, Safari...)
 
 ### **🧠 Votre niveau technique :**
@@ -101,19 +225,24 @@ frontend/
 
 ## **🪟 WINDOWS - Guide pas à pas (Recommandé pour débutants)**
 
-### **Étape 1 : Vérifier que vous avez Python**
+### **Étape 1 : Vérifier que vous avez .NET**
 1. **Ouvrez PowerShell** (appuyez sur `Windows + R`, tapez `powershell`, appuyez sur `Entrée`)
-2. **Tapez cette commande** : `python --version`
-3. **Si vous voyez une version** (ex: Python 3.11.0) → ✅ Parfait !
-4. **Si vous voyez une erreur** → [Téléchargez Python ici](https://www.python.org/downloads/)
+2. **Tapez cette commande** : `dotnet --version`
+3. **Si vous voyez une version** (ex: 10.0.0) → ✅ Parfait !
+4. **Si vous voyez une erreur** → [Téléchargez .NET ici](https://dotnet.microsoft.com/download)
 
-### **Étape 2 : Démarrer Wendigo Game en 1 clic !**
+### **Étape 2 : Vérifier Node.js**
+1. **Tapez cette commande** : `node --version`
+2. **Si vous voyez une version** (ex: v18.0.0) → ✅ Parfait !
+3. **Si vous voyez une erreur** → [Téléchargez Node.js ici](https://nodejs.org/)
+
+### **Étape 3 : Démarrer Wendigo Game en 1 clic !**
 1. **Double-cliquez** sur le fichier `start.ps1` dans le dossier WendigoGame
 2. **Ou ouvrez PowerShell** dans le dossier et tapez : `.\start.ps1 local`
 3. **Attendez** que le message "Wendigo Game est maintenant démarré" apparaisse
 4. **C'est tout !** 🎉
 
-### **Étape 3 : Ouvrir le jeu dans votre navigateur**
+### **Étape 4 : Ouvrir le jeu dans votre navigateur**
 1. **Ouvrez votre navigateur** (Chrome, Firefox, Edge...)
 2. **Tapez** : `http://localhost:3000`
 3. **Appuyez sur Entrée**
@@ -123,20 +252,25 @@ frontend/
 
 ## **🍎 MAC / 🐧 LINUX - Guide pas à pas**
 
-### **Étape 1 : Vérifier Python**
+### **Étape 1 : Vérifier .NET**
 1. **Ouvrez le Terminal** (Mac : `Cmd + Espace`, tapez "Terminal")
-2. **Tapez** : `python3 --version`
+2. **Tapez** : `dotnet --version`
 3. **Si vous voyez une version** → ✅ Parfait !
-4. **Si vous voyez une erreur** → [Téléchargez Python ici](https://www.python.org/downloads/)
+4. **Si vous voyez une erreur** → [Téléchargez .NET ici](https://dotnet.microsoft.com/download)
 
-### **Étape 2 : Démarrer Wendigo Game**
+### **Étape 2 : Vérifier Node.js**
+1. **Tapez** : `node --version`
+2. **Si vous voyez une version** → ✅ Parfait !
+3. **Si vous voyez une erreur** → [Téléchargez Node.js ici](https://nodejs.org/)
+
+### **Étape 3 : Démarrer Wendigo Game**
 1. **Ouvrez le Terminal** dans le dossier WendigoGame
 2. **Tapez** : `chmod +x start.sh` (rend le script exécutable)
 3. **Tapez** : `./start.sh local`
 4. **Attendez** le message de succès
 5. **C'est tout !** 🎉
 
-### **Étape 3 : Ouvrir le jeu**
+### **Étape 4 : Ouvrir le jeu**
 1. **Ouvrez votre navigateur**
 2. **Tapez** : `http://localhost:3000`
 3. **Appuyez sur Entrée**
@@ -159,6 +293,9 @@ WendigoGame/
 ├── docker-compose.yml    ← VOUS DEVEZ VOIR CE FICHIER
 ├── backend/
 ├── frontend/
+│   ├── shared/
+│   ├── mobile/
+│   └── web/
 ├── start.ps1
 └── README.md
 ```
@@ -171,7 +308,7 @@ docker-compose up -d
 
 **Cette commande va :**
 - 🏗️ **Construire** les images Docker (backend + frontend)
-- 🗄️ **Démarrer** PostgreSQL (base de données)
+- 🗄️ **Démarrer** SQL Server (base de données)
 - 🔴 **Démarrer** Redis (cache)
 - 🌐 **Démarrer** Nginx (serveur web)
 - ⏱️ **Prendre 2-5 minutes** la première fois
@@ -186,17 +323,17 @@ docker-compose ps
 ```
 Name                Command               State           Ports
 --------------------------------------------------------------------------------
-wendigo-backend     uvicorn app.main:app ...   Up      0.0.0.0:8000->8000/tcp
-wendigo-frontend    npm start                 Up      0.0.0.0:3000->3000/tcp
-wendigo-db          docker-entrypoint.sh ...  Up      0.0.0.0:5432->5432/tcp
+wendigo-backend     dotnet Wendigame.API.dll ...   Up      0.0.0.0:8000->8000/tcp
+wendigo-web         npm start                 Up      0.0.0.0:3000->3000/tcp
+wendigo-db          /opt/mssql/bin/sqlservr  Up      0.0.0.0:5432->5432/tcp
 wendigo-redis       docker-entrypoint.sh ...  Up      0.0.0.0:6379->6379/tcp
 wendigo-nginx       /docker-entrypoint.sh ... Up      0.0.0.0:80->80/tcp
 ```
 
 ### **🎮 Étape 4 : Accéder à l'application**
-- **🎮 Frontend** : http://localhost:3000
+- **🎮 Frontend Web** : http://localhost:3000
 - **🔧 Backend API** : http://localhost:8000
-- **📚 Documentation API** : http://localhost:8000/docs
+- **📚 Documentation API** : http://localhost:8000/swagger
 - **🗄️ Base de données** : localhost:5432
 - **🔴 Redis** : localhost:6379
 
@@ -244,7 +381,7 @@ docker-compose logs -f
 
 # Voir les logs d'un service spécifique
 docker-compose logs -f backend
-docker-compose logs -f frontend
+docker-compose logs -f web
 
 # Redémarrer un service
 docker-compose restart backend
@@ -262,10 +399,10 @@ docker stats
 ### **❌ Erreur "Le port 8000 est déjà utilisé"**
 **Solution** : Fermez tous les navigateurs et programmes, puis relancez `.\start.ps1 local`
 
-### **❌ Erreur "Python n'est pas reconnu"**
-**Solution** : [Téléchargez Python](https://www.python.org/downloads/) et **cochez "Add Python to PATH"**
+### **❌ Erreur ".NET n'est pas reconnu"**
+**Solution** : [Téléchargez .NET](https://dotnet.microsoft.com/download) et **cochez "Add .NET to PATH"**
 
-### **❌ Erreur "npm n'est pas reconnu"**
+### **❌ Erreur "node n'est pas reconnu"**
 **Solution** : [Téléchargez Node.js](https://nodejs.org/) et redémarrez votre ordinateur
 
 ### **❌ Le navigateur affiche "Impossible d'accéder au site"**
@@ -286,7 +423,7 @@ docker stats
 ## **📱 LIENS UTILES**
 
 - **🎮 Jouer** : http://localhost:3000
-- **📚 Documentation API** : http://localhost:8000/docs
+- **📚 Documentation API** : http://localhost:8000/swagger
 - **🔧 Backend** : http://localhost:8000
 
 ---
@@ -322,84 +459,102 @@ docker stats
 ## 📚 Documentation
 
 ### **Documentation Technique**
-- [📖 Documentation Backend](docs/BACKEND_README.md)
-- [🎨 Documentation Frontend](frontend/README.md)
-- [🏗️ Architecture SOLID](docs/ARCHITECTURE_SOLID_IMPLEMENTATION.md)
-- [📋 Roadmap Détaillée](docs/ROADMAP_DETAILED.md)
+- [📖 Documentation Backend .NET Core](docs/backend_info.md)
+- [🎨 Documentation Frontend React Native](docs/frontend.md)
+- [🧩 Architecture React Native](docs/components_react_reutilisable.md)
+- [🚀 Approche React Native + Web](docs/react_native_web_approach.md)
+- [📋 Documentation Complète du Jeu](docs/WENDIGO_GAME_DOCUMENTATION.md)
 
 ### **Documentation du Jeu**
 - [🎮 Règles du Jeu](docs/WENDIGO_GAME_DOCUMENTATION.md)
-- [📊 Guide des Rôles](docs/ROLES_GUIDE.md)
+- [📊 Guide des Rôles](docs/WENDIGO_GAME_DOCUMENTATION.md)
 
 ## 🎮 Les 29 Rôles
 
-### **Équipe Villageois**
-1. **Villageois** - Rôle de base
-2. **Voyante** - Voir les rôles la nuit
-3. **Sorcière** - Potions de vie et de mort
-4. **Chasseur** - Action post-mortem
-5. **Petite Fille** - Peut espionner les loups
-6. **Salvateur** - Protège un joueur chaque nuit
-7. **Cupidon** - Lie deux joueurs
-8. **Voleur** - Échange de rôle
-9. **Idiot du Village** - Survit à une condamnation
-10. **Ancien** - Résiste à une attaque
-11. **Berger** - Protège un joueur
-12. **Chevrier** - Détecte les loups
-13. **Enfant Sauvage** - Se transforme en loup
-14. **Garde** - Protection renforcée
-15. **Médium** - Communique avec les morts
+### **🐺 Équipe des Méchants (Loups)**
+1. **Skinwalker** - Loup métamorphe
+2. **Bouc Émissaire** - Loup sacrifié
+3. **Warlord** - Chef de guerre
+4. **Sbire** - Serviteur loyal
+5. **Marchand de Sable** - Maître des rêves
+6. **Pestiféré** - Loup maudit
 
-### **Équipe Loups**
-16. **Loup-Garou** - Rôle de base
-17. **Loup Blanc** - Tue un loup par nuit
-18. **Grand Méchant Loup** - Tue deux joueurs
-19. **Loup-Garou Alpha** - Contrôle les votes
-20. **Loup-Garou Omega** - Invisible aux pouvoirs
+### **🛡️ Équipe des Villageois (Défenseurs)**
+1. **Voyante** - Détective
+2. **Épouvantail** - Protecteur des champs
+3. **Corbeau** - Messager nocturne
+4. **Renard** - Chasseur rusé
+5. **Rêveur** - Voyant des songes
+6. **Poltergeist** - Esprit perturbateur
+7. **Coroner** - Expert médico-légal
+8. **Psychopompe** - Guide des âmes
+9. **Ensorceleuse** - Magicienne de charme
+10. **Sorcière** - Guérisseuse
+11. **Chaperon** - Protectrice des innocents
+12. **Chasseur** - Combattant principal
+13. **Jumeaux** - Duo inséparable
+14. **Insomniaque** - Veilleur nocturne
+15. **Courtisane** - Séductrice
+16. **Salvateur** - Sauveur de l'humanité
+17. **Avocat du Diable** - Défenseur controversé
+18. **Guerrier** - Combattant d'élite
+19. **Curieux** - Investigateur
+20. **Médium** - Communique avec les morts
+21. **Ancien** - Sage du village
+22. **Garde du Corps** - Protecteur personnel
+23. **Shérif** - Gardien de la loi
 
-### **Rôles Neutres**
-21. **Loup Solitaire** - Joue seul
-22. **Renard** - Détecte les loups
-23. **Guerrier** - Duel à mort
-24. **Avocat du Diable** - Protection risquée
-25. **Chaperon Rouge** - Immunité conditionnelle
-26. **Jumeaux** - Communication privée
-27. **Poltergeist** - Chat privé avec les morts
-28. **Marchand de Sable** - Skip de phase
-29. **Pestiféré** - Contamination
+### **👻 Rôle Post-Mortem - Fantôme**
+**Fantôme** - Esprit du village (transformation automatique à la mort)
 
 ## 🔧 Configuration
 
 ### **Variables d'Environnement**
 
-#### **Backend (.env)**
-```env
-DATABASE_URL=postgresql://user:password@localhost/wendigo_game
-SECRET_KEY=your-secret-key
-DEBUG=true
-BACKEND_CORS_ORIGINS=["http://localhost:3000"]
+#### **Backend (.NET Core)**
+```json
+// appsettings.json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=WendigoGame;Trusted_Connection=true"
+  },
+  "Jwt": {
+    "Key": "your-secret-key",
+    "Issuer": "wendigo-game",
+    "Audience": "wendigo-game-users"
+  }
+}
 ```
 
-#### **Frontend (.env.local)**
+#### **Frontend (React Native + Web)**
 ```env
-REACT_APP_API_URL=http://localhost:8000/api/v1
-REACT_APP_WS_URL=ws://localhost:8000/api/v1/ws
+# .env
+REACT_APP_API_URL=http://localhost:8000/api
+REACT_APP_SIGNALR_URL=http://localhost:8000/gamehub
 ```
 
 ## 🧪 Tests
 
-### **Backend**
+### **Backend (.NET Core)**
 ```bash
-cd backend
-pytest
-pytest --cov=app
+cd backend/Wendigame.API
+dotnet test
+dotnet test --collect:"XPlat Code Coverage"
 ```
 
-### **Frontend**
+### **Frontend (React Native + Web)**
 ```bash
-cd frontend
+# Tests des composants partagés
+cd frontend/shared
 npm test
-npm test -- --coverage
+
+# Tests de la version web
+cd frontend/web
+npm test
+
+# Tests de l'application mobile
+cd frontend/mobile
+npm test
 ```
 
 ## 🚀 Déploiement
@@ -415,40 +570,54 @@ docker-compose -f docker-compose.prod.yml up -d
 
 ### **Déploiement Manuel**
 ```bash
-# Backend
-cd backend
-pip install -r requirements.txt
-gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker
+# Backend .NET Core
+cd backend/Wendigame.API
+dotnet publish -c Release
+dotnet Wendigame.API.dll
 
-# Frontend
-cd frontend
+# Frontend Web
+cd frontend/web
 npm run build
 serve -s build -l 3000
+
+# Application Mobile
+cd frontend/mobile
+expo build:android
+expo build:ios
 ```
 
 ## 🔧 Résolution des Problèmes Courants
 
-### **Backend ne démarre pas**
+### **Backend .NET Core ne démarre pas**
 ```bash
-# Erreur "ModuleNotFoundError: No module named 'app'"
-cd backend
-python init_db.py  # Initialiser la base de données
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+# Erreur "Connection string not found"
+cd backend/Wendigame.API
+dotnet ef database update  # Mettre à jour la base de données
+dotnet run
+
+# Erreur "Port already in use"
+netstat -ano | findstr :8000
+taskkill /PID <PID> /F
 ```
 
-### **Frontend ne démarre pas**
+### **Frontend React Native ne démarre pas**
 ```bash
 # Erreur "Missing script: start"
-cd frontend
+cd frontend/web
 npm install  # Réinstaller les dépendances
 npm start
+
+# Erreur Expo
+cd frontend/mobile
+npm install
+expo start
 ```
 
 ### **Base de données corrompue**
 ```bash
-cd backend
-del wendigo_game.db  # Supprimer la base
-python init_db.py    # Recréer la base
+cd backend/Wendigame.API
+dotnet ef database drop  # Supprimer la base
+dotnet ef database update  # Recréer la base
 ```
 
 ### **Ports déjà utilisés**
@@ -465,9 +634,9 @@ kill -9 <PID>                 # Linux/Mac
 ## 🔒 Sécurité
 
 - **Authentification JWT** avec tokens sécurisés
-- **Validation des données** avec Pydantic
+- **Validation des données** avec Data Annotations
 - **CORS configuré** pour les origines autorisées
-- **Hachage des mots de passe** avec bcrypt
+- **Hachage des mots de passe** avec ASP.NET Core Identity
 - **Protection CSRF** et XSS
 
 ## 📊 Monitoring
@@ -479,12 +648,12 @@ docker-compose logs -f
 
 # Logs spécifiques
 docker-compose logs -f backend
-docker-compose logs -f frontend
+docker-compose logs -f web
 ```
 
 ### **Métriques**
 - **Backend** : http://localhost:8000/health
-- **Base de données** : Monitoring PostgreSQL
+- **Base de données** : Monitoring SQL Server
 - **Frontend** : Métriques de performance
 
 ## 🤝 Contribution
@@ -497,7 +666,7 @@ docker-compose logs -f frontend
 5. **Ouvrir** une Pull Request
 
 ### **Standards de Code**
-- **Backend** : PEP 8, Type hints, Docstrings
+- **Backend** : C# conventions, XML documentation, Unit tests
 - **Frontend** : ESLint, Prettier, TypeScript strict
 - **Tests** : Couverture > 80%
 - **Documentation** : Mise à jour obligatoire
@@ -505,16 +674,17 @@ docker-compose logs -f frontend
 ## 🎯 État Actuel du Projet
 
 ### **✅ Ce qui est terminé et fonctionnel :**
-- **Backend complet** : API REST, services, modèles, base de données
-- **Frontend complet** : Interface React, authentification, dashboard
+- **Backend complet** : API .NET Core, services, modèles, base de données
+- **Architecture unifiée** : Structure React Native + React Native Web
 - **Base de données** : Initialisée avec 2 équipes et 29 rôles
 - **Infrastructure** : Scripts de démarrage, Docker, documentation
 - **Logique de jeu** : Tous les systèmes de base implémentés
 
 ### **🚧 En cours de développement :**
-- Tests automatisés
-- Optimisations de performance
-- Déploiement production
+- Composants React Native partagés
+- Application mobile avec Expo
+- Version web avec React Native Web
+- Tests automatisés cross-platform
 
 ### **🎮 Application prête à l'utilisation :**
 L'application Wendigo Game est **entièrement fonctionnelle** et peut être utilisée pour :
@@ -526,54 +696,53 @@ L'application Wendigo Game est **entièrement fonctionnelle** et peut être util
 ## 📋 Roadmap
 
 ### **Phase 1 : Fondations** ✅
-- [x] Architecture backend FastAPI
-- [x] Base de données et modèles SQLAlchemy
+- [x] Architecture backend .NET Core
+- [x] Base de données et modèles Entity Framework
 - [x] Authentification JWT
 - [x] API REST complète
 - [x] Services de logique métier
 - [x] Gestion des exceptions personnalisées
 
-### **Phase 2 : Frontend** ✅
-- [x] Application React TypeScript
-- [x] Interface d'authentification (Login/Register)
-- [x] Dashboard principal
-- [x] Design responsive et moderne
-- [x] Services API et WebSocket
-- [x] Contexts React pour la gestion d'état
+### **Phase 2 : Architecture Unifiée** 🚧
+- [x] Structure React Native + React Native Web
+- [ ] Composants partagés (Button, Card, Modal, etc.)
+- [ ] Composants de jeu (PhaseIndicator, PlayerCard, etc.)
+- [ ] Tests unitaires des composants partagés
 
-### **Phase 3 : Logique de Jeu** ✅
-- [x] Système de lobby et gestion des parties
-- [x] Attribution des rôles (29 rôles uniques)
-- [x] Gestion des phases (Jour, Soir, Nuit)
-- [x] Système de pouvoirs et d'actions
-- [x] Gestion des votes et accusations
-- [x] Système de chat et communications
+### **Phase 3 : Application Mobile** 🚧
+- [ ] Configuration Expo
+- [ ] Navigation mobile avec React Navigation
+- [ ] Écrans spécifiques au mobile
+- [ ] Intégration des APIs natives (Vibration, Notifications)
 
-### **Phase 4 : Infrastructure** ✅
-- [x] Base de données initialisée avec données de base
-- [x] Scripts de démarrage automatisés
-- [x] Configuration Docker et Docker Compose
-- [x] Structure de projet complète
-- [x] Documentation technique détaillée
+### **Phase 4 : Version Web** 🚧
+- [ ] Configuration React Native Web
+- [ ] Adaptation des composants pour le web
+- [ ] Pages web spécifiques
+- [ ] Optimisation des performances web
 
-### **Phase 5 : Tests et Déploiement** 🚧
-- [ ] Tests automatisés (unitaires, intégration)
-- [ ] CI/CD pipeline
-- [ ] Déploiement production
-- [ ] Monitoring et observabilité
-- [ ] Optimisations de performance
+### **Phase 5 : Intégration et Tests** 🚧
+- [ ] Tests cross-platform
+- [ ] Optimisation des performances
+- [ ] Gestion des différences plateforme
+
+### **Phase 6 : Déploiement et Publication** 🚧
+- [ ] Build de production web
+- [ ] Build des applications mobiles
+- [ ] Déploiement et publication
 
 ## 📞 Support
 
 ### **Ressources**
-- **Documentation Backend** : [docs/BACKEND_README.md](docs/BACKEND_README.md)
-- **Documentation Frontend** : [frontend/README.md](frontend/README.md)
-- **Documentation Architecture** : [docs/ARCHITECTURE_SOLID_IMPLEMENTATION.md](docs/ARCHITECTURE_SOLID_IMPLEMENTATION.md)
-- **Issues GitHub** : Rapport de bugs et demandes de fonctionnalités
+- **Documentation Backend** : [docs/backend_info.md](docs/backend_info.md)
+- **Documentation Frontend** : [docs/frontend.md](docs/frontend.md)
+- **Architecture React Native** : [docs/components_react_reutilisable.md](docs/components_react_reutilisable.md)
+- **Approche React Native + Web** : [docs/react_native_web_approach.md](docs/react_native_web_approach.md)
+- **Documentation Complète** : [docs/WENDIGO_GAME_DOCUMENTATION.md](docs/WENDIGO_GAME_DOCUMENTATION.md)
 
 ### **État du Projet**
-- **Version** : 1.0.0 (Beta)
-- **Statut** : Application fonctionnelle et prête à l'utilisation
+- **Version** : 3.0.0 (React Native + React Native Web)
+- **Statut** : Architecture unifiée en cours de développement
 - **Dernière mise à jour** : Août 2025
 
 ### **Contact et Communauté**
@@ -588,12 +757,12 @@ Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
 ## 🙏 Remerciements
 
 - **Communauté Werewolf** pour l'inspiration
-- **FastAPI** pour le backend performant
-- **React** pour l'interface utilisateur
+- **.NET Core** pour le backend performant
+- **React Native** pour l'interface utilisateur unifiée
 - **Tous les contributeurs** du projet
 
 ---
 
-**Wendigo Game** - Révolutionnez votre expérience de jeu de loup-garou ! 🐺✨
+**Wendigo Game** - Révolutionnez votre expérience de jeu de loup-garou avec une architecture React Native unifiée ! 🐺✨
 
 *Développé avec ❤️ par l'équipe Wendigo Game*

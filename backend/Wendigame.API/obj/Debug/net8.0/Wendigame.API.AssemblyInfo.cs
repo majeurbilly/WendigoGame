@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Wendigame.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f7ef1b678188e9fd2ee565423d229b39f77a009c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+df749c2fdd788f21aec6ae29f467e393520b382f")]
 [assembly: System.Reflection.AssemblyProductAttribute("Wendigame.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Wendigame.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

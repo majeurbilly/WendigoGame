@@ -31,19 +31,446 @@
 
 ## 🏗️ Architecture du Projet
 
-### Versions Existantes
+### 🚨 **ATTENTION : Frontend Réinitialisé**
+
+**Le frontend a été complètement réinitialisé** - tous les fichiers sont vides (0 bytes). La structure des dossiers est préservée mais tous les composants et configurations doivent être recréés.
+
+### **État Actuel du Frontend**
+
+```
+frontend/
+├── shared/                    # Code partagé entre mobile et web
+│   ├── components/           # Tous les composants sont VIDES (0 bytes)
+│   ├── types/                # Types TypeScript VIDES
+│   ├── utils/                # Utilitaires VIDES
+│   └── constants/            # Constantes VIDES
+├── mobile/                    # Application React Native
+│   ├── src/                  # Dossiers vides
+│   ├── App.tsx               # 0 bytes
+│   └── package.json          # 0 bytes
+├── web/                       # Version web
+│   ├── src/                  # Dossiers vides
+│   ├── App.tsx               # 0 bytes
+│   └── package.json          # 0 bytes
+└── package.json               # 0 bytes
+```
+
+### **Approche Prévue : React Native + React Native Web**
+
+**Objectif** : Créer une solution unifiée qui couvre à la fois les applications mobiles (Android + iOS) et le web avec une seule base de code.
+
+#### **🎯 Avantages de React Native + Web :**
+
+**1. Codebase Unique :**
+- **Un seul codebase** pour développer les composants de jeu
+- **Partage de code** entre mobile et web (95% de code commun)
+- **Développement centralisé** : Une seule équipe, une seule base de code
+
+**2. Écosystème Riche :**
+- **React Native Web** traduit automatiquement les composants RN en HTML
+- **Expo** gère Android, iOS et Web avec le même projet
+- **Libraries compatibles** : Callstack, UI kits, etc.
+
+**3. Expérience Native :**
+- **API Vibration** native pour le système de réveil séquentiel
+- **Performance native** : Pas de WebView lourd comme Cordova
+- **Rendu natif** : Interface fluide et responsive
+
+**4. Stratégie de Déploiement :**
+- **Objectif immédiat** : Site web accessible via URL (95% du besoin couvert)
+- **Objectif long terme** : Applications App Store/Play Store pour immersion totale
+- **Progression naturelle** : Du web vers le mobile natif
+
+### **Versions Existantes**
 - **v1** : Java Spring Boot + React (complexe)
 - **v2** : Python FastAPI + WebSockets (intermédiaire)
-- **v3** : **Version simplifiée** (objectif)
+- **v3** : **React Native + React Native Web** (nouvelle approche unifiée) - **EN COURS DE RECONSTRUCTION**
 
-### Structure Actuelle
+### **Structure Prévue (Après Reconstruction)**
 ```
 WendiGame/
-├── WendiGame/          # v1 - Java Spring Boot
-├── WendiGame_v2/       # v2 - Python FastAPI
-├── FastAPIProject/     # Projet FastAPI séparé
-└── README.md          # Ce fichier
+├── backend/              # API .NET Core (inchangée)
+├── shared/               # Code partagé entre mobile et web
+│   ├── components/       # Composants React Native communs
+│   ├── types/            # Types TypeScript partagés
+│   └── utils/            # Utilitaires communs
+├── mobile/               # Application React Native
+│   ├── src/
+│   │   ├── screens/      # Écrans de l'application
+│   │   ├── navigation/   # Navigation mobile
+│   │   └── services/     # Services et API
+│   ├── App.tsx           # Point d'entrée mobile
+│   └── package.json      # Dépendances React Native
+├── web/                  # Version web avec React Native Web
+│   ├── src/
+│   │   ├── pages/        # Pages web spécifiques
+│   │   └── services/     # Services adaptés au web
+│   ├── App.tsx           # Point d'entrée web
+│   └── package.json      # Dépendances React Native Web
+└── shared/               # Code partagé entre mobile et web
+    ├── components/       # Composants communs
+    ├── types/            # Types TypeScript partagés
+    └── utils/            # Utilitaires communs
 ```
+
+## 🚀 **Instructions de Reconstruction du Frontend**
+
+### **Étape 1 : Initialisation du Projet**
+
+```bash
+# Naviguer vers le dossier frontend
+cd frontend
+
+# Initialiser le projet principal
+npm init -y
+
+# Installer les dépendances React Native
+npm install react react-native react-native-web expo expo-cli
+
+# Installer les dépendances de développement
+npm install --save-dev @types/react @types/react-native typescript
+```
+
+### **Étape 2 : Configuration TypeScript**
+
+Créer `tsconfig.json` dans `frontend/` :
+
+```json
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "lib": ["dom", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "shared/**/*",
+    "mobile/**/*",
+    "web/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
+```
+
+### **Étape 3 : Configuration Expo**
+
+Créer `app.json` dans `frontend/` :
+
+```json
+{
+  "expo": {
+    "name": "Wendigo Game",
+    "slug": "wendigo-game",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1e293b"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1e293b"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
+```
+
+### **Étape 4 : Reconstruction des Composants**
+
+#### **4.1 Composants Communs (`shared/components/common/`)**
+
+**Button.tsx** - Bouton réutilisable avec variantes :
+```typescript
+import React from 'react';
+import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+
+interface ButtonProps {
+  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  onPress: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+  style?: ViewStyle;
+  textStyle?: TextStyle;
+}
+
+const Button: React.FC<ButtonProps> = ({
+  variant = 'primary',
+  size = 'md',
+  onPress,
+  disabled = false,
+  children,
+  style,
+  textStyle
+}) => {
+  return (
+    <TouchableOpacity
+      style={[
+        styles.button,
+        styles[variant],
+        styles[size],
+        disabled && styles.disabled,
+        style
+      ]}
+      onPress={onPress}
+      disabled={disabled}
+      activeOpacity={0.8}
+    >
+      <Text style={[styles.text, styles[`${variant}Text`], textStyle]}>
+        {children}
+      </Text>
+    </TouchableOpacity>
+  );
+};
+
+const styles = StyleSheet.create({
+  button: {
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  // Variantes
+  primary: {
+    backgroundColor: '#dc2626',
+  },
+  secondary: {
+    backgroundColor: '#475569',
+  },
+  danger: {
+    backgroundColor: '#dc2626',
+  },
+  success: {
+    backgroundColor: '#16a34a',
+  },
+  ghost: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#64748b',
+  },
+  // Tailles
+  sm: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  md: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  lg: {
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+  },
+  // États
+  disabled: {
+    opacity: 0.5,
+  },
+  // Texte
+  text: {
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  primaryText: {
+    color: '#ffffff',
+  },
+  secondaryText: {
+    color: '#ffffff',
+  },
+  dangerText: {
+    color: '#ffffff',
+  },
+  successText: {
+    color: '#ffffff',
+  },
+  ghostText: {
+    color: '#64748b',
+  },
+});
+
+export default Button;
+```
+
+#### **4.2 Types TypeScript (`shared/types/index.ts`)**
+
+```typescript
+// Types de base du jeu
+export interface Player {
+  id: string;
+  name: string;
+  role: Role;
+  isAlive: boolean;
+  isReady: boolean;
+  selectedChair?: number;
+  team: 'village' | 'wolves';
+  color: string;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description: string;
+  team: 'village' | 'wolves';
+  power: string;
+  isActive: boolean;
+}
+
+export interface Game {
+  id: string;
+  status: 'waiting' | 'playing' | 'finished';
+  phase: 'day' | 'night';
+  timeRemaining: number;
+  totalTime: number;
+  players: Player[];
+  currentPlayer?: Player;
+  selectedChair?: number;
+  round: number;
+  maxRounds: number;
+}
+
+export interface Lobby {
+  id: string;
+  name: string;
+  maxPlayers: number;
+  currentPlayers: number;
+  status: 'open' | 'full' | 'playing';
+  hostId: string;
+  players: Player[];
+  settings: GameSettings;
+}
+
+export interface GameSettings {
+  maxPlayers: number;
+  timeLimit: number;
+  allowSpectators: boolean;
+  customRoles: boolean;
+}
+
+export interface ChatMessage {
+  id: string;
+  playerId: string;
+  playerName: string;
+  message: string;
+  timestamp: Date;
+  type: 'lobby' | 'game' | 'wolves' | 'ghosts' | 'medium';
+}
+
+export interface Vote {
+  id: string;
+  voterId: string;
+  targetId: string;
+  type: 'accusation' | 'condemnation';
+  timestamp: Date;
+}
+```
+
+### **Étape 5 : Configuration des Applications**
+
+#### **5.1 Application Mobile (`mobile/`)**
+
+**package.json** :
+```json
+{
+  "name": "wendigo-game-mobile",
+  "version": "1.0.0",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "expo": "~50.0.0",
+    "expo-status-bar": "~1.11.1",
+    "react": "18.2.0",
+    "react-native": "0.73.2",
+    "react-navigation": "^4.4.4",
+    "react-navigation-stack": "^2.10.4",
+    "@react-native-async-storage/async-storage": "1.21.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@types/react": "~18.2.45",
+    "typescript": "^5.1.3"
+  }
+}
+```
+
+#### **5.2 Application Web (`web/`)**
+
+**package.json** :
+```json
+{
+  "name": "wendigo-game-web",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "expo start --web",
+    "build": "expo build --web",
+    "serve": "npx serve web-build"
+  },
+  "dependencies": {
+    "expo": "~50.0.0",
+    "react": "18.2.0",
+    "react-native": "0.73.2",
+    "react-native-web": "~0.19.6",
+    "react-dom": "18.2.0",
+    "react-router-dom": "^6.8.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@types/react": "~18.2.45",
+    "@types/react-dom": "~18.2.17",
+    "typescript": "^5.1.3"
+  }
+}
+```
+
+## 📋 **Checklist de Reconstruction**
+
+- [ ] **Initialisation** : `npm init` dans `frontend/`
+- [ ] **Dépendances principales** : React Native, Expo, TypeScript
+- [ ] **Configuration TypeScript** : `tsconfig.json`
+- [ ] **Configuration Expo** : `app.json`
+- [ ] **Composants communs** : Button, Card, Modal, Input, Badge
+- [ ] **Types TypeScript** : Interfaces Player, Game, Lobby, etc.
+- [ ] **Application mobile** : Navigation, écrans, services
+- [ ] **Application web** : Routes, pages, services
+- [ ] **Tests** : Vérification du fonctionnement
+- [ ] **Documentation** : Mise à jour des guides
+
+## 🚨 **Prochaines Étapes**
+
+1. **Exécuter les scripts de reconstruction**
+2. **Vérifier que tous les composants fonctionnent**
+3. **Tester sur mobile et web**
+4. **Intégrer avec le backend .NET**
+5. **Déployer la version web**
 
 ## 🎮 Système de Jeu
 
@@ -485,26 +912,26 @@ On annonce les morts de la nuit. Le village se réorganise avec les nouvelles in
 - **Tension temporelle** : Les 2 dernières minutes créent une course contre la montre stratégique
 - **Coordination d'équipe** : Les joueurs doivent se coordonner pour ne pas se bloquer mutuellement
 
-## 📱 Interface Frontend - Expérience Mobile-First avec Callstack
+## 📱 Interface Frontend - React Native + React Native Web
 
 ### 🎯 **Vue d'ensemble de l'Interface**
 
-Wendigo Game est conçu comme une **application web responsive mobile-first** qui offre une expérience de jeu immersive et intuitive pour les joueurs de Loup-Garou. L'interface est optimisée pour les téléphones cellulaires via le navigateur, avec un design moderne et des animations fluides.
+Wendigo Game est conçu comme une **application React Native unifiée** qui s'adapte automatiquement aux plateformes mobile (Android + iOS) et web grâce à **React Native Web**. Cette approche nous permet d'offrir une expérience de jeu immersive et intuitive sur tous les appareils.
 
-### 🧩 **Architecture Callstack - Composants Réutilisables**
+### 🧩 **Architecture React Native Unifiée**
 
-Notre frontend utilise l'architecture **Callstack** pour créer des composants hautement réutilisables et maintenables. Cette approche nous permet de :
+Notre frontend utilise **React Native** comme base commune, avec **React Native Web** pour la traduction automatique en HTML. Cette approche nous permet de :
 
-- **Développer rapidement** avec des composants prêts à l'emploi
-- **Maintenir la cohérence** visuelle dans toute l'application
-- **Faciliter les tests** avec des composants isolés
-- **Réduire la duplication** de code
+- **Développer une seule fois** les composants de jeu
+- **Partager 95% du code** entre mobile et web
+- **Maintenir la cohérence** visuelle sur toutes les plateformes
+- **Optimiser les performances** natives sur mobile
 
-#### **Structure Callstack Recommandée**
+#### **Structure React Native Unifiée**
 ```
-src/
+shared/                    # Code partagé entre mobile et web
 ├── components/
-│   ├── common/           # Composants génériques Callstack
+│   ├── common/           # Composants génériques React Native
 │   │   ├── Button.tsx    # Bouton avec variantes (primary, secondary, danger, success, ghost)
 │   │   ├── Card.tsx      # Conteneur avec variantes (elevated, flat, interactive)
 │   │   ├── Modal.tsx     # Popup modal réutilisable
@@ -527,6 +954,22 @@ src/
 │       ├── LobbyChat.tsx # Chat de lobby
 │       ├── PlayerList.tsx # Liste des joueurs dans le lobby
 │       └── index.ts      # Exports centralisés
+├── types/                 # Types TypeScript partagés
+├── utils/                 # Utilitaires communs
+└── constants/             # Constantes partagées
+
+mobile/                    # Application React Native
+├── src/
+│   ├── screens/          # Écrans spécifiques au mobile
+│   ├── navigation/       # Navigation mobile (React Navigation)
+│   └── services/         # Services adaptés au mobile
+└── App.tsx               # Point d'entrée mobile
+
+web/                       # Version web avec React Native Web
+├── src/
+│   ├── pages/            # Pages web spécifiques
+│   └── services/         # Services adaptés au web
+└── App.tsx               # Point d'entrée web
 ```
 
 ### 🚀 **Architecture de l'Interface avec Callstack**
@@ -757,160 +1200,153 @@ src/
 - **Gestion automatique** des phases
 - **Expérience cohérente** à chaque partie
 
-## 🚀 Plan de Développement - Version 2 Actuelle
+## 🚀 Plan de Développement - React Native + Web
 
-### 📋 **Étape 1 : Architecture de Base (1-2 semaines)**
+### 📋 **Étape 1 : Architecture de Base (2-3 semaines)**
 
 #### 1.1 Structure du Projet
 ```
-WendiGame_v2/
-├── main.py               # Serveur principal
-├── models.py             # Modèles de jeu
-├── controllers.py        # Contrôleurs API
-├── services.py           # Services de jeu
-├── connection_manager.py # Gestion WebSockets
-├── config.py             # Configuration
-├── pyproject.toml        # Dépendances (uv)
-├── uv.lock               # Verrouillage des versions
-├── static/               # Frontend statique
-│   ├── index.html        # Page principale
-│   ├── css/
-│   │   └── style.css     # Styles
-│   └── js/
-│       ├── main.js       # Logique client
-│       └── lobby.js      # Gestion lobby
+WendiGame/
+├── backend/              # API .NET Core (déjà existante)
+├── shared/               # Code partagé entre mobile et web
+│   ├── components/       # Composants React Native communs
+│   ├── types/            # Types TypeScript partagés
+│   ├── utils/            # Utilitaires communs
+│   └── constants/        # Constantes partagées
+├── mobile/               # Application React Native
+│   ├── src/
+│   │   ├── screens/      # Écrans de l'application
+│   │   ├── navigation/   # Navigation mobile
+│   │   └── services/     # Services adaptés au mobile
+│   ├── App.tsx           # Point d'entrée mobile
+│   └── package.json      # Dépendances React Native
+├── web/                  # Version web avec React Native Web
+│   ├── src/
+│   │   ├── pages/        # Pages web spécifiques
+│   │   └── services/     # Services adaptés au web
+│   ├── App.tsx           # Point d'entrée web
+│   └── package.json      # Dépendances React Native Web
 └── README.md
 ```
 
-#### 1.2 Technologies Simplifiées
-- **Backend** : Python + FastAPI + WebSockets
-- **Frontend** : HTML/CSS/JavaScript vanilla (servi statiquement)
-- **Gestion des dépendances** : uv + pyproject.toml (standard moderne)
-- **Base de données** : Fichier JSON (pour commencer)
-- **Déploiement** : Serveur local simple
+#### 1.2 Technologies Unifiées
+- **Frontend** : React Native + React Native Web
+- **Framework** : Expo pour le développement unifié
+- **Gestion des dépendances** : npm/yarn avec workspaces
+- **Base de données** : API .NET Core existante
+- **Déploiement** : Expo pour mobile, Vercel/Netlify pour web
 
-### 📋 **Étape 2 : Modèles de Données (1 semaine)**
+### 📋 **Étape 2 : Composants Partagés (2-3 semaines)**
 
-#### 2.1 Classes Principales
-```python
-# Joueur
-class Player:
-    id: str
-    name: str
-    role: Role
-    is_alive: bool
-    team: Team
+#### 2.1 Composants de Base
+```typescript
+// Composants React Native partagés
+interface ButtonProps {
+  variant: 'primary' | 'secondary' | 'danger' | 'success' | 'ghost';
+  size: 'sm' | 'md' | 'lg';
+  onPress: () => void;
+  children: React.ReactNode;
+}
 
-# Rôle
-class Role:
-    name: str
-    team: Team
-    power: Power
-    description: str
-
-# Partie
-class Game:
-    id: str
-    players: List[Player]
-    phase: GamePhase
-    current_turn: int
-    winner: Team
+interface CardProps {
+  variant: 'elevated' | 'flat' | 'interactive';
+  children: React.ReactNode;
+  onPress?: () => void;
+}
 ```
 
-#### 2.2 Système de Rôles
-- Interface `Power` pour tous les pouvoirs
-- Classes concrètes pour chaque rôle
-- Système d'activation des pouvoirs
+#### 2.2 Composants de Jeu
+- **PhaseIndicator** : Affichage des phases jour/nuit
+- **PlayerCard** : Cartes des joueurs avec rôles
+- **ChairSelector** : Sélecteur de chaises en cercle
+- **VoteSystem** : Système de vote et bûcher
+- **ChatSystem** : Chat restreint pour loups et fantômes
 
-### 📋 **Étape 3 : Logique de Jeu (2-3 semaines)**
+### 📋 **Étape 3 : Application Mobile (3-4 semaines)**
 
-#### 3.1 Gestionnaire de Partie
-```python
-class GameManager:
-    def start_game(self)
-    def next_phase(self)
-    def execute_powers(self)
-    def check_win_conditions(self)
-    def handle_vote(self)
-```
+#### 3.1 Navigation Mobile
+- **React Navigation** pour la navigation entre écrans
+- **Stack Navigator** pour les écrans de jeu
+- **Tab Navigator** pour les sections principales
 
-#### 3.2 Système de Pouvoirs
-- Interface commune pour tous les pouvoirs
-- Résolution des conflits de pouvoirs
-- Système de cooldown
+#### 3.2 Écrans Spécifiques
+- **LobbyScreen** : Gestion des lobbys
+- **GameScreen** : Interface principale de jeu
+- **RoleScreen** : Affichage des rôles et pouvoirs
+- **ChatScreen** : Communication en temps réel
 
-#### 3.3 Phases de Jeu
-- Automatisation des transitions
-- Gestion des timers
-- Notifications aux joueurs
+#### 3.3 Fonctionnalités Natives
+- **API Vibration** pour le système de réveil séquentiel
+- **Notifications push** pour les alertes importantes
+- **Stockage local** pour les préférences utilisateur
 
-### 📋 **Étape 4 : Interface Utilisateur (2 semaines)**
+### 📋 **Étape 4 : Version Web (2-3 semaines)**
 
-#### 4.1 Interface de Lobby
-- Liste des joueurs
-- Chat en temps réel
-- Boutons de contrôle
+#### 4.1 React Native Web
+- **Configuration** de React Native Web
+- **Adaptation** des composants pour le web
+- **Optimisation** des performances web
 
-#### 4.2 Interface de Jeu
-- Affichage des phases
-- Interface des pouvoirs
-- Système de vote
-- Chat de jeu
+#### 4.2 Pages Web Spécifiques
+- **Page d'accueil** responsive
+- **Interface de jeu** adaptée au navigateur
+- **Gestion des événements** clavier/souris
 
-#### 4.3 Responsive Design
-- Compatible mobile
-- Interface intuitive
-- Animations simples
+#### 4.3 Déploiement Web
+- **Build** de la version web
+- **Déploiement** sur Vercel/Netlify
+- **Tests** de compatibilité navigateur
 
-### 📋 **Étape 5 : Communication Temps Réel (1 semaine)**
+### 📋 **Étape 5 : Intégration et Tests (2 semaines)**
 
-#### 5.1 WebSockets
-- Connexions par lobby
-- Messages de jeu
-- Notifications système
+#### 5.1 Tests Unifiés
+- **Tests unitaires** des composants partagés
+- **Tests d'intégration** mobile et web
+- **Tests de compatibilité** cross-platform
 
-#### 5.2 Synchronisation
-- État de jeu partagé
-- Actions en temps réel
-- Gestion des déconnexions
+#### 5.2 Optimisation
+- **Performance** des composants React Native
+- **Bundle size** de la version web
+- **Gestion de la mémoire** sur mobile
 
-### 📋 **Étape 6 : Tests et Optimisation (1 semaine)**
+### 📋 **Étape 6 : Déploiement et Publication (1-2 semaines)**
 
-#### 6.1 Tests
-- Tests unitaires des rôles
-- Tests d'intégration
-- Tests de charge
+#### 6.1 Déploiement Web
+- **Build** de production
+- **Déploiement** sur plateforme cloud
+- **Configuration** des domaines et SSL
 
-#### 6.2 Optimisation
-- Performance des WebSockets
-- Optimisation du code
-- Gestion de la mémoire
+#### 6.2 Publication Mobile
+- **Build** des applications Android/iOS
+- **Soumission** sur App Store/Play Store
+- **Configuration** des métadonnées et descriptions
 
 ## 🛠️ Technologies Recommandées
 
-### Backend
-- **FastAPI** : API moderne et rapide
-- **WebSockets** : Communication temps réel
-- **Pydantic** : Validation des données
-- **Uvicorn** : Serveur ASGI
+### Backend (Inchangé)
+- **.NET Core** : API robuste et performante
+- **Entity Framework** : ORM pour la base de données
+- **SignalR** : Communication temps réel
+- **SQL Server** : Base de données relationnelle
+
+### Frontend Unifié
+- **React Native** : Base commune pour mobile et web
+- **React Native Web** : Traduction automatique en HTML
+- **Expo** : Framework de développement unifié
+- **TypeScript** : Typage statique et sécurité du code
 
 ### Gestion des Dépendances
-- **uv** : Gestionnaire de paquets Python moderne et rapide (recommandé)
-- **pyproject.toml** : Configuration moderne des dépendances (standard actuel)
-- **pip** : Alternative classique (méthode legacy)
-
-### Frontend
-- **HTML5** : Structure
-- **CSS3** : Styles et animations
-- **JavaScript ES6+** : Logique client
-- **WebSocket API** : Communication
+- **npm/yarn** : Gestionnaire de paquets Node.js
+- **Expo CLI** : Outils de développement et build
+- **Metro** : Bundler React Native
+- **Webpack** : Bundler pour la version web
 
 ### Outils de Développement
 - **Git** : Versioning
-- **uv** : Gestionnaire de paquets et environnements virtuels (recommandé)
-- **pyproject.toml** : Configuration des dépendances (standard moderne)
-- **VS Code** : Éditeur
-- **Postman** : Tests API
+- **VS Code** : Éditeur avec extensions React Native
+- **Expo DevTools** : Développement et debugging
+- **React Native Debugger** : Debugging avancé
+- **Flipper** : Inspection et debugging des apps
 
 ## 📊 Métriques de Succès
 
@@ -927,24 +1363,25 @@ class GameManager:
 - ✅ Tests de base
 - ✅ Déploiement simple
 
-## 🎯 Objectifs de la V2
+## 🎯 Objectifs de la V3 - React Native + Web
 
-### Simplicité
-- **Code minimal** : Moins de 2000 lignes
-- **Dépendances réduites** : Maximum 5 packages
-- **Déploiement facile** : Un seul fichier à lancer
+### Unification
+- **Codebase unique** : 95% de code partagé entre mobile et web
+- **Développement centralisé** : Une seule équipe, une seule base de code
+- **Cohérence visuelle** : Interface identique sur toutes les plateformes
 
 ### Fonctionnalité
 - **Jeu complet** : Toutes les phases implémentées
 - **29 rôles équilibrés** : Jeu équitable et varié
-- **Interface claire** : Facile à comprendre
-- **Système de rôles modulaire** : Facile d'ajout de nouveaux rôles
+- **Interface native** : Expérience optimale sur mobile
+- **Version web accessible** : Jeu jouable sur navigateur
 
 ### Extensibilité
 - **Ajout de rôles** : Architecture modulaire pour 29+ rôles
 - **Nouvelles phases** : Système flexible
 - **Personnalisation** : Configuration simple
 - **Équilibrage dynamique** : Ajustement automatique selon le nombre de joueurs
+- **Nouvelles plateformes** : Facile d'ajout de nouvelles plateformes
 
 ## 🚀 Démarrage Rapide
 

@@ -1,314 +1,583 @@
-# 🎮 Frontend Wendigo Game - Architecture Callstack
+# 🎮 Frontend Wendigo Game - État Actuel et Instructions de Reconstruction
 
-## 🎯 **Vue d'ensemble de votre Frontend Wendigo Game avec Callstack**
+## ⚠️ **ATTENTION : Frontend Réinitialisé**
 
-Votre frontend doit être une **application web responsive mobile-first** utilisant l'architecture **Callstack** pour les composants réutilisables, avec les caractéristiques suivantes :
+**Le frontend a été complètement réinitialisé** - tous les fichiers sont vides (0 bytes). Cette documentation décrit l'état actuel et fournit les instructions pour reconstruire le frontend.
 
-### �� **Interface Mobile-First**
-- **Optimisé pour téléphones** via navigateur
-- **Design moderne** avec animations fluides
-- **Boutons larges** et facilement cliquables
-- **Interface intuitive** sans formation préalable
+## 📊 **État Actuel du Frontend**
 
-### 🏗️ **Architecture Frontend avec Callstack**
-
-#### **1. Page de Connexion - Composants Callstack**
-- **`LoginForm`** : Formulaire de connexion avec validation
-- **`RegisterForm`** : Formulaire d'inscription avec validation
-- **`Button`** (variante primary) : Boutons d'action
-- **`Card`** (variante elevated) : Conteneur du formulaire
-- **`Input`** : Champs de saisie stylisés
-- Design épuré et accueillant
-
-#### **2. Système de Lobby - Composants Callstack**
-- **`LobbyList`** : Affichage des lobbys disponibles avec statut
-- **`LobbyChat`** : Chat en temps réel dans le lobby
-- **`PlayerList`** : Liste des joueurs avec statut "Prêt"
-- **`Button`** (variantes) : Créer lobby, rejoindre, confirmer prêt
-- **`Card`** (variante interactive) : Cartes de lobby cliquables
-- **`Modal`** : Configuration des paramètres de lobby
-- **`Badge`** : Indicateurs de statut (ouvert, fermé, plein)
-- Remplissage progressif en temps réel
-- Système de confirmation "Prêt"
-- Redirection automatique vers le jeu
-
-#### **3. Interface de Partie - Écran Principal - Composants Callstack**
-
-**Header Épuré :**
-- Logo du jeu (coin supérieur gauche)
-- Menu hamburger discret (≡) en haut à droite avec **`Modal`** pour le menu
-
-**Zone Centrale :**
-- **`PlayerCard`** : Nom du joueur affiché clairement
-- **`PhaseIndicator`** : Phase actuelle avec indicateur visuel :
-  - **Jour** (10:00) - Interface claire et lumineuse
-  - 🌙 **Nuit** (30s) - Interface sombre et bleutée
-- **Compteur de phase** avec barre de progression
-- **`ChairSelector`** : Disposition des chaises en cercle avec numérotation
-- **Emplacement des joueurs** qui ont sélectionné leur chaise :
-  - Affichage du nom du joueur sur sa chaise sélectionnée
-  - Indicateur visuel de la chaise occupée
-  - Chaises disponibles vs occupées clairement distinguées
-
-**Boutons Principaux :**
-- **`Button`** (variante ghost) : Zone Notes - Notes personnelles sur les joueurs
-- **`Button`** (variante secondary) : Fiche Personnelle - Informations du joueur (nom, rôle, équipe, couleur)
-- **`Button`** (variante secondary) : Règles du Jeu - Guide complet et accessible
-- **`Button`** (variante primary/danger) : Bouton Action - Utilisation des pouvoirs selon la phase
-
-#### **4. Système de Sélection de Chaises - Composants Callstack**
-- **`ChairSelector`** : Interface de chaises numérotées disposées en cercle
-- Sélection de chaise (disponible à partir de 8 minutes de la phase Jour)
-- Chaises exclusives (une fois sélectionnée, indisponible pour les autres)
-- Timer de sélection (2 dernières minutes)
-- Indicateur de disponibilité
-
-#### **5. Système de Bûcher et Votes - Composants Callstack**
-- **`VoteSystem`** : Phase du conseil avec une seule accusation par phase jour
-- **Vote d'accusation** : Tous les joueurs votent pour qui ils veulent voir sur le bûcher
-- **Sélection du condamné** : Le joueur avec le plus de votes va plaider son innocence
-- **Plaidoirie** : Le condamné a 1 minute pour plaider son innocence avec **`Modal`**
-- **Vote de condamnation** : Les joueurs votent pour tuer ou épargner le condamné avec **`Button`** (variantes primary/danger)
-- **Fin de phase** : Après le vote, la nuit tombe et les joueurs commettent leurs actions
-- **Historique des votes** et résultats
-
-#### **6. Système de Chat Restreint - Composants Callstack**
-- **`ChatSystem`** : Gestion centralisée de tous les types de chat
-- Chat des vivants : Désactivé pendant la partie
-- Chat des loups : Accessible uniquement aux loups pendant la phase Jour (1 message/jour, max 15 caractères)
-- Chat des fantômes : Accessible uniquement aux joueurs morts
-- Chat du médium : Communication avec les Fantômes
-
-#### **7. Système de Vibration Séquentielle - Composants Callstack**
-- Réveil aléatoire des joueurs la nuit
-- Vibration haptique + écran qui s'illumine
-- 15 secondes pour agir ou cliquer "Continuer" avec **`Button`** (variante primary)
-- 5 secondes d'attente entre chaque joueur
-- Ordre aléatoire pour tous les joueurs
-
-#### **8. Menu Hamburger Complet - Composants Callstack**
-- **`Modal`** : Conteneur principal du menu hamburger
-- **`Button`** (variante ghost) : Règles du jeu
-- **`Button`** (variante ghost) : Notes personnelles
-- **`Button`** (variante ghost) : Fiches joueurs
-- **`Button`** (variante ghost) : Historique de partie
-- **`Button`** (variante ghost) : Statistiques
-- **`Button`** (variante primary) : Bouton pouvoir
-- **`Button`** (variante danger) : Déconnexion
-
-#### **9. Système d'Historique Complet - Composants Callstack**
-- **`GameHistory`** : Journal des événements en temps réel
-- Timeline interactive avec filtres avancés utilisant **`Input`** et **`Badge`**
-- Détails contextuels pour chaque action
-- Statistiques dynamiques
-- Export de partie avec **`Button`** (variante secondary)
-
-### �� **Design et UX**
-
-#### **Responsive Design**
-- Tous les éléments pensés pour mobile en premier
-- Adaptabilité aux tablettes et grands écrans
-- Zones de texte scrollables si nécessaire
-
-#### **Accessibilité**
-- Infobulles sur les icônes et boutons
-- Navigation intuitive
-- Feedback visuel clair
-- Contraste optimal
-
-#### **Synchronisation Temps Réel**
-- WebSockets pour communication instantanée
-- Actions synchronisées entre tous les joueurs
-- Phases et notes mises à jour en temps réel
-- Pas de décalage entre les appareils
-
-### 🚀 **Technologies Recommandées avec Callstack**
-
-D'après votre documentation, vous utilisez actuellement :
-- **React** avec **TypeScript**
-- **Vite** comme bundler
-- **Tailwind CSS** pour les styles
-- **Architecture Callstack** pour les composants réutilisables
-
-## 🧩 **Architecture Callstack - Composants Réutilisables**
-
-### **📁 Structure Callstack Recommandée**
-
+### **Structure des Dossiers (Préservée)**
 ```
-src/
-├── components/
-│   ├── common/           # Composants génériques Callstack
-│   │   ├── Button.tsx    # Bouton avec variantes (primary, secondary, danger, success, ghost)
-│   │   ├── Card.tsx      # Conteneur avec variantes (elevated, flat, interactive)
-│   │   ├── Modal.tsx     # Popup modal réutilisable
-│   │   ├── Input.tsx     # Champs de saisie stylisés
-│   │   ├── Badge.tsx     # Badges et étiquettes
-│   │   └── index.ts      # Exports centralisés
-│   ├── game/             # Composants spécifiques au jeu
-│   │   ├── PhaseIndicator.tsx  # Indicateur de phase jour/nuit
-│   │   ├── PlayerCard.tsx      # Carte de joueur avec rôles
-│   │   ├── ChairSelector.tsx   # Sélecteur de chaises en cercle
-│   │   ├── VoteSystem.tsx      # Système de vote et bûcher
-│   │   ├── ChatSystem.tsx      # Chat restreint (loups/fantômes)
-│   │   ├── GameHistory.tsx     # Historique complet de partie
-│   │   └── index.ts      # Exports centralisés
-│   ├── auth/             # Composants d'authentification
-│   │   ├── LoginForm.tsx # Formulaire de connexion
-│   │   ├── RegisterForm.tsx # Formulaire d'inscription
-│   │   └── index.ts      # Exports centralisés
-│   └── lobby/            # Composants de lobby
-│       ├── LobbyList.tsx # Liste des lobbys disponibles
-│       ├── LobbyChat.tsx # Chat de lobby
-│       ├── PlayerList.tsx # Liste des joueurs dans le lobby
-│       └── index.ts      # Exports centralisés
-├── hooks/                # Logique réutilisable
-├── services/             # Services API
-└── types/                # Types TypeScript
+frontend/
+├── shared/                    # Code partagé entre mobile et web
+│   ├── components/
+│   │   ├── common/           # Composants génériques (VIDES)
+│   │   │   ├── Button.tsx    
+│   │   │   ├── Card.tsx      
+│   │   │   ├── Modal.tsx     
+│   │   │   ├── Input.tsx     
+│   │   │   ├── Badge.tsx     
+│   │   │   └── index.ts      
+│   │   ├── game/             # Composants de jeu (VIDES)
+│   │   │   ├── PhaseIndicator.tsx  
+│   │   │   ├── PlayerCard.tsx      
+│   │   │   ├── ChairSelector.tsx   
+│   │   │   ├── VoteSystem.tsx      
+│   │   │   ├── ChatSystem.tsx      
+│   │   │   ├── GameHistory.tsx     
+│   │   │   └── index.ts      
+│   │   ├── auth/             # Composants d'auth (VIDES)
+│   │   │   ├── LoginForm.tsx 
+│   │   │   ├── RegisterForm.tsx 
+│   │   │   └── index.ts      
+│   │   ├── lobby/            # Composants de lobby (VIDES)
+│   │   │   ├── LobbyList.tsx 
+│   │   │   ├── LobbyChat.tsx 
+│   │   │   ├── PlayerList.tsx 
+│   │   │   └── index.ts      
+│   │   ├── types/            # Types TypeScript (VIDES)
+│   │   ├── utils/            # Utilitaires (VIDES)
+│   │   └── constants/        # Constantes (VIDES)
+├── mobile/                    # Application React Native
+│   ├── src/
+│   │   ├── screens/          # Écrans (VIDE)
+│   │   ├── navigation/       # Navigation (VIDE)
+│   │   └── services/         # Services (VIDE)
+│   ├── App.tsx               
+│   └── package.json          
+├── web/                       # Version web
+│   ├── src/
+│   │   ├── pages/            # Pages (VIDE)
+│   │   └── services/         # Services (VIDE)
+│   ├── App.tsx               
+│   └── package.json          
+└── package.json               
 ```
 
-### **🎯 Avantages de l'Architecture Callstack**
+### **Fichiers Vides Identifiés**
+- ✅ **Structure des dossiers** : Préservée
+- ❌ **Tous les composants** : 0 bytes (vides)
+- ❌ **Tous les fichiers de configuration** : 0 bytes (vides)
+- ❌ **Tous les types et utilitaires** : 0 bytes (vides)
 
-- **Composants atomiques** : Chaque composant a une responsabilité unique
-- **Props flexibles** : Interface extensible pour différents cas d'usage
-- **Réutilisabilité maximale** : Un composant peut être utilisé dans plusieurs contextes
-- **Cohérence visuelle** : Design system unifié dans toute l'application
-- **Performance optimisée** : Composants légers et efficaces
+## 🚀 **Instructions de Reconstruction du Frontend**
 
-Voulez-vous que je commence par implémenter une partie spécifique de cette interface avec l'architecture Callstack ? Par exemple :
-1. **La page de connexion et système de lobby**
-2. **L'interface principale de jeu avec les phases**
-3. **Le système de sélection de chaises**
-4. **Le système de bûcher et votes**
-5. **Le menu hamburger et les fonctionnalités secondaires**
+### **Étape 1 : Initialisation du Projet**
 
----
+```bash
+# Naviguer vers le dossier frontend
+cd frontend
 
-## 🎮 **Votre Frontend Wendigo Game - Explication Complète avec Callstack**
+# Initialiser le projet principal
+npm init -y
 
-### **📁 Structure du Projet**
+# Installer les dépendances React Native
+npm install react react-native react-native-web expo expo-cli
 
-Votre frontend est une application React moderne avec TypeScript qui utilise l'architecture **Callstack** :
-
-- **Vite** comme bundler (très rapide)
-- **React 19** (dernière version)
-- **TypeScript** pour la sécurité des types
-- **Tailwind CSS** pour le styling
-- **Socket.io** pour la communication temps réel
-- **Framer Motion** pour les animations
-- **Architecture Callstack** pour les composants réutilisables
-
-### **🏗️ Architecture des Composants avec Callstack**
-
-Votre frontend est organisé selon l'architecture **Callstack** de manière modulaire :
-
-```
-src/
-├── components/
-│   ├── common/          # Composants génériques Callstack
-│   │   ├── Button.tsx   # Boutons avec variantes (primary, secondary, danger, success, ghost)
-│   │   ├── Card.tsx     # Cartes conteneurs avec variantes (elevated, flat, interactive)
-│   │   ├── Modal.tsx    # Modales réutilisables
-│   │   ├── Input.tsx    # Champs de saisie stylisés
-│   │   ├── Badge.tsx    # Badges et étiquettes
-│   │   └── index.ts     # Exports centralisés
-│   ├── game/            # Composants spécifiques au jeu
-│   │   ├── PhaseIndicator.tsx  # Indicateur jour/nuit
-│   │   ├── PlayerCard.tsx      # Cartes des joueurs avec rôles
-│   │   ├── ChairSelector.tsx   # Sélecteur de chaises en cercle
-│   │   ├── VoteSystem.tsx      # Système de vote et bûcher
-│   │   ├── ChatSystem.tsx      # Chat restreint (loups/fantômes)
-│   │   ├── GameHistory.tsx     # Historique complet de partie
-│   │   └── index.ts     # Exports centralisés
-│   ├── auth/            # Authentification
-│   │   ├── LoginForm.tsx # Formulaire de connexion
-│   │   ├── RegisterForm.tsx # Formulaire d'inscription
-│   │   └── index.ts     # Exports centralisés
-│   └── lobby/           # Salle d'attente
-│       ├── LobbyList.tsx # Liste des lobbys disponibles
-│       ├── LobbyChat.tsx # Chat de lobby
-│       ├── PlayerList.tsx # Liste des joueurs dans le lobby
-│       └── index.ts     # Exports centralisés
-├── hooks/               # Logique réutilisable
-│   ├── useGameState.ts  # Gestion de l'état du jeu
-│   └── useWebSocket.ts  # Communication WebSocket
-└── services/            # Services API
+# Installer les dépendances de développement
+npm install --save-dev @types/react @types/react-native typescript
 ```
 
-### **�� Composants Principaux**
+### **Étape 2 : Configuration TypeScript**
 
-#### **1. Composants Communs (`common/`) - Architecture Callstack**
-- **`Button`** : Boutons avec 5 variantes (primary, secondary, danger, success, ghost)
-- **`Card`** : Conteneurs avec différentes variantes (elevated, flat, interactive)
-- **`Modal`** : Fenêtres modales réutilisables
-- **`Input`** : Champs de saisie stylisés avec validation
-- **`Badge`** : Badges et étiquettes avec variantes (success, warning, danger, info)
+Créer `tsconfig.json` dans `frontend/` :
 
-#### **2. Composants de Jeu (`game/`) - Architecture Callstack**
-- **`PhaseIndicator`** : Affiche la phase actuelle (jour/nuit) avec timer
-- **`PlayerCard`** : Cartes des joueurs avec rôles et statuts
-- **`ChairSelector`** : Interface pour choisir sa place à table en cercle
-- **`VoteSystem`** : Système de vote et bûcher complet
-- **`ChatSystem`** : Chat restreint pour loups et fantômes
-- **`GameHistory`** : Historique complet de partie avec filtres
-
-#### **3. Composants d'Authentification (`auth/`) - Architecture Callstack**
-- **`LoginForm`** : Formulaire de connexion avec validation
-- **`RegisterForm`** : Formulaire d'inscription avec validation
-
-#### **4. Composants de Lobby (`lobby/`) - Architecture Callstack**
-- **`LobbyList`** : Liste des lobbys disponibles avec statuts
-- **`LobbyChat`** : Chat en temps réel dans le lobby
-- **`PlayerList`** : Liste des joueurs avec statut "Prêt"
-
-### **⚡ Hook useGameState - Le Cerveau du Jeu**
-
-Ce hook gère tout l'état du jeu :
-
-```typescript
-interface GameState {
-  phase: 'day' | 'night';           // Phase actuelle
-  timeRemaining: number;            // Temps restant
-  totalTime: number;                // Temps total de la phase
-  players: Player[];                // Liste des joueurs
-  currentPlayer: Player | null;     // Joueur actuel
-  selectedChair: number | null;     // Chaise sélectionnée
-  gameStatus: 'waiting' | 'playing' | 'finished'; // Statut du jeu
+```json
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "lib": ["dom", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "shared/**/*",
+    "mobile/**/*",
+    "web/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
 ```
 
-**Fonctionnalités principales :**
-- ⏱️ **Timer automatique** qui change de phase (10min jour, 30s nuit)
-- �� **Contrôles de jeu** (start, pause, resume)
-- 👥 **Gestion des joueurs** (ajouter, supprimer, modifier)
-- 🪑 **Sélection de chaises**
+### **Étape 3 : Configuration Expo**
 
-### **🎨 Interface Utilisateur**
+Créer `app.json` dans `frontend/` :
 
-L'interface utilise un design moderne avec :
-- **Gradient sombre** (slate-900 à slate-800)
-- **Couleurs thématiques** (rouge pour les actions principales)
-- **Responsive design** (mobile-first)
-- **Animations fluides** avec Framer Motion
+```json
+{
+  "expo": {
+    "name": "Wendigo Game",
+    "slug": "wendigo-game",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1e293b"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1e293b"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
+```
 
-### **🔌 Communication Temps Réel**
+### **Étape 4 : Reconstruction des Composants**
 
-Le frontend est préparé pour communiquer avec votre backend via :
-- **Socket.io** pour les mises à jour en temps réel
-- **Axios** pour les appels API REST
+#### **4.1 Composants Communs (`shared/components/common/`)**
 
-### **🚀 Comment ça Fonctionne**
+**Button.tsx** - Bouton réutilisable avec variantes :
+```typescript
+import React from 'react';
+import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 
-1. **Page d'accueil** : Démonstration de tous les composants
-2. **Gestion d'état** : Le hook `useGameState` centralise toute la logique
-3. **Composants modulaires** : Chaque composant a une responsabilité spécifique
-4. **Style cohérent** : Tailwind CSS assure une apparence uniforme
+interface ButtonProps {
+  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  onPress: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+  style?: ViewStyle;
+  textStyle?: TextStyle;
+}
 
-### **💡 Points Forts de Votre Architecture**
+const Button: React.FC<ButtonProps> = ({
+  variant = 'primary',
+  size = 'md',
+  onPress,
+  disabled = false,
+  children,
+  style,
+  textStyle
+}) => {
+  return (
+    <TouchableOpacity
+      style={[
+        styles.button,
+        styles[variant],
+        styles[size],
+        disabled && styles.disabled,
+        style
+      ]}
+      onPress={onPress}
+      disabled={disabled}
+      activeOpacity={0.8}
+    >
+      <Text style={[styles.text, styles[`${variant}Text`], textStyle]}>
+        {children}
+      </Text>
+    </TouchableOpacity>
+  );
+};
 
-✅ **Modulaire** : Composants réutilisables et bien organisés  
-✅ **Type-safe** : TypeScript pour éviter les erreurs  
-✅ **Performant** : Vite + React 19  
-✅ **Maintenable** : Hooks personnalisés pour la logique  
-✅ **Scalable** : Structure prête pour l'expansion  
+const styles = StyleSheet.create({
+  button: {
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  // Variantes
+  primary: {
+    backgroundColor: '#dc2626',
+  },
+  secondary: {
+    backgroundColor: '#475569',
+  },
+  danger: {
+    backgroundColor: '#dc2626',
+  },
+  success: {
+    backgroundColor: '#16a34a',
+  },
+  ghost: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#64748b',
+  },
+  // Tailles
+  sm: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  md: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  lg: {
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+  },
+  // États
+  disabled: {
+    opacity: 0.5,
+  },
+  // Texte
+  text: {
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  primaryText: {
+    color: '#ffffff',
+  },
+  secondaryText: {
+    color: '#ffffff',
+  },
+  dangerText: {
+    color: '#ffffff',
+  },
+  successText: {
+    color: '#ffffff',
+  },
+  ghostText: {
+    color: '#64748b',
+  },
+});
 
-Votre frontend est bien structuré et suit les bonnes pratiques React ! Avez-vous des questions spécifiques sur une partie particulière ?
+export default Button;
+```
+
+**Card.tsx** - Conteneur avec variantes :
+```typescript
+import React from 'react';
+import { View, StyleSheet, ViewStyle } from 'react-native';
+
+interface CardProps {
+  variant?: 'elevated' | 'flat' | 'interactive';
+  children: React.ReactNode;
+  style?: ViewStyle;
+  onPress?: () => void;
+}
+
+const Card: React.FC<CardProps> = ({
+  variant = 'elevated',
+  children,
+  style,
+  onPress
+}) => {
+  return (
+    <View style={[styles.card, styles[variant], style]}>
+      {children}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: 12,
+    padding: 16,
+    margin: 8,
+  },
+  elevated: {
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  flat: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  interactive: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+});
+
+export default Card;
+```
+
+#### **4.2 Types TypeScript (`shared/types/index.ts`)**
+
+```typescript
+// Types de base du jeu
+export interface Player {
+  id: string;
+  name: string;
+  role: Role;
+  isAlive: boolean;
+  isReady: boolean;
+  selectedChair?: number;
+  team: 'village' | 'wolves';
+  color: string;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description: string;
+  team: 'village' | 'wolves';
+  power: string;
+  isActive: boolean;
+}
+
+export interface Game {
+  id: string;
+  status: 'waiting' | 'playing' | 'finished';
+  phase: 'day' | 'night';
+  timeRemaining: number;
+  totalTime: number;
+  players: Player[];
+  currentPlayer?: Player;
+  selectedChair?: number;
+  round: number;
+  maxRounds: number;
+}
+
+export interface Lobby {
+  id: string;
+  name: string;
+  maxPlayers: number;
+  currentPlayers: number;
+  status: 'open' | 'full' | 'playing';
+  hostId: string;
+  players: Player[];
+  settings: GameSettings;
+}
+
+export interface GameSettings {
+  maxPlayers: number;
+  timeLimit: number;
+  allowSpectators: boolean;
+  customRoles: boolean;
+}
+
+export interface ChatMessage {
+  id: string;
+  playerId: string;
+  playerName: string;
+  message: string;
+  timestamp: Date;
+  type: 'lobby' | 'game' | 'wolves' | 'ghosts' | 'medium';
+}
+
+export interface Vote {
+  id: string;
+  voterId: string;
+  targetId: string;
+  type: 'accusation' | 'condemnation';
+  timestamp: Date;
+}
+```
+
+### **Étape 5 : Configuration des Applications**
+
+#### **5.1 Application Mobile (`mobile/`)**
+
+**package.json** :
+```json
+{
+  "name": "wendigo-game-mobile",
+  "version": "1.0.0",
+  "main": "node_modules/expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "expo": "~50.0.0",
+    "expo-status-bar": "~1.11.1",
+    "react": "18.2.0",
+    "react-native": "0.73.2",
+    "react-navigation": "^4.4.4",
+    "react-navigation-stack": "^2.10.4",
+    "@react-native-async-storage/async-storage": "1.21.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@types/react": "~18.2.45",
+    "typescript": "^5.1.3"
+  }
+}
+```
+
+**App.tsx** :
+```typescript
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { StatusBar } from 'expo-status-bar';
+
+import LoginScreen from './src/screens/LoginScreen';
+import LobbyScreen from './src/screens/LobbyScreen';
+import GameScreen from './src/screens/GameScreen';
+
+const Stack = createStackNavigator();
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <StatusBar style="auto" />
+      <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Lobby" component={LobbyScreen} />
+        <Stack.Screen name="Game" component={GameScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+```
+
+#### **5.2 Application Web (`web/`)**
+
+**package.json** :
+```json
+{
+  "name": "wendigo-game-web",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "expo start --web",
+    "build": "expo build --web",
+    "serve": "npx serve web-build"
+  },
+  "dependencies": {
+    "expo": "~50.0.0",
+    "react": "18.2.0",
+    "react-native": "0.73.2",
+    "react-native-web": "~0.19.6",
+    "react-dom": "18.2.0",
+    "react-router-dom": "^6.8.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@types/react": "~18.2.45",
+    "@types/react-dom": "~18.2.17",
+    "typescript": "^5.1.3"
+  }
+}
+```
+
+**App.tsx** :
+```typescript
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+import LoginPage from './src/pages/LoginPage';
+import LobbyPage from './src/pages/LobbyPage';
+import GamePage from './src/pages/GamePage';
+
+export default function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/lobby" element={<LobbyPage />} />
+        <Route path="/game" element={<GamePage />} />
+      </Routes>
+    </Router>
+  );
+}
+```
+
+## 🔧 **Scripts de Reconstruction Automatique**
+
+### **Script PowerShell (Windows)**
+```powershell
+# reconstruction-frontend.ps1
+Write-Host "🔧 Reconstruction du Frontend Wendigo Game..." -ForegroundColor Green
+
+# Nettoyage des fichiers vides
+Get-ChildItem -Path "frontend" -Recurse -File | Where-Object { $_.Length -eq 0 } | Remove-Item -Force
+
+# Installation des dépendances
+Set-Location frontend
+npm install
+
+# Installation des dépendances mobile
+Set-Location mobile
+npm install
+
+# Installation des dépendances web
+Set-Location ../web
+npm install
+
+# Retour au dossier racine
+Set-Location ..
+
+Write-Host "✅ Frontend reconstruit avec succès !" -ForegroundColor Green
+```
+
+### **Script Bash (Linux/Mac)**
+```bash
+#!/bin/bash
+# reconstruction-frontend.sh
+
+echo "🔧 Reconstruction du Frontend Wendigo Game..."
+
+# Nettoyage des fichiers vides
+find frontend -type f -size 0 -delete
+
+# Installation des dépendances
+cd frontend && npm install
+cd mobile && npm install
+cd ../web && npm install
+cd ..
+
+echo "✅ Frontend reconstruit avec succès !"
+```
+
+## 📋 **Checklist de Reconstruction**
+
+- [ ] **Initialisation** : `npm init` dans `frontend/`
+- [ ] **Dépendances principales** : React Native, Expo, TypeScript
+- [ ] **Configuration TypeScript** : `tsconfig.json`
+- [ ] **Configuration Expo** : `app.json`
+- [ ] **Composants communs** : Button, Card, Modal, Input, Badge
+- [ ] **Types TypeScript** : Interfaces Player, Game, Lobby, etc.
+- [ ] **Application mobile** : Navigation, écrans, services
+- [ ] **Application web** : Routes, pages, services
+- [ ] **Tests** : Vérification du fonctionnement
+- [ ] **Documentation** : Mise à jour des guides
+
+## 🚨 **Prochaines Étapes**
+
+1. **Exécuter les scripts de reconstruction**
+2. **Vérifier que tous les composants fonctionnent**
+3. **Tester sur mobile et web**
+4. **Intégrer avec le backend .NET**
+5. **Déployer la version web**
+
+---
+
+## 📚 **Ressources de Référence**
+
+- [Expo Documentation](https://docs.expo.dev/)
+- [React Native Web](https://github.com/necolas/react-native-web)
+- [React Navigation](https://reactnavigation.org/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+
+---
+
+**⚠️ Note importante** : Cette documentation reflète l'état actuel du frontend (réinitialisé). Tous les composants et configurations doivent être recréés selon les instructions ci-dessus.

@@ -1,48 +1,65 @@
-# 🧩 Architecture Callstack - Composants Réutilisables - Wendigo Game
+# 🧩 Architecture React Native - Composants Réutilisables - Wendigo Game
 
-Ce dossier contient tous les composants réutilisables de l'application Wendigo Game, organisés selon l'architecture **Callstack** pour une meilleure maintenabilité et réutilisabilité.
+Ce dossier contient tous les composants réutilisables de l'application Wendigo Game, organisés selon l'architecture **React Native** pour une meilleure maintenabilité et réutilisabilité sur toutes les plateformes (mobile et web).
 
-## 🎯 **Philosophie Callstack**
+## 🎯 **Philosophie React Native**
 
-L'architecture Callstack repose sur des principes clés :
+L'architecture React Native repose sur des principes clés :
 - **Composants atomiques** : Chaque composant a une responsabilité unique
 - **Props flexibles** : Interface extensible pour différents cas d'usage
-- **Réutilisabilité maximale** : Un composant peut être utilisé dans plusieurs contextes
+- **Réutilisabilité maximale** : Un composant peut être utilisé sur mobile et web
 - **Cohérence visuelle** : Design system unifié dans toute l'application
 - **Performance optimisée** : Composants légers et efficaces
+- **Cross-platform** : Même code sur Android, iOS et web
 
-## 📁 Structure Callstack
+## 📁 Structure React Native
 
 ```
-components/
-├── common/           # Composants génériques Callstack
-│   ├── Button.tsx    # Bouton avec variantes (primary, secondary, danger, success, ghost)
-│   ├── Card.tsx      # Conteneur avec variantes (elevated, flat, interactive)
-│   ├── Modal.tsx     # Popup modal réutilisable
-│   ├── Input.tsx     # Champs de saisie stylisés
-│   ├── Badge.tsx     # Badges et étiquettes
-│   └── index.ts      # Exports centralisés
-├── game/             # Composants spécifiques au jeu
-│   ├── PhaseIndicator.tsx  # Indicateur de phase jour/nuit
-│   ├── PlayerCard.tsx      # Carte de joueur avec rôles
-│   ├── ChairSelector.tsx   # Sélecteur de chaises en cercle
-│   ├── VoteSystem.tsx      # Système de vote et bûcher
-│   ├── ChatSystem.tsx      # Chat restreint (loups/fantômes)
-│   ├── GameHistory.tsx     # Historique complet de partie
-│   └── index.ts      # Exports centralisés
-├── auth/             # Composants d'authentification
-│   ├── LoginForm.tsx # Formulaire de connexion
-│   ├── RegisterForm.tsx # Formulaire d'inscription
-│   └── index.ts      # Exports centralisés
-├── lobby/            # Composants de lobby
-│   ├── LobbyList.tsx # Liste des lobbys disponibles
-│   ├── LobbyChat.tsx # Chat de lobby
-│   ├── PlayerList.tsx # Liste des joueurs dans le lobby
-│   └── index.ts      # Exports centralisés
-└── README.md         # Cette documentation
+shared/                    # Code partagé entre mobile et web
+├── components/
+│   ├── common/           # Composants génériques React Native
+│   │   ├── Button.tsx    # Bouton avec variantes (primary, secondary, danger, success, ghost)
+│   │   ├── Card.tsx      # Conteneur avec variantes (elevated, flat, interactive)
+│   │   ├── Modal.tsx     # Popup modal réutilisable
+│   │   ├── Input.tsx     # Champs de saisie stylisés
+│   │   ├── Badge.tsx     # Badges et étiquettes
+│   │   └── index.ts      # Exports centralisés
+│   ├── game/             # Composants spécifiques au jeu
+│   │   ├── PhaseIndicator.tsx  # Indicateur de phase jour/nuit
+│   │   ├── PlayerCard.tsx      # Carte de joueur avec rôles
+│   │   ├── ChairSelector.tsx   # Sélecteur de chaises en cercle
+│   │   ├── VoteSystem.tsx      # Système de vote et bûcher
+│   │   ├── ChatSystem.tsx      # Chat restreint (loups/fantômes)
+│   │   ├── GameHistory.tsx     # Historique complet de partie
+│   │   └── index.ts      # Exports centralisés
+│   ├── auth/             # Composants d'authentification
+│   │   ├── LoginForm.tsx # Formulaire de connexion
+│   │   ├── RegisterForm.tsx # Formulaire d'inscription
+│   │   └── index.ts      # Exports centralisés
+│   └── lobby/            # Composants de lobby
+│       ├── LobbyList.tsx # Liste des lobbys disponibles
+│       ├── LobbyChat.tsx # Chat de lobby
+│       ├── PlayerList.tsx # Liste des joueurs dans le lobby
+│       └── index.ts      # Exports centralisés
+├── types/                 # Types TypeScript partagés
+├── utils/                 # Utilitaires communs
+└── constants/             # Constantes partagées
+
+mobile/                    # Application React Native
+├── src/
+│   ├── screens/          # Écrans spécifiques au mobile
+│   ├── navigation/       # Navigation mobile (React Navigation)
+│   └── services/         # Services adaptés au mobile
+└── App.tsx               # Point d'entrée mobile
+
+web/                       # Version web avec React Native Web
+├── src/
+│   ├── pages/            # Pages web spécifiques
+│   └── services/         # Services adaptés au web
+└── App.tsx               # Point d'entrée web
 ```
 
-## 🎯 Avantages de l'Architecture Callstack
+## 🎯 Avantages de l'Architecture React Native
 
 ### 1. **Cohérence Visuelle**
 - Tous les boutons ont le même style grâce aux variantes standardisées
@@ -74,27 +91,33 @@ components/
 - Bundle size réduit grâce à la réutilisation
 - Lazy loading facilité
 
-## 🚀 Utilisation de l'Architecture Callstack
+### 6. **Cross-Platform**
+- Même code sur Android, iOS et web
+- Réduction drastique du code dupliqué
+- Cohérence des fonctionnalités
+- Développement centralisé
+
+## 🚀 Utilisation de l'Architecture React Native
 
 ### Import des Composants
 
 ```typescript
 // Import individuel
-import Button from './components/common/Button';
-import PlayerCard from './components/game/PlayerCard';
+import Button from './shared/components/common/Button';
+import PlayerCard from './shared/components/game/PlayerCard';
 
 // Import groupé (recommandé)
-import { Button, Card, Modal, Input, Badge } from './components/common';
-import { PhaseIndicator, PlayerCard, ChairSelector, VoteSystem, ChatSystem } from './components/game';
-import { LoginForm, RegisterForm } from './components/auth';
-import { LobbyList, LobbyChat, PlayerList } from './components/lobby';
+import { Button, Card, Modal, Input, Badge } from './shared/components/common';
+import { PhaseIndicator, PlayerCard, ChairSelector, VoteSystem, ChatSystem } from './shared/components/game';
+import { LoginForm, RegisterForm } from './shared/components/auth';
+import { LobbyList, LobbyChat, PlayerList } from './shared/components/lobby';
 ```
 
-### Exemples d'Utilisation Callstack
+### Exemples d'Utilisation React Native
 
-#### Button avec Variantes Callstack
+#### Button avec Variantes React Native
 ```typescript
-<Button variant="primary" size="lg" onClick={handleClick}>
+<Button variant="primary" size="lg" onPress={handlePress}>
   Démarrer le Jeu
 </Button>
 
@@ -102,80 +125,80 @@ import { LobbyList, LobbyChat, PlayerList } from './components/lobby';
   Arrêter
 </Button>
 
-<Button variant="ghost" size="md" onClick={handleNotes}>
+<Button variant="ghost" size="md" onPress={handleNotes}>
   Notes
 </Button>
 ```
 
-#### Card Interactive Callstack
+#### Card Interactive React Native
 ```typescript
-<Card variant="elevated" interactive onClick={handleCardClick}>
-  <h3>Titre de la carte</h3>
-  <p>Contenu de la carte</p>
+<Card variant="elevated" interactive onPress={handleCardPress}>
+  <Text style={styles.title}>Titre de la carte</Text>
+  <Text style={styles.content}>Contenu de la carte</Text>
 </Card>
 
-<Card variant="flat" className="p-4">
+<Card variant="flat" style={styles.container}>
   <Badge variant="success">En ligne</Badge>
-  <p>Statut du joueur</p>
+  <Text style={styles.status}>Statut du joueur</Text>
 </Card>
 ```
 
-#### Modal Callstack
+#### Modal React Native
 ```typescript
 <Modal 
-  isOpen={showModal} 
+  isVisible={showModal} 
   onClose={() => setShowModal(false)}
   title="Confirmation"
   size="md"
 >
-  <p>Êtes-vous sûr de vouloir continuer ?</p>
-  <div className="flex justify-end space-x-2">
-    <Button variant="secondary" onClick={() => setShowModal(false)}>
+  <Text style={styles.message}>Êtes-vous sûr de vouloir continuer ?</Text>
+  <View style={styles.buttonContainer}>
+    <Button variant="secondary" onPress={() => setShowModal(false)}>
       Annuler
     </Button>
-    <Button variant="primary" onClick={handleConfirm}>
+    <Button variant="primary" onPress={handleConfirm}>
       Confirmer
     </Button>
-  </div>
+  </View>
 </Modal>
 ```
 
-#### Input et Badge Callstack
+#### Input et Badge React Native
 ```typescript
 <Input 
-  type="text" 
   placeholder="Nom du joueur"
   value={playerName}
-  onChange={handleNameChange}
+  onChangeText={handleNameChange}
+  style={styles.input}
 />
 
 <Badge variant="warning">En attente</Badge>
 <Badge variant="success">Prêt</Badge>
 ```
 
-#### PhaseIndicator Callstack
+#### PhaseIndicator React Native
 ```typescript
 <PhaseIndicator
   phase="day"
   timeRemaining={300}
   totalTime={600}
-  className="mb-4"
+  style={styles.indicator}
 />
 ```
 
-#### PlayerCard Callstack
+#### PlayerCard React Native
 ```typescript
 <PlayerCard
   player={playerData}
   showRole={true}
   showVoteCount={true}
   voteCount={3}
-  onClick={() => handlePlayerClick(playerData.id)}
+  onPress={() => handlePlayerPress(playerData.id)}
   interactive={true}
 />
 ```
 
-#### ChairSelector Callstack
+#### ChairSelector React Native
 ```typescript
 <ChairSelector
   chairs={chairsData}
@@ -184,7 +207,7 @@ import { LobbyList, LobbyChat, PlayerList } from './components/lobby';
 />
 ```
 
-#### VoteSystem Callstack
+#### VoteSystem React Native
 ```typescript
 <VoteSystem
   players={players}
@@ -194,7 +217,7 @@ import { LobbyList, LobbyChat, PlayerList } from './components/lobby';
 />
 ```
 
-#### ChatSystem Callstack
+#### ChatSystem React Native
 ```typescript
 <ChatSystem
   chatType="wolves"
@@ -204,11 +227,11 @@ import { LobbyList, LobbyChat, PlayerList } from './components/lobby';
 />
 ```
 
-## 🔧 Personnalisation Callstack
+## 🔧 Personnalisation React Native
 
 ### Ajouter de Nouvelles Variantes
 
-Pour ajouter une nouvelle variante à un composant existant selon l'architecture Callstack :
+Pour ajouter une nouvelle variante à un composant existant selon l'architecture React Native :
 
 1. **Modifier l'interface TypeScript**
 ```typescript
@@ -216,68 +239,94 @@ interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'ghost' | 'new-variant';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
-  onClick?: () => void;
+  onPress?: () => void;
   children: React.ReactNode;
-  className?: string;
+  style?: StyleProp<ViewStyle>;
 }
 ```
 
-2. **Ajouter les styles CSS avec Tailwind**
+2. **Ajouter les styles avec StyleSheet**
 ```typescript
-const variantClasses = {
-  primary: 'bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white',
-  secondary: 'bg-slate-600 hover:bg-slate-700 focus:ring-slate-500 text-white',
-  danger: 'bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white',
-  success: 'bg-green-600 hover:bg-green-700 focus:ring-green-500 text-white',
-  ghost: 'bg-transparent hover:bg-slate-700 text-slate-300',
-  'new-variant': 'bg-purple-600 hover:bg-purple-700 focus:ring-purple-500 text-white'
+const variantStyles = {
+  primary: { backgroundColor: '#dc2626' },
+  secondary: { backgroundColor: '#475569' },
+  danger: { backgroundColor: '#dc2626' },
+  success: { backgroundColor: '#16a34a' },
+  ghost: { backgroundColor: 'transparent' },
+  'new-variant': { backgroundColor: '#9333ea' }
 };
 ```
 
-### Créer un Nouveau Composant Callstack
+### Créer un Nouveau Composant React Native
 
-1. **Créer le fichier** : `components/game/NewComponent.tsx`
+1. **Créer le fichier** : `shared/components/game/NewComponent.tsx`
 2. **Définir l'interface** avec des props flexibles et TypeScript strict
 3. **Implémenter le composant** avec React.memo pour les performances
-4. **Ajouter à l'index** : `components/game/index.ts`
+4. **Ajouter à l'index** : `shared/components/game/index.ts`
 5. **Documenter** dans ce README
 6. **Ajouter les tests** unitaires
 
-### Exemple de Nouveau Composant Callstack
+### Exemple de Nouveau Composant React Native
 
 ```typescript
-// components/game/NewComponent.tsx
+// shared/components/game/NewComponent.tsx
 import React from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 
 interface NewComponentProps {
   title: string;
   description?: string;
   variant?: 'default' | 'highlighted';
-  onClick?: () => void;
-  className?: string;
+  onPress?: () => void;
+  style?: StyleProp<ViewStyle>;
 }
 
 const NewComponent: React.FC<NewComponentProps> = React.memo(({
   title,
   description,
   variant = 'default',
-  onClick,
-  className = ''
+  onPress,
+  style
 }) => {
-  const variantClasses = {
-    default: 'bg-slate-800 border-slate-700',
-    highlighted: 'bg-red-900 border-red-700'
+  const variantStyles = {
+    default: styles.default,
+    highlighted: styles.highlighted
   };
 
   return (
-    <div 
-      className={`p-4 border rounded-lg ${variantClasses[variant]} ${className}`}
-      onClick={onClick}
+    <Pressable 
+      style={[styles.container, variantStyles[variant], style]}
+      onPress={onPress}
     >
-      <h3 className="text-lg font-semibold text-white">{title}</h3>
-      {description && <p className="text-slate-300 mt-2">{description}</p>}
-    </div>
+      <Text style={styles.title}>{title}</Text>
+      {description && <Text style={styles.description}>{description}</Text>}
+    </Pressable>
   );
+});
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: '#475569'
+  },
+  default: {
+    backgroundColor: '#1e293b'
+  },
+  highlighted: {
+    backgroundColor: '#7f1d1d',
+    borderColor: '#dc2626'
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#ffffff'
+  },
+  description: {
+    color: '#cbd5e1',
+    marginTop: 8
+  }
 });
 
 NewComponent.displayName = 'NewComponent';
@@ -285,16 +334,16 @@ NewComponent.displayName = 'NewComponent';
 export default NewComponent;
 ```
 
-## 📋 Bonnes Pratiques Callstack
+## 📋 Bonnes Pratiques React Native
 
 ### 1. **Props Flexibles**
 - Toujours prévoir des props optionnelles avec valeurs par défaut
 - Utiliser des valeurs par défaut sensées
-- Permettre la personnalisation via `className`
+- Permettre la personnalisation via `style`
 - Interface TypeScript stricte et documentée
 
 ### 2. **Accessibilité**
-- Inclure les attributs ARIA nécessaires
+- Inclure les attributs `accessibilityLabel` et `accessibilityHint`
 - Gérer le focus et la navigation clavier
 - Fournir des alternatives textuelles
 - Tests d'accessibilité automatisés
@@ -311,26 +360,32 @@ export default NewComponent;
 - Props optionnelles bien définies
 - Utilisation de `React.FC` avec génériques
 
-### 5. **Architecture Callstack**
+### 5. **Architecture React Native**
 - Composants atomiques avec responsabilité unique
-- Réutilisabilité maximale
+- Réutilisabilité maximale sur toutes les plateformes
 - Design system cohérent
 - Tests unitaires pour chaque composant
 
-## 🎨 Thème et Styles Callstack
+### 6. **Cross-Platform**
+- Utiliser des composants React Native compatibles web
+- Éviter les APIs spécifiques à une plateforme
+- Tester sur toutes les plateformes cibles
+- Utiliser React Native Web pour la compatibilité
 
-Tous les composants utilisent Tailwind CSS avec un thème cohérent selon l'architecture Callstack :
+## 🎨 Thème et Styles React Native
 
-- **Couleurs principales** : Rouge (`red-600`) pour les actions principales
-- **Arrière-plans** : Slate (`slate-800`, `slate-900`) pour le thème sombre
-- **Bordures** : Slate (`slate-700`) pour la séparation
-- **Transitions** : `transition-all duration-200` pour les animations
-- **Design tokens** : Variables CSS centralisées pour la cohérence
+Tous les composants utilisent StyleSheet avec un thème cohérent selon l'architecture React Native :
+
+- **Couleurs principales** : Rouge (`#dc2626`) pour les actions principales
+- **Arrière-plans** : Slate (`#1e293b`, `#0f172a`) pour le thème sombre
+- **Bordures** : Slate (`#475569`) pour la séparation
+- **Transitions** : `Animated` pour les animations
+- **Design tokens** : Variables centralisées pour la cohérence
 - **Variantes standardisées** : Système de variantes cohérent dans tous les composants
 
-## 🔄 Évolution Callstack
+## 🔄 Évolution React Native
 
-Pour maintenir la réutilisabilité selon l'architecture Callstack :
+Pour maintenir la réutilisabilité selon l'architecture React Native :
 
 1. **Tests** : Ajouter des tests unitaires et d'intégration pour chaque composant
 2. **Documentation** : Mettre à jour cette documentation avec les nouveaux composants
@@ -338,17 +393,19 @@ Pour maintenir la réutilisabilité selon l'architecture Callstack :
 4. **Feedback** : Collecter les retours des développeurs et utilisateurs
 5. **Design System** : Maintenir la cohérence visuelle et fonctionnelle
 6. **Performance** : Optimiser continuellement les composants existants
+7. **Cross-Platform** : S'assurer de la compatibilité sur toutes les plateformes
 
-## 🚀 **Intégration avec Callstack**
+## 🚀 **Intégration avec React Native Web**
 
-L'architecture Callstack s'intègre parfaitement avec notre approche de développement :
+L'architecture React Native s'intègre parfaitement avec React Native Web :
 
-- **Composants atomiques** : Chaque composant a une responsabilité unique
-- **API cohérente** : Interface standardisée pour tous les composants
-- **Réutilisabilité maximale** : Un composant peut être utilisé dans plusieurs contextes
+- **Composants unifiés** : Même composants sur mobile et web
+- **API cohérente** : Interface standardisée pour toutes les plateformes
+- **Réutilisabilité maximale** : Un composant peut être utilisé sur mobile et web
 - **Maintenance simplifiée** : Modifications centralisées et propagation automatique
 - **Performance optimisée** : Composants légers et efficaces
+- **Développement rapide** : Une seule base de code pour toutes les plateformes
 
 ---
 
-*Cette architecture Callstack de composants réutilisables permet de développer rapidement et maintenir facilement l'interface utilisateur du jeu Wendigo, tout en garantissant une expérience utilisateur cohérente et performante.*
+*Cette architecture React Native de composants réutilisables permet de développer rapidement et maintenir facilement l'interface utilisateur du jeu Wendigo sur toutes les plateformes, tout en garantissant une expérience utilisateur cohérente et performante.*
