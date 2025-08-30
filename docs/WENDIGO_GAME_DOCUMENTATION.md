@@ -253,22 +253,23 @@ Sinon → Fin de Partie
 - **Choix irréversible** : Une fois sélectionnée, la chaise est verrouillée pour les autres
 - **Coordination d'équipe** : Les joueurs doivent se coordonner pour ne pas se bloquer mutuellement
 
-#### **Phase Soir (Accusations Dynamiques)**
+#### **Phase Soir (Conseil du Village)**
 **Système de vote d'accusation :**
-- **Vote d'accusation** : Chaque joueur vote pour qui il veut voir sur le bûcher
-- **Affichage en temps réel** : Les votes s'accumulent et sont visibles par tous
-- **Bûcher automatique** : Le joueur le plus voté monte automatiquement sur le bûcher
-- **Défense** : Le joueur accusé a **1 minute** pour se défendre devant tout le village
-- **Vote de condamnation** : Après la défense, tous les joueurs votent pour **tuer** ou **épargner**
+- **Phase du conseil** : Une seule accusation par phase jour
+- **Vote d'accusation** : Tous les joueurs votent pour qui ils veulent voir sur le bûcher
+- **Sélection du condamné** : Le joueur avec le plus de votes va plaider son innocence
+- **Plaidoirie** : Le condamné a **1 minute** pour plaider son innocence devant tout le village
+- **Vote de condamnation** : Après la plaidoirie, tous les joueurs votent pour **tuer** ou **épargner**
+- **Fin de phase** : Après le vote de condamnation, la nuit tombe et les joueurs commettent leurs actions
 - **Historique des votes** : Tous les votes sont conservés et affichés dans un historique accessible
-- **Boucle continue** : Le processus recommence tant qu'il y a des votes d'accusation
 
 **Avantages de ce système :**
-- **Dynamisme constant** : Pas de temps mort, les accusations peuvent être multiples
-- **Stratégie collective** : Les joueurs doivent coordonner leurs votes
-- **Tension dramatique** : Le bûcher se remplit progressivement
-- **Justice équitable** : Chaque accusé a sa chance de se défendre
+- **Justice équitable** : Une seule accusation par jour, chaque accusé a sa chance de se défendre
+- **Stratégie collective** : Les joueurs doivent coordonner leurs votes pour une seule accusation
+- **Tension dramatique** : Le conseil du village devient un moment crucial et unique
+- **Plaidoirie structurée** : 1 minute de défense pour chaque accusé
 - **Transparence totale** : Tous les votes sont visibles et traçables
+- **Transition claire** : Après le conseil, la nuit tombe automatiquement
 
 #### **Phase Nuit - Système de Vibration Séquentielle**
 **Réveil aléatoire des joueurs :**
@@ -402,21 +403,21 @@ On annonce les morts de la nuit. Le village se réorganise avec les nouvelles in
 - **Immersion accrue** : Sentiment de "vie après la mort" dans le jeu
 
 #### **Fonctionnalités du Bûcher**
-- **Vote d'accusation en temps réel** : Interface intuitive pour voter contre un joueur
+- **Vote d'accusation unique** : Une seule accusation par phase jour
 - **Affichage des votes** : Compteur visible pour chaque joueur accusé
-- **Bûcher automatique** : Le joueur le plus voté monte automatiquement
-- **Zone de défense** : Interface dédiée pour la défense de l'accusé
+- **Sélection du condamné** : Le joueur le plus voté va plaider son innocence
+- **Zone de plaidoirie** : Interface dédiée pour la défense de l'accusé (1 minute)
 - **Vote de condamnation** : Système de vote final (tuer/épargner)
 - **Historique complet** : Tous les votes conservés et accessibles
-- **Boucle continue** : Processus qui recommence tant qu'il y a des accusations
+- **Transition automatique** : Après le vote, la nuit tombe automatiquement
 
 #### **Avantages du Système de Bûcher**
-- **Engagement constant** : Pas de temps mort entre les accusations
-- **Stratégie collective** : Les joueurs doivent coordonner leurs votes
-- **Tension dramatique** : Le bûcher se remplit progressivement
-- **Justice équitable** : Chaque accusé a sa chance de se défendre
+- **Justice équitable** : Une seule accusation par jour, chaque accusé a sa chance de se défendre
+- **Stratégie collective** : Les joueurs doivent coordonner leurs votes pour une seule accusation
+- **Tension dramatique** : Le conseil du village devient un moment crucial et unique
+- **Plaidoirie structurée** : 1 minute de défense pour chaque accusé
 - **Transparence totale** : Tous les votes sont visibles et traçables
-- **Dynamisme social** : Les alliances se forment et se brisent rapidement
+- **Transition claire** : Après le conseil, la nuit tombe automatiquement
 
 #### **Fonctionnalités du Lobby**
 - **Chat en temps réel** : Communication entre joueurs avant la partie
@@ -452,13 +453,13 @@ On annonce les morts de la nuit. Le village se réorganise avec les nouvelles in
 - **Chat des loups** : Communication limitée entre loups (1 message/jour, max 15 caractères)
 - **Coordination secrète** : Les loups doivent se coordonner pour voter unanimement
 
-#### **Pendant la Phase Soir (Accusations Dynamiques)**
-- **Votes d'accusation** : Interface numérique pour voter contre un joueur
-- **Bûcher en temps réel** : Affichage des votes qui s'accumulent
-- **Défense orale** : L'accusé se défend devant tout le village
+#### **Pendant la Phase Soir (Conseil du Village)**
+- **Vote d'accusation unique** : Interface numérique pour voter contre un joueur (une seule accusation par jour)
+- **Sélection du condamné** : Le joueur le plus voté va plaider son innocence
+- **Plaidoirie orale** : L'accusé se défend pendant 1 minute devant tout le village
 - **Vote de condamnation** : Interface numérique pour tuer ou épargner
 - **Historique des votes** : Tous les votes conservés et accessibles
-- **Boucle continue** : Processus qui recommence tant qu'il y a des accusations
+- **Transition automatique** : Après le vote, la nuit tombe automatiquement
 
 #### **Pendant la Phase Nuit**
 - **Silence physique** : Les joueurs ferment les yeux et attendent leur vibration
@@ -546,8 +547,8 @@ Wendigo Game est conçu comme une **application web responsive mobile-first** qu
 
 #### **Système de Bûcher et Votes**
 - **Bûcher d'accusation** : Affichage en temps réel des votes d'accusation
-- **Vote d'accusation** : Interface pour voter contre un joueur (uniquement pour ceux ayant sélectionné une chaise)
-- **Défense** : Zone de défense pour le joueur sur le bûcher
+- **Vote d'accusation unique** : Interface pour voter contre un joueur (une seule accusation par jour)
+- **Plaidoirie** : Zone de plaidoirie pour le joueur sur le bûcher (1 minute)
 - **Vote de condamnation** : Interface pour tuer ou épargner
 - **Historique des votes** : Accès à tous les votes passés et présents
 
@@ -945,7 +946,7 @@ Voir le [README principal](../README.md) pour les instructions de démarrage.
 3. **Préparation** → Confirmation des joueurs
 4. **Début de partie** → Redirection automatique
 5. **Phase Jour** → Discussion et préparation des accusations
-6. **Phase Soir (Bûcher)** → Votes d'accusation → Défense → Vote de condamnation
+6. **Phase Soir (Conseil du Village)** → Vote d'accusation unique → Plaidoirie (1 min) → Vote de condamnation → Nuit
 7. **Phase Nuit** → Actions des rôles spéciaux
 8. **Transformation en Fantôme** → Les joueurs morts deviennent des Fantômes avec accès au chat
 9. **Répétition** → Tant qu'il reste des loups ET des villageois
