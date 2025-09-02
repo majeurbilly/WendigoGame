@@ -31,9 +31,9 @@
 
 ## 🏗️ Architecture du Projet
 
-### 🚨 **ATTENTION : Frontend Réinitialisé**
+### 🚨 **ATTENTION : Frontend Réinitialisé - Migration vers Flutter**
 
-**Le frontend a été complètement réinitialisé** - tous les fichiers sont vides (0 bytes). La structure des dossiers est préservée mais tous les composants et configurations doivent être recréés.
+**Le frontend a été complètement réinitialisé** - tous les fichiers sont vides (0 bytes). Après analyse approfondie, nous avons décidé de **migrer vers Flutter** pour une meilleure expérience mobile avec vibration native et notifications push.
 
 ### **État Actuel du Frontend**
 
@@ -41,25 +41,25 @@
 frontend/
 ├── shared/                    # Code partagé entre mobile et web
 │   ├── components/           # Tous les composants sont VIDES (0 bytes)
-│   ├── types/                # Types TypeScript VIDES
+│   ├── types/                # Types Dart VIDES
 │   ├── utils/                # Utilitaires VIDES
 │   └── constants/            # Constantes VIDES
-├── mobile/                    # Application React Native
+├── mobile/                    # Application Flutter
 │   ├── src/                  # Dossiers vides
-│   ├── App.tsx               # 0 bytes
-│   └── package.json          # 0 bytes
-├── web/                       # Version web
+│   ├── main.dart             # 0 bytes
+│   └── pubspec.yaml          # 0 bytes
+├── web/                       # Version web Flutter
 │   ├── src/                  # Dossiers vides
-│   ├── App.tsx               # 0 bytes
-│   └── package.json          # 0 bytes
-└── package.json               # 0 bytes
+│   ├── main.dart             # 0 bytes
+│   └── pubspec.yaml          # 0 bytes
+└── pubspec.yaml               # 0 bytes
 ```
 
-### **Approche Prévue : React Native + React Native Web**
+### **Approche Prévue : Flutter Unifié (Mobile + Web)**
 
 **Objectif** : Créer une solution unifiée qui couvre à la fois les applications mobiles (Android + iOS) et le web avec une seule base de code.
 
-#### **🎯 Avantages de React Native + Web :**
+#### **🎯 Avantages de Flutter Unifié :**
 
 **1. Codebase Unique :**
 - **Un seul codebase** pour développer les composants de jeu
@@ -67,14 +67,15 @@ frontend/
 - **Développement centralisé** : Une seule équipe, une seule base de code
 
 **2. Écosystème Riche :**
-- **React Native Web** traduit automatiquement les composants RN en HTML
-- **Expo** gère Android, iOS et Web avec le même projet
-- **Libraries compatibles** : Callstack, UI kits, etc.
+- **Flutter Web** compile automatiquement vers HTML/CSS/JS
+- **Flutter** gère Android, iOS et Web avec le même projet
+- **Libraries compatibles** : Material Design, Cupertino, packages Flutter
 
 **3. Expérience Native :**
 - **API Vibration** native pour le système de réveil séquentiel
-- **Performance native** : Pas de WebView lourd comme Cordova
-- **Rendu natif** : Interface fluide et responsive
+- **Notifications push** natives pour les alertes importantes
+- **Performance native** : Rendu direct sur le GPU
+- **Interface fluide** : 60 FPS sur toutes les plateformes
 
 **4. Stratégie de Déploiement :**
 - **Objectif immédiat** : Site web accessible via URL (95% du besoin couvert)
@@ -84,393 +85,453 @@ frontend/
 ### **Versions Existantes**
 - **v1** : Java Spring Boot + React (complexe)
 - **v2** : Python FastAPI + WebSockets (intermédiaire)
-- **v3** : **React Native + React Native Web** (nouvelle approche unifiée) - **EN COURS DE RECONSTRUCTION**
+- **v3** : **Flutter Unifié (Mobile + Web)** (nouvelle approche unifiée) - **EN COURS DE RECONSTRUCTION**
 
 ### **Structure Prévue (Après Reconstruction)**
 ```
 WendiGame/
 ├── backend/              # API .NET Core (inchangée)
 ├── shared/               # Code partagé entre mobile et web
-│   ├── components/       # Composants React Native communs
-│   ├── types/            # Types TypeScript partagés
+│   ├── components/       # Composants Flutter communs
+│   ├── types/            # Types Dart partagés
 │   └── utils/            # Utilitaires communs
-├── mobile/               # Application React Native
+├── mobile/               # Application Flutter
 │   ├── src/
 │   │   ├── screens/      # Écrans de l'application
 │   │   ├── navigation/   # Navigation mobile
 │   │   └── services/     # Services et API
-│   ├── App.tsx           # Point d'entrée mobile
-│   └── package.json      # Dépendances React Native
-├── web/                  # Version web avec React Native Web
+│   ├── main.dart         # Point d'entrée mobile
+│   └── pubspec.yaml      # Dépendances Flutter
+├── web/                  # Version web avec Flutter Web
 │   ├── src/
 │   │   ├── pages/        # Pages web spécifiques
 │   │   └── services/     # Services adaptés au web
-│   ├── App.tsx           # Point d'entrée web
-│   └── package.json      # Dépendances React Native Web
+│   ├── main.dart         # Point d'entrée web
+│   └── pubspec.yaml      # Dépendances Flutter Web
 └── shared/               # Code partagé entre mobile et web
     ├── components/       # Composants communs
-    ├── types/            # Types TypeScript partagés
+    ├── types/            # Types Dart partagés
     └── utils/            # Utilitaires communs
 ```
 
-## 🚀 **Instructions de Reconstruction du Frontend**
+## 🚀 **Instructions de Reconstruction du Frontend Flutter**
 
-### **Étape 1 : Initialisation du Projet**
+### **Étape 1 : Initialisation du Projet Flutter**
 
 ```bash
 # Naviguer vers le dossier frontend
 cd frontend
 
-# Initialiser le projet principal
-npm init -y
+# Initialiser le projet Flutter principal
+flutter create --platforms=android,ios,web wendigo_game
 
-# Installer les dépendances React Native
-npm install react react-native react-native-web expo expo-cli
+# Naviguer dans le projet créé
+cd wendigo_game
 
-# Installer les dépendances de développement
-npm install --save-dev @types/react @types/react-native typescript
+# Vérifier que Flutter est configuré
+flutter doctor
 ```
 
-### **Étape 2 : Configuration TypeScript**
+### **Étape 2 : Configuration Flutter**
 
-Créer `tsconfig.json` dans `frontend/` :
+Le fichier `pubspec.yaml` est automatiquement créé avec la configuration Flutter :
 
-```json
-{
-  "compilerOptions": {
-    "target": "es2017",
-    "lib": ["dom", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx"
-  },
-  "include": [
-    "shared/**/*",
-    "mobile/**/*",
-    "web/**/*"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
-}
+```yaml
+name: wendigo_game
+description: "Wendigo Game - Jeu de Loup-Garou Évolué & Immersif"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  # Dépendances pour le jeu
+  web_socket_channel: ^2.4.0
+  http: ^1.1.0
+  shared_preferences: ^2.2.0
+  vibration: ^1.8.0
+  flutter_local_notifications: ^16.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
 ```
 
-### **Étape 3 : Configuration Expo**
+### **Étape 3 : Configuration Flutter**
 
-Créer `app.json` dans `frontend/` :
+Le fichier `android/app/src/main/AndroidManifest.xml` est configuré pour les permissions :
 
-```json
-{
-  "expo": {
-    "name": "Wendigo Game",
-    "slug": "wendigo-game",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#1e293b"
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
-    "ios": {
-      "supportsTablet": true
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1e293b"
-      }
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Permissions pour vibration et notifications -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    
+    <application
+        android:label="Wendigo Game"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+        <!-- Configuration de l'application -->
+    </application>
+</manifest>
+```
+
+### **Étape 4 : Reconstruction des Composants Flutter**
+
+#### **4.1 Composants Communs (`shared/components/common/`)**
+
+**Button.dart** - Bouton réutilisable avec variantes :
+```dart
+import 'package:flutter/material.dart';
+
+enum ButtonVariant { primary, secondary, danger, success, ghost }
+enum ButtonSize { sm, md, lg }
+
+class GameButton extends StatelessWidget {
+  final ButtonVariant variant;
+  final ButtonSize size;
+  final VoidCallback onPressed;
+  final bool disabled;
+  final Widget child;
+  final ButtonStyle? style;
+
+  const GameButton({
+    super.key,
+    this.variant = ButtonVariant.primary,
+    this.size = ButtonSize.md,
+    required this.onPressed,
+    this.disabled = false,
+    required this.child,
+    this.style,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: disabled ? null : onPressed,
+      style: _getButtonStyle(),
+      child: child,
+    );
+  }
+
+  ButtonStyle _getButtonStyle() {
+    Color backgroundColor;
+    Color textColor;
+    
+    switch (variant) {
+      case ButtonVariant.primary:
+        backgroundColor = const Color(0xFFDC2626);
+        textColor = Colors.white;
+        break;
+      case ButtonVariant.secondary:
+        backgroundColor = const Color(0xFF475569);
+        textColor = Colors.white;
+        break;
+      case ButtonVariant.danger:
+        backgroundColor = const Color(0xFFDC2626);
+        textColor = Colors.white;
+        break;
+      case ButtonVariant.success:
+        backgroundColor = const Color(0xFF16A34A);
+        textColor = Colors.white;
+        break;
+      case ButtonVariant.ghost:
+        backgroundColor = Colors.transparent;
+        textColor = const Color(0xFF64748B);
+        break;
+    }
+
+    return ElevatedButton.styleFrom(
+      backgroundColor: backgroundColor,
+      foregroundColor: textColor,
+      padding: _getPadding(),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: variant == ButtonVariant.ghost 
+          ? const BorderSide(color: Color(0xFF64748B)) 
+          : BorderSide.none,
+      ),
+    );
+  }
+
+  EdgeInsets _getPadding() {
+    switch (size) {
+      case ButtonSize.sm:
+        return const EdgeInsets.symmetric(horizontal: 16, vertical: 8);
+      case ButtonSize.md:
+        return const EdgeInsets.symmetric(horizontal: 24, vertical: 12);
+      case ButtonSize.lg:
+        return const EdgeInsets.symmetric(horizontal: 32, vertical: 16);
     }
   }
 }
 ```
 
-### **Étape 4 : Reconstruction des Composants**
+#### **4.2 Autres Composants Communs**
+- **Card.dart** - Conteneur avec variantes (elevated, flat, interactive)
+- **Modal.dart** - Popup modal réutilisable
+- **Input.dart** - Champs de saisie stylisés
+- **Badge.dart** - Badges et étiquettes
 
-#### **4.1 Composants Communs (`shared/components/common/`)**
+#### **4.2 Types Dart (`shared/types/index.dart`)**
 
-**Button.tsx** - Bouton réutilisable avec variantes :
-```typescript
-import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-
-interface ButtonProps {
-  variant?: 'primary' | 'secondary' | 'danger' | 'success' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  onPress: () => void;
-  disabled?: boolean;
-  children: React.ReactNode;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
-}
-
-const Button: React.FC<ButtonProps> = ({
-  variant = 'primary',
-  size = 'md',
-  onPress,
-  disabled = false,
-  children,
-  style,
-  textStyle
-}) => {
-  return (
-    <TouchableOpacity
-      style={[
-        styles.button,
-        styles[variant],
-        styles[size],
-        disabled && styles.disabled,
-        style
-      ]}
-      onPress={onPress}
-      disabled={disabled}
-      activeOpacity={0.8}
-    >
-      <Text style={[styles.text, styles[`${variant}Text`], textStyle]}>
-        {children}
-      </Text>
-    </TouchableOpacity>
-  );
-};
-
-const styles = StyleSheet.create({
-  button: {
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  // Variantes
-  primary: {
-    backgroundColor: '#dc2626',
-  },
-  secondary: {
-    backgroundColor: '#475569',
-  },
-  danger: {
-    backgroundColor: '#dc2626',
-  },
-  success: {
-    backgroundColor: '#16a34a',
-  },
-  ghost: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#64748b',
-  },
-  // Tailles
-  sm: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  md: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-  },
-  lg: {
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-  },
-  // États
-  disabled: {
-    opacity: 0.5,
-  },
-  // Texte
-  text: {
-    fontWeight: '600',
-    fontSize: 16,
-  },
-  primaryText: {
-    color: '#ffffff',
-  },
-  secondaryText: {
-    color: '#ffffff',
-  },
-  dangerText: {
-    color: '#ffffff',
-  },
-  successText: {
-    color: '#ffffff',
-  },
-  ghostText: {
-    color: '#64748b',
-  },
-});
-
-export default Button;
-```
-
-#### **4.2 Types TypeScript (`shared/types/index.ts`)**
-
-```typescript
+```dart
 // Types de base du jeu
-export interface Player {
-  id: string;
-  name: string;
-  role: Role;
-  isAlive: boolean;
-  isReady: boolean;
-  selectedChair?: number;
-  team: 'village' | 'wolves';
-  color: string;
+class Player {
+  final String id;
+  final String name;
+  final Role role;
+  final bool isAlive;
+  final bool isReady;
+  final int? selectedChair;
+  final Team team;
+  final String color;
+
+  const Player({
+    required this.id,
+    required this.name,
+    required this.role,
+    required this.isAlive,
+    required this.isReady,
+    this.selectedChair,
+    required this.team,
+    required this.color,
+  });
+
+  factory Player.fromJson(Map<String, dynamic> json) {
+    return Player(
+      id: json['id'],
+      name: json['name'],
+      role: Role.fromJson(json['role']),
+      isAlive: json['isAlive'],
+      isReady: json['isReady'],
+      selectedChair: json['selectedChair'],
+      team: Team.values.firstWhere((e) => e.name == json['team']),
+      color: json['color'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'role': role.toJson(),
+      'isAlive': isAlive,
+      'isReady': isReady,
+      'selectedChair': selectedChair,
+      'team': team.name,
+      'color': color,
+    };
+  }
 }
 
-export interface Role {
-  id: string;
-  name: string;
-  description: string;
-  team: 'village' | 'wolves';
-  power: string;
-  isActive: boolean;
+enum Team { village, wolves }
+
+class Role {
+  final String id;
+  final String name;
+  final String description;
+  final Team team;
+  final String power;
+  final bool isActive;
+
+  const Role({
+    required this.id,
+    required this.name,
+    required this.description,
+    required this.team,
+    required this.power,
+    required this.isActive,
+  });
+
+  factory Role.fromJson(Map<String, dynamic> json) {
+    return Role(
+      id: json['id'],
+      name: json['name'],
+      description: json['description'],
+      team: Team.values.firstWhere((e) => e.name == json['team']),
+      power: json['power'],
+      isActive: json['isActive'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'team': team.name,
+      'power': power,
+      'isActive': isActive,
+    };
+  }
 }
 
-export interface Game {
-  id: string;
-  status: 'waiting' | 'playing' | 'finished';
-  phase: 'day' | 'night';
-  timeRemaining: number;
-  totalTime: number;
-  players: Player[];
-  currentPlayer?: Player;
-  selectedChair?: number;
-  round: number;
-  maxRounds: number;
+class Game {
+  final String id;
+  final GameStatus status;
+  final GamePhase phase;
+  final int timeRemaining;
+  final int totalTime;
+  final List<Player> players;
+  final Player? currentPlayer;
+  final int? selectedChair;
+  final int round;
+  final int maxRounds;
+
+  const Game({
+    required this.id,
+    required this.status,
+    required this.phase,
+    required this.timeRemaining,
+    required this.totalTime,
+    required this.players,
+    this.currentPlayer,
+    this.selectedChair,
+    required this.round,
+    required this.maxRounds,
+  });
+
+  factory Game.fromJson(Map<String, dynamic> json) {
+    return Game(
+      id: json['id'],
+      status: GameStatus.values.firstWhere((e) => e.name == json['status']),
+      phase: GamePhase.values.firstWhere((e) => e.name == json['phase']),
+      timeRemaining: json['timeRemaining'],
+      totalTime: json['totalTime'],
+      players: (json['players'] as List).map((p) => Player.fromJson(p)).toList(),
+      currentPlayer: json['currentPlayer'] != null 
+        ? Player.fromJson(json['currentPlayer']) 
+        : null,
+      selectedChair: json['selectedChair'],
+      round: json['round'],
+      maxRounds: json['maxRounds'],
+    );
+  }
 }
 
-export interface Lobby {
-  id: string;
-  name: string;
-  maxPlayers: number;
-  currentPlayers: number;
-  status: 'open' | 'full' | 'playing';
-  hostId: string;
-  players: Player[];
-  settings: GameSettings;
-}
-
-export interface GameSettings {
-  maxPlayers: number;
-  timeLimit: number;
-  allowSpectators: boolean;
-  customRoles: boolean;
-}
-
-export interface ChatMessage {
-  id: string;
-  playerId: string;
-  playerName: string;
-  message: string;
-  timestamp: Date;
-  type: 'lobby' | 'game' | 'wolves' | 'ghosts' | 'medium';
-}
-
-export interface Vote {
-  id: string;
-  voterId: string;
-  targetId: string;
-  type: 'accusation' | 'condemnation';
-  timestamp: Date;
-}
+enum GameStatus { waiting, playing, finished }
+enum GamePhase { day, night }
 ```
 
-### **Étape 5 : Configuration des Applications**
+### **Étape 5 : Configuration des Applications Flutter**
 
 #### **5.1 Application Mobile (`mobile/`)**
 
-**package.json** :
-```json
-{
-  "name": "wendigo-game-mobile",
-  "version": "1.0.0",
-  "main": "node_modules/expo/AppEntry.js",
-  "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
-  },
-  "dependencies": {
-    "expo": "~50.0.0",
-    "expo-status-bar": "~1.11.1",
-    "react": "18.2.0",
-    "react-native": "0.73.2",
-    "react-navigation": "^4.4.4",
-    "react-navigation-stack": "^2.10.4",
-    "@react-native-async-storage/async-storage": "1.21.0"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.20.0",
-    "@types/react": "~18.2.45",
-    "typescript": "^5.1.3"
-  }
-}
+**pubspec.yaml** :
+```yaml
+name: wendigo_game_mobile
+description: "Wendigo Game Mobile - Jeu de Loup-Garou Évolué"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  
+  # Navigation
+  go_router: ^12.0.0
+  
+  # Gestion d'état
+  provider: ^6.1.0
+  
+  # API et WebSocket
+  http: ^1.1.0
+  web_socket_channel: ^2.4.0
+  
+  # Stockage local
+  shared_preferences: ^2.2.0
+  
+  # APIs natives
+  vibration: ^1.8.0
+  flutter_local_notifications: ^16.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
 ```
 
 #### **5.2 Application Web (`web/`)**
 
-**package.json** :
-```json
-{
-  "name": "wendigo-game-web",
-  "version": "1.0.0",
-  "scripts": {
-    "start": "expo start --web",
-    "build": "expo build --web",
-    "serve": "npx serve web-build"
-  },
-  "dependencies": {
-    "expo": "~50.0.0",
-    "react": "18.2.0",
-    "react-native": "0.73.2",
-    "react-native-web": "~0.19.6",
-    "react-dom": "18.2.0",
-    "react-router-dom": "^6.8.1"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.20.0",
-    "@types/react": "~18.2.45",
-    "@types/react-dom": "~18.2.17",
-    "typescript": "^5.1.3"
-  }
-}
+**pubspec.yaml** :
+```yaml
+name: wendigo_game_web
+description: "Wendigo Game Web - Version Web du Jeu de Loup-Garou"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  
+  # Navigation
+  go_router: ^12.0.0
+  
+  # Gestion d'état
+  provider: ^6.1.0
+  
+  # API et WebSocket
+  http: ^1.1.0
+  web_socket_channel: ^2.4.0
+  
+  # Stockage web
+  shared_preferences: ^2.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
 ```
 
-## 📋 **Checklist de Reconstruction**
+## 📋 **Checklist de Reconstruction Flutter**
 
-- [ ] **Initialisation** : `npm init` dans `frontend/`
-- [ ] **Dépendances principales** : React Native, Expo, TypeScript
-- [ ] **Configuration TypeScript** : `tsconfig.json`
-- [ ] **Configuration Expo** : `app.json`
+- [ ] **Initialisation** : `flutter create` dans `frontend/`
+- [ ] **Dépendances principales** : Flutter SDK, packages essentiels
+- [ ] **Configuration Flutter** : `pubspec.yaml` configuré
+- [ ] **Configuration plateformes** : Android, iOS, Web
 - [ ] **Composants communs** : Button, Card, Modal, Input, Badge
-- [ ] **Types TypeScript** : Interfaces Player, Game, Lobby, etc.
+- [ ] **Types Dart** : Classes Player, Game, Lobby, etc.
 - [ ] **Application mobile** : Navigation, écrans, services
 - [ ] **Application web** : Routes, pages, services
+- [ ] **APIs natives** : Vibration, notifications, stockage local
 - [ ] **Tests** : Vérification du fonctionnement
 - [ ] **Documentation** : Mise à jour des guides
 
 ## 🚨 **Prochaines Étapes**
 
-1. **Exécuter les scripts de reconstruction**
-2. **Vérifier que tous les composants fonctionnent**
-3. **Tester sur mobile et web**
-4. **Intégrer avec le backend .NET**
-5. **Déployer la version web**
+1. **Exécuter les scripts de reconstruction Flutter**
+2. **Vérifier que tous les composants Flutter fonctionnent**
+3. **Tester sur mobile (Android/iOS) et web**
+4. **Intégrer avec le backend .NET Core**
+5. **Déployer la version web et mobile**
+6. **Tester les APIs natives (vibration, notifications)**
 
 ## 🎮 Système de Jeu
 
@@ -912,20 +973,21 @@ On annonce les morts de la nuit. Le village se réorganise avec les nouvelles in
 - **Tension temporelle** : Les 2 dernières minutes créent une course contre la montre stratégique
 - **Coordination d'équipe** : Les joueurs doivent se coordonner pour ne pas se bloquer mutuellement
 
-## 📱 Interface Frontend - React Native + React Native Web
+## 📱 Interface Frontend - Flutter Unifié
 
 ### 🎯 **Vue d'ensemble de l'Interface**
 
-Wendigo Game est conçu comme une **application React Native unifiée** qui s'adapte automatiquement aux plateformes mobile (Android + iOS) et web grâce à **React Native Web**. Cette approche nous permet d'offrir une expérience de jeu immersive et intuitive sur tous les appareils.
+Wendigo Game est conçu comme une **application Flutter unifiée** qui s'adapte automatiquement aux plateformes mobile (Android + iOS) et web grâce à **Flutter Web**. Cette approche nous permet d'offrir une expérience de jeu immersive et intuitive sur tous les appareils.
 
-### 🧩 **Architecture React Native Unifiée**
+### 🧩 **Architecture Flutter Unifiée**
 
-Notre frontend utilise **React Native** comme base commune, avec **React Native Web** pour la traduction automatique en HTML. Cette approche nous permet de :
+Notre frontend utilise **Flutter** comme base commune, avec **Flutter Web** pour la compilation automatique vers HTML/CSS/JS. Cette approche nous permet de :
 
 - **Développer une seule fois** les composants de jeu
 - **Partager 95% du code** entre mobile et web
 - **Maintenir la cohérence** visuelle sur toutes les plateformes
 - **Optimiser les performances** natives sur mobile
+- **Bénéficier des APIs natives** : vibration et notifications push
 
 #### **Structure React Native Unifiée**
 ```
@@ -935,74 +997,74 @@ shared/                    # Code partagé entre mobile et web
 │   │   ├── Button.tsx    # Bouton avec variantes (primary, secondary, danger, success, ghost)
 │   │   ├── Card.tsx      # Conteneur avec variantes (elevated, flat, interactive)
 │   │   ├── Modal.tsx     # Popup modal réutilisable
-│   │   ├── Input.tsx     # Champs de saisie stylisés
-│   │   ├── Badge.tsx     # Badges et étiquettes
-│   │   └── index.ts      # Exports centralisés
+│   │   ├── Input.dart    # Champs de saisie stylisés
+│   │   ├── Badge.dart    # Badges et étiquettes
+│   │   └── index.dart    # Exports centralisés
 │   ├── game/             # Composants spécifiques au jeu
-│   │   ├── PhaseIndicator.tsx  # Indicateur de phase jour/nuit
-│   │   ├── PlayerCard.tsx      # Carte de joueur avec rôles
-│   │   ├── ChairSelector.tsx   # Sélecteur de chaises en cercle
-│   │   ├── VoteSystem.tsx      # Système de vote et bûcher
-│   │   ├── ChatSystem.tsx      # Chat restreint (loups/fantômes)
-│   │   └── index.ts      # Exports centralisés
+│   │   ├── PhaseIndicator.dart  # Indicateur de phase jour/nuit
+│   │   ├── PlayerCard.dart      # Carte de joueur avec rôles
+│   │   ├── ChairSelector.dart   # Sélecteur de chaises en cercle
+│   │   ├── VoteSystem.dart      # Système de vote et bûcher
+│   │   ├── ChatSystem.dart      # Chat restreint (loups/fantômes)
+│   │   └── index.dart    # Exports centralisés
 │   ├── auth/             # Composants d'authentification
-│   │   ├── LoginForm.tsx # Formulaire de connexion
-│   │   ├── RegisterForm.tsx # Formulaire d'inscription
-│   │   └── index.ts      # Exports centralisés
+│   │   ├── LoginForm.dart # Formulaire de connexion
+│   │   ├── RegisterForm.dart # Formulaire d'inscription
+│   │   └── index.dart    # Exports centralisés
 │   └── lobby/            # Composants de lobby
-│       ├── LobbyList.tsx # Liste des lobbys disponibles
-│       ├── LobbyChat.tsx # Chat de lobby
-│       ├── PlayerList.tsx # Liste des joueurs dans le lobby
-│       └── index.ts      # Exports centralisés
-├── types/                 # Types TypeScript partagés
+│       ├── LobbyList.dart # Liste des lobbys disponibles
+│       ├── LobbyChat.dart # Chat de lobby
+│       ├── PlayerList.dart # Liste des joueurs dans le lobby
+│       └── index.dart    # Exports centralisés
+├── types/                 # Types Dart partagés
 ├── utils/                 # Utilitaires communs
 └── constants/             # Constantes partagées
 
-mobile/                    # Application React Native
-├── src/
+mobile/                    # Application Flutter
+├── lib/
 │   ├── screens/          # Écrans spécifiques au mobile
-│   ├── navigation/       # Navigation mobile (React Navigation)
+│   ├── navigation/       # Navigation mobile (GoRouter)
 │   └── services/         # Services adaptés au mobile
-└── App.tsx               # Point d'entrée mobile
+└── main.dart             # Point d'entrée mobile
 
-web/                       # Version web avec React Native Web
-├── src/
+web/                       # Version web avec Flutter Web
+├── lib/
 │   ├── pages/            # Pages web spécifiques
 │   └── services/         # Services adaptés au web
-└── App.tsx               # Point d'entrée web
+└── main.dart             # Point d'entrée web
 ```
 
-### 🚀 **Architecture de l'Interface avec Callstack**
+### 🚀 **Architecture de l'Interface avec Flutter**
 
-#### **1. Page de Connexion - Composants Callstack**
+#### **1. Page de Connexion - Composants Flutter**
 - **`LoginForm`** : Formulaire de connexion avec validation
 - **`RegisterForm`** : Formulaire d'inscription avec validation
-- **`Button`** (variante primary) : Boutons d'action
-- **`Card`** (variante elevated) : Conteneur du formulaire
-- **`Input`** : Champs de saisie stylisés
+- **`GameButton`** (variante primary) : Boutons d'action
+- **`GameCard`** (variante elevated) : Conteneur du formulaire
+- **`GameInput`** : Champs de saisie stylisés
 - Design épuré et accueillant
 
-#### **2. Système de Lobby - Composants Callstack**
+#### **2. Système de Lobby - Composants Flutter**
 - **`LobbyList`** : Affichage des lobbys disponibles avec statut (ouvert/fermé)
 - **`LobbyChat`** : Chat en temps réel dans le lobby
 - **`PlayerList`** : Liste des joueurs avec statut "Prêt"
-- **`Button`** (variantes) : Créer lobby, rejoindre, confirmer prêt
-- **`Card`** (variante interactive) : Cartes de lobby cliquables
-- **`Modal`** : Configuration des paramètres de lobby
-- **`Badge`** : Indicateurs de statut (ouvert, fermé, plein)
+- **`GameButton`** (variantes) : Créer lobby, rejoindre, confirmer prêt
+- **`GameCard`** (variante interactive) : Cartes de lobby cliquables
+- **`GameModal`** : Configuration des paramètres de lobby
+- **`GameBadge`** : Indicateurs de statut (ouvert, fermé, plein)
 - **Remplissage progressif** du lobby en temps réel
 - **Système de confirmation** : chaque joueur confirme qu'il est prêt
 - **Vérification automatique** des conditions de début de partie
 - **Redirection automatique** vers l'interface de partie
 
-### 🎯 **Interface de Partie - Écran Principal avec Callstack**
+### 🎯 **Interface de Partie - Écran Principal avec Flutter**
 
-#### **Header Épuré - Composants Callstack**
+#### **Header Épuré - Composants Flutter**
 - **Logo du jeu** (coin supérieur gauche)
-- **Menu hamburger discret** (≡) en haut à droite avec **`Modal`** pour le menu
+- **Menu hamburger discret** (≡) en haut à droite avec **`GameModal`** pour le menu
 - Design minimaliste et professionnel
 
-#### **Zone Centrale - Cœur du Jeu - Composants Callstack**
+#### **Zone Centrale - Cœur du Jeu - Composants Flutter**
 - **`PlayerCard`** : Affichage du nom du joueur et informations personnelles
 - **`PhaseIndicator`** : Phase actuelle avec indicateur visuel :
   - 🌞 **Jour** (10:00) - Interface claire et lumineuse
@@ -1012,16 +1074,16 @@ web/                       # Version web avec React Native Web
   - Chiffres en temps réel
   - Animation de décompte avec changement de couleur
 
-#### **Boutons Principaux - Interface Mobile-First - Composants Callstack**
-- **`Button`** (variante ghost) : Zone Notes - Accès aux notes personnelles sur les joueurs
-- **`Button`** (variante secondary) : Fiche Personnelle - Informations du joueur (nom, rôle, équipe, couleur)
-- **`Button`** (variante secondary) : Règles du Jeu - Guide complet et accessible
-- **`Button`** (variante primary/danger) : Bouton Action - Utilisation des pouvoirs selon la phase
+#### **Boutons Principaux - Interface Mobile-First - Composants Flutter**
+- **`GameButton`** (variante ghost) : Zone Notes - Accès aux notes personnelles sur les joueurs
+- **`GameButton`** (variante secondary) : Fiche Personnelle - Informations du joueur (nom, rôle, équipe, couleur)
+- **`GameButton`** (variante secondary) : Règles du Jeu - Guide complet et accessible
+- **`GameButton`** (variante primary/danger) : Bouton Action - Utilisation des pouvoirs selon la phase
   - **Bloqué** : Pouvoir non disponible (affichage visuel)
   - **Actif** : Pouvoir utilisable
   - **Cooldown** : Pouvoir en recharge
 
-#### **Système de Sélection de Chaises - Composants Callstack**
+#### **Système de Sélection de Chaises - Composants Flutter**
 - **`ChairSelector`** : Interface de chaises numérotées disposées en cercle
 - **Sélection de chaise** : Interface pour choisir la chaise où le joueur est physiquement assis
 - **Timing de sélection** : Les chaises ne deviennent sélectionnables qu'à partir de 8 minutes de la phase Jour
@@ -1031,14 +1093,14 @@ web/                       # Version web avec React Native Web
 - **Timer de sélection** : Compte à rebours des 2 dernières minutes pour finaliser la sélection
 - **Indicateur de disponibilité** : Affichage visuel des chaises disponibles/occupées
 
-#### **Système de Bûcher et Votes - Composants Callstack**
+#### **Système de Bûcher et Votes - Composants Flutter**
 - **`VoteSystem`** : Bûcher d'accusation avec affichage en temps réel des votes
 - **Vote d'accusation unique** : Interface pour voter contre un joueur (une seule accusation par jour)
-- **Plaidoirie** : Zone de plaidoirie pour le joueur sur le bûcher (1 minute) avec **`Modal`**
-- **Vote de condamnation** : Interface pour tuer ou épargner avec **`Button`** (variantes primary/danger)
+- **Plaidoirie** : Zone de plaidoirie pour le joueur sur le bûcher (1 minute) avec **`GameModal`**
+- **Vote de condamnation** : Interface pour tuer ou épargner avec **`GameButton`** (variantes primary/danger)
 - **Historique des votes** : Accès à tous les votes passés et présents
 
-#### **Système de Chat Restreint - Composants Callstack**
+#### **Système de Chat Restreint - Composants Flutter**
 - **`ChatSystem`** : Gestion centralisée de tous les types de chat
 - **Chat des vivants** : Désactivé pendant la partie (seulement en lobby)
 - **Chat des loups** : Accessible uniquement aux loups pendant la phase Jour (1 message/jour, max 15 caractères)
@@ -1047,37 +1109,37 @@ web/                       # Version web avec React Native Web
 - **Communication stratégique** : Les Fantômes peuvent discuter entre eux
 - **Influence indirecte** : Les Fantômes peuvent observer et influencer les vivants
 
-#### **Système d'Historique Complet de Partie - Composants Callstack**
+#### **Système d'Historique Complet de Partie - Composants Flutter**
 - **`GameHistory`** : Journal des événements avec tous les coups, actions et événements enregistrés
 - **Timeline interactive** : Navigation chronologique dans l'historique de la partie
-- **Filtres intelligents** : Recherche par phase, joueur, type d'action ou résultat avec **`Input`** et **`Badge`**
+- **Filtres intelligents** : Recherche par phase, joueur, type d'action ou résultat avec **`GameInput`** et **`GameBadge`**
 - **Détails complets** : Chaque action avec son contexte, timing et impact
 - **Statistiques en temps réel** : Compteurs de votes, actions réussies/échouées
-- **Export de partie** : Possibilité de sauvegarder l'historique complet avec **`Button`** (variante secondary)
+- **Export de partie** : Possibilité de sauvegarder l'historique complet avec **`GameButton`** (variante secondary)
 
-### 🍔 **Menu Hamburger Complet - Composants Callstack**
+### 🍔 **Menu Hamburger Complet - Composants Flutter**
 
-#### **Navigation Principale - Composants Callstack**
-- **`Modal`** : Conteneur principal du menu hamburger
-- **`Button`** (variante ghost) : Règles du jeu - Guide complet et détaillé
-- **`Button`** (variante ghost) : Notes personnelles - Système de prise de notes avancé
-- **`Button`** (variante ghost) : Fiches joueurs - Profils détaillés de tous les participants
-- **`Button`** (variante ghost) : Historique de partie - Timeline complète des événements et actions
-- **`Button`** (variante ghost) : Statistiques - Métriques et compteurs en temps réel
-- **`Button`** (variante primary) : Bouton pouvoir - Accès rapide aux capacités
-- **`Button`** (variante danger) : Déconnexion - Sortie sécurisée du jeu
+#### **Navigation Principale - Composants Flutter**
+- **`GameModal`** : Conteneur principal du menu hamburger
+- **`GameButton`** (variante ghost) : Règles du jeu - Guide complet et détaillé
+- **`GameButton`** (variante ghost) : Notes personnelles - Système de prise de notes avancé
+- **`GameButton`** (variante ghost) : Fiches joueurs - Profils détaillés de tous les participants
+- **`GameButton`** (variante ghost) : Historique de partie - Timeline complète des événements et actions
+- **`GameButton`** (variante ghost) : Statistiques - Métriques et compteurs en temps réel
+- **`GameButton`** (variante primary) : Bouton pouvoir - Accès rapide aux capacités
+- **`GameButton`** (variante danger) : Déconnexion - Sortie sécurisée du jeu
 
-#### **Système de Notes Avancé - Composants Callstack**
-- **`Input`** : Nom complet du joueur sélectionné
-- **`Input`** (textarea) : Zone de notes personnelles (champ texte libre)
-- **Sélecteur de rôle suspecté** avec émojis utilisant **`Badge`** :
+#### **Système de Notes Avancé - Composants Flutter**
+- **`GameInput`** : Nom complet du joueur sélectionné
+- **`GameInput`** (textarea) : Zone de notes personnelles (champ texte libre)
+- **Sélecteur de rôle suspecté** avec émojis utilisant **`GameBadge`** :
   - 👨‍🌾 Villageois
   - 🧛 Loup-Garou
   - 🔮 Voyante
   - 🛡️ Garde
   - 🧪 Sorcière
   - Et autres rôles...
-- **`Button`** (variante success) : Sauvegarde automatique des notes
+- **`GameButton`** (variante success) : Sauvegarde automatique des notes
 - **Persistance** : les notes restent même si la phase change
 
 ## 📱 **Système de Vibration Séquentielle - Réveil Aléatoire des Joueurs**
@@ -1200,7 +1262,7 @@ web/                       # Version web avec React Native Web
 - **Gestion automatique** des phases
 - **Expérience cohérente** à chaque partie
 
-## 🚀 Plan de Développement - React Native + Web
+## 🚀 Plan de Développement - Flutter Unifié
 
 ### 📋 **Étape 1 : Architecture de Base (2-3 semaines)**
 
@@ -1209,23 +1271,23 @@ web/                       # Version web avec React Native Web
 WendiGame/
 ├── backend/              # API .NET Core (déjà existante)
 ├── shared/               # Code partagé entre mobile et web
-│   ├── components/       # Composants React Native communs
-│   ├── types/            # Types TypeScript partagés
+│   ├── components/       # Composants Flutter communs
+│   ├── types/            # Types Dart partagés
 │   ├── utils/            # Utilitaires communs
 │   └── constants/        # Constantes partagées
-├── mobile/               # Application React Native
-│   ├── src/
+├── mobile/               # Application Flutter
+│   ├── lib/
 │   │   ├── screens/      # Écrans de l'application
 │   │   ├── navigation/   # Navigation mobile
 │   │   └── services/     # Services adaptés au mobile
-│   ├── App.tsx           # Point d'entrée mobile
-│   └── package.json      # Dépendances React Native
-├── web/                  # Version web avec React Native Web
-│   ├── src/
+│   ├── main.dart         # Point d'entrée mobile
+│   └── pubspec.yaml      # Dépendances Flutter
+├── web/                  # Version web avec Flutter Web
+│   ├── lib/
 │   │   ├── pages/        # Pages web spécifiques
 │   │   └── services/     # Services adaptés au web
-│   ├── App.tsx           # Point d'entrée web
-│   └── package.json      # Dépendances React Native Web
+│   ├── main.dart         # Point d'entrée web
+│   └── pubspec.yaml      # Dépendances Flutter Web
 └── README.md
 ```
 
@@ -1330,23 +1392,23 @@ interface CardProps {
 - **SQL Server** : Base de données relationnelle
 
 ### Frontend Unifié
-- **React Native** : Base commune pour mobile et web
-- **React Native Web** : Traduction automatique en HTML
-- **Expo** : Framework de développement unifié
-- **TypeScript** : Typage statique et sécurité du code
+- **Flutter** : Base commune pour mobile et web
+- **Flutter Web** : Compilation automatique vers HTML/CSS/JS
+- **Dart** : Langage moderne et performant
+- **Material Design** : Interface cohérente et belle
 
 ### Gestion des Dépendances
-- **npm/yarn** : Gestionnaire de paquets Node.js
-- **Expo CLI** : Outils de développement et build
-- **Metro** : Bundler React Native
-- **Webpack** : Bundler pour la version web
+- **pub** : Gestionnaire de paquets Dart/Flutter
+- **Flutter CLI** : Outils de développement et build
+- **Flutter Engine** : Moteur de rendu optimisé
+- **Dart Compiler** : Compilation native et web
 
 ### Outils de Développement
 - **Git** : Versioning
-- **VS Code** : Éditeur avec extensions React Native
-- **Expo DevTools** : Développement et debugging
-- **React Native Debugger** : Debugging avancé
-- **Flipper** : Inspection et debugging des apps
+- **VS Code** : Éditeur avec extensions Flutter
+- **Flutter Inspector** : Développement et debugging
+- **Flutter DevTools** : Debugging avancé
+- **Android Studio** : IDE complet avec plugin Flutter
 
 ## 📊 Métriques de Succès
 
@@ -1363,18 +1425,20 @@ interface CardProps {
 - ✅ Tests de base
 - ✅ Déploiement simple
 
-## 🎯 Objectifs de la V3 - React Native + Web
+## 🎯 Objectifs de la V3 - Flutter Unifié
 
 ### Unification
 - **Codebase unique** : 95% de code partagé entre mobile et web
 - **Développement centralisé** : Une seule équipe, une seule base de code
 - **Cohérence visuelle** : Interface identique sur toutes les plateformes
+- **APIs natives** : Vibration et notifications push sur mobile
 
 ### Fonctionnalité
 - **Jeu complet** : Toutes les phases implémentées
 - **29 rôles équilibrés** : Jeu équitable et varié
 - **Interface native** : Expérience optimale sur mobile
 - **Version web accessible** : Jeu jouable sur navigateur
+- **Fonctionnalités mobiles** : Vibration séquentielle, notifications
 
 ### Extensibilité
 - **Ajout de rôles** : Architecture modulaire pour 29+ rôles
@@ -1382,6 +1446,7 @@ interface CardProps {
 - **Personnalisation** : Configuration simple
 - **Équilibrage dynamique** : Ajustement automatique selon le nombre de joueurs
 - **Nouvelles plateformes** : Facile d'ajout de nouvelles plateformes
+- **APIs natives** : Intégration facile de nouvelles fonctionnalités mobiles
 
 ## 🚀 Démarrage Rapide
 
@@ -1397,9 +1462,9 @@ Voir le [README principal](../README.md) pour les instructions de démarrage.
 5. **Soumettre** une pull request
 
 ### Standards de Code
-- **Python** : PEP 8
-- **JavaScript** : ESLint
-- **Documentation** : Docstrings
+- **Dart** : Dart Style Guide
+- **Flutter** : Flutter Style Guide
+- **Documentation** : DartDoc
 - **Tests** : Coverage > 80%
 
 ## 📝 Notes de Développement
@@ -1465,8 +1530,8 @@ Pour compléter les descriptions des rôles, remplacez les `[À compléter]` par
 
 Pour toute question ou suggestion concernant le projet WendiGame, n'hésitez pas à ouvrir une issue sur GitHub.
 
-**Objectif final** : Créer un jeu de loup-garou moderne avec 29 rôles uniques, équilibré et amusant où chaque joueur a un rôle actif et des pouvoirs distincts, le tout orchestré par une interface mobile-first immersive avec une voix maîtresse automatisée ! 🎮✨🎙️
+**Objectif final** : Créer un jeu de loup-garou moderne avec 29 rôles uniques, équilibré et amusant où chaque joueur a un rôle actif et des pouvoirs distincts, le tout orchestré par une interface Flutter unifiée immersive avec vibration native et notifications push ! 🎮✨🦋
 
 ---
 
-*Wendigo Game - Une expérience de Loup-Garou moderne, immersive et entièrement automatisée.*
+*Wendigo Game - Une expérience de Loup-Garou moderne, immersive et entièrement automatisée avec Flutter.*

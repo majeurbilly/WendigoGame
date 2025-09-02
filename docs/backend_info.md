@@ -38,48 +38,66 @@ backend/
 - **Swagger/OpenAPI** : Documentation automatique
 - **SQL Server** : Base de données relationnelle
 
-## 🔌 **Intégration avec React Native + Web**
+## 🔌 **Intégration avec Flutter Unifié**
 
 ### **1. API REST pour les Composants Partagés**
-```typescript
-// shared/services/api.ts
-export const gameAPI = {
+```dart
+// shared/services/api.dart
+class GameAPI {
+  static const String baseUrl = 'https://localhost:7001/api';
+  
   // Toutes les opérations de jeu
-  getGameState: (gameId: string) => 
-    fetch(`/api/games/${gameId}`).then(r => r.json()),
+  static Future<GameState> getGameState(String gameId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/games/$gameId'),
+    );
+    return GameState.fromJson(jsonDecode(response.body));
+  }
   
-  joinLobby: (lobbyId: string) => 
-    fetch(`/api/lobbies/${lobbyId}/join`, { method: 'POST' }),
+  static Future<void> joinLobby(String lobbyId) async {
+    await http.post(
+      Uri.parse('$baseUrl/lobbies/$lobbyId/join'),
+    );
+  }
   
-  submitVote: (gameId: string, targetId: string) => 
-    fetch(`/api/games/${gameId}/vote`, { 
-      method: 'POST', 
-      body: JSON.stringify({ targetId }) 
-    })
-};
+  static Future<void> submitVote(String gameId, String targetId) async {
+    await http.post(
+      Uri.parse('$baseUrl/games/$gameId/vote'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'targetId': targetId}),
+    );
+  }
+}
 ```
 
 ### **2. SignalR pour la Communication Temps Réel**
-```typescript
-// shared/services/signalR.ts
-import { HubConnection } from '@microsoft/signalr';
+```dart
+// shared/services/signalr.dart
+import 'package:web_socket_channel/web_socket_channel.dart';
 
-export class GameHubService {
-  private connection: HubConnection;
-
-  async connect(gameId: string) {
-    this.connection = new HubConnectionBuilder()
-      .withUrl(`/gamehub?gameId=${gameId}`)
-      .build();
+class GameHubService {
+  WebSocketChannel? _connection;
+  
+  Future<void> connect(String gameId) async {
+    final uri = Uri.parse('wss://localhost:7001/gamehub?gameId=$gameId');
+    _connection = WebSocketChannel.connect(uri);
     
     // Écouter les événements de jeu
-    this.connection.on('PhaseChanged', (phase) => {
-      // Mise à jour de la phase en temps réel
+    _connection!.stream.listen((data) {
+      final event = jsonDecode(data);
+      switch (event['type']) {
+        case 'PhaseChanged':
+          // Mise à jour de la phase en temps réel
+          break;
+        case 'PlayerAction':
+          // Action d'un joueur en temps réel
+          break;
+      }
     });
-    
-    this.connection.on('PlayerAction', (action) => {
-      // Action d'un joueur en temps réel
-    });
+  }
+  
+  void sendMessage(String message) {
+    _connection?.sink.add(jsonEncode(message));
   }
 }
 ```
@@ -176,26 +194,44 @@ public class Lobby
 ## 🔄 **Communication Temps Réel**
 
 ### **Événements SignalR**
-```typescript
+```dart
 // Événements émis par le serveur
-interface GameEvents {
-  'PhaseChanged': (phase: GamePhase, timeRemaining: number) => void;
-  'PlayerAction': (action: PlayerAction) => void;
-  'VoteSubmitted': (vote: Vote) => void;
-  'GameEnded': (result: GameResult) => void;
-  'PlayerDied': (playerId: string, cause: string) => void;
-  'ChairSelected': (playerId: string, chairNumber: number) => void;
+class GameEvents {
+  static const String phaseChanged = 'PhaseChanged';
+  static const String playerAction = 'PlayerAction';
+  static const String voteSubmitted = 'VoteSubmitted';
+  static const String gameEnded = 'GameEnded';
+  static const String playerDied = 'PlayerDied';
+  static const String chairSelected = 'ChairSelected';
+}
+
+// Types d'événements
+enum GameEventType {
+  phaseChanged,
+  playerAction,
+  voteSubmitted,
+  gameEnded,
+  playerDied,
+  chairSelected,
 }
 ```
 
 ### **Actions des Joueurs**
-```typescript
+```dart
 // Actions envoyées par les clients
-interface PlayerActions {
-  'SelectChair': (chairNumber: number) => void;
-  'SubmitVote': (targetId: string) => void;
-  'UsePower': (powerType: string, targetId?: string) => void;
-  'SendMessage': (message: string, chatType: string) => void;
+class PlayerActions {
+  static const String selectChair = 'SelectChair';
+  static const String submitVote = 'SubmitVote';
+  static const String usePower = 'UsePower';
+  static const String sendMessage = 'SendMessage';
+}
+
+// Types d'actions
+enum PlayerActionType {
+  selectChair,
+  submitVote,
+  usePower,
+  sendMessage,
 }
 ```
 
@@ -279,20 +315,23 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 ## 📱 **Intégration Mobile et Web**
 
-### **Mobile (React Native)**
+### **Mobile (Flutter)**
 - **APIs natives** : Vibration, notifications push
 - **SignalR** : Communication temps réel optimisée
-- **Stockage local** : AsyncStorage pour les préférences
+- **Stockage local** : SharedPreferences pour les préférences
+- **Performance native** : Rendu direct sur le GPU
 
-### **Web (React Native Web)**
+### **Web (Flutter Web)**
 - **APIs web** : Notifications, sons, alertes
 - **SignalR** : WebSocket natif du navigateur
 - **Stockage web** : localStorage, sessionStorage
+- **Compilation optimisée** : HTML/CSS/JS performant
 
 ### **Code Partagé**
 - **Services API** : Même logique d'appel
 - **Gestion d'état** : Même état de jeu
 - **Composants** : Même interface utilisateur
+- **Logique métier** : 95% de code commun
 
 ## 🎯 **Avantages de cette Architecture**
 
@@ -301,18 +340,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 - **API unifiée** : Même endpoints pour mobile et web
 - **Temps réel** : SignalR pour la synchronisation
 - **Documentation** : Swagger automatique
+- **Frontend unifié** : Flutter pour mobile et web
 
 ### **Pour l'Utilisateur**
 - **Expérience cohérente** : Même logique de jeu partout
 - **Performance** : API optimisée et responsive
 - **Fiabilité** : Backend enterprise-grade
 - **Scalabilité** : Prêt pour la production
+- **Interface native** : Vibration et notifications sur mobile
 
 ### **Pour la Maintenance**
 - **Code centralisé** : Une seule API à maintenir
 - **Tests unifiés** : Même suite de tests
 - **Déploiement** : Un seul backend à déployer
 - **Monitoring** : Métriques centralisées
+- **Frontend unique** : Une seule base de code Flutter
 
 ## 🔮 **Évolution Future**
 
@@ -335,15 +377,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 ## 🎉 **Conclusion**
 
-Le **backend .NET Core** de Wendigo Game fournit une **base solide et performante** qui s'intègre parfaitement avec l'architecture **React Native + React Native Web**. Cette combinaison nous permet de :
+Le **backend .NET Core** de Wendigo Game fournit une **base solide et performante** qui s'intègre parfaitement avec l'architecture **Flutter Unifié**. Cette combinaison nous permet de :
 
 ✅ **Développer rapidement** avec des outils modernes  
 ✅ **Maintenir la qualité** avec une architecture robuste  
 ✅ **Scaler facilement** pour la production  
 ✅ **Offrir une expérience unifiée** sur toutes les plateformes  
+✅ **Bénéficier des APIs natives** : vibration et notifications push  
 
 Le backend .NET Core est la **colonne vertébrale** qui rend possible la vision unifiée de Wendigo Game ! 🐺✨
 
 ---
 
-*Wendigo Game - Backend .NET Core + Frontend React Native Unifié*
+*Wendigo Game - Backend .NET Core + Frontend Flutter Unifié*
