@@ -1,0 +1,50 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: wendigame-backend:dev
+    container_name: wendigame_backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+      livekit:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - wendigame_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: wendigame_redis
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 3s
+    restart: unless-stopped
+    volumes:
+      - /data
+    networks:
+      - wendigame_network
+
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: wendigame_livekit
+    command: ["--dev"]
+    ports:
+      - "7880:7880"
+      - "7881:7881/tcp"
+      - "7881:7881/udp"
+    restart: unless-stopped
+    networks:
+      - wendigame_network
+
+networks:
+  wendigame_network:
+    name: wendigame_network
+    driver: bridge
