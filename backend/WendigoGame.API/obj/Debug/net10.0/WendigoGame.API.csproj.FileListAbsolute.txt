@@ -1,8 +1,0 @@
-C:\Users\jefou\OneDrive\Desktop\WendigoGame\backend\WendigoGame.API\obj\Debug\net10.0\WendigoGame.API.csproj.AssemblyReference.cache
-C:\Users\jefou\OneDrive\Desktop\WendigoGame\backend\WendigoGame.API\obj\Debug\net10.0\WendigoGame.API.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\jefou\OneDrive\Desktop\WendigoGame\backend\WendigoGame.API\obj\Debug\net10.0\WendigoGame.API.AssemblyInfoInputs.cache
-C:\Users\jefou\OneDrive\Desktop\WendigoGame\backend\WendigoGame.API\obj\Debug\net10.0\WendigoGame.API.AssemblyInfo.cs
-C:\Users\jefou\OneDrive\Desktop\WendigoGame\backend\WendigoGame.API\obj\Debug\net10.0\WendigoGame.API.csproj.CoreCompileInputs.cache
-C:\Users\jefou\OneDrive\Desktop\WendigoGame\backend\WendigoGame.API\obj\Debug\net10.0\WendigoGame.API.MvcApplicationPartsAssemblyInfo.cs
-C:\Users\jefou\OneDrive\Desktop\WendigoGame\backend\WendigoGame.API\obj\Debug\net10.0\WendigoGame.API.MvcApplicationPartsAssemblyInfo.cache
-C:\Users\jefou\OneDrive\Desktop\WendigoGame\backend\WendigoGame.API\obj\Debug\net10.0\WendigoGame.API.sourcelink.json
