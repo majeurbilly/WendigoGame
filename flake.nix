@@ -7,14 +7,7 @@
   };
 
   outputs = { self, nixpkgs, flake-utils }:
-    let
-      supportedSystems = [
-        "x86_64-linux"
-        "aarch64-linux"
-        "aarch64-darwin"
-      ];
-    in
-    flake-utils.lib.eachSystem supportedSystems (system:
+    flake-utils.lib.eachSystem [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ] (system:
       let
         pkgs = import nixpkgs {
           inherit system;
@@ -24,7 +17,8 @@
       {
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
-            go_1_22
+            go
+            go-task
             nodejs_20
             livekit-cli
             docker-compose
@@ -34,6 +28,8 @@
           CGO_ENABLED = "1";
 
           shellHook = ''
+            export PS1="\[\033[1;32m\](WendiGame-Dev) \[\033[0m\]\u@\h:\w\$ "
+            
             echo
             echo "=============================================="
             echo "   WendiGame Dev environment loaded"

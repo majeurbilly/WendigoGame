@@ -1,0 +1,24 @@
+version: "3"
+
+tasks:
+  run:
+    desc: Lance le serveur API (cmd/server).
+    cmds:
+      - go run ./cmd/server/main.go
+
+  test:
+    desc: Exécute tous les tests (verbose, race, couverture ; CGO activé).
+    env:
+      CGO_ENABLED: "1"
+    cmds:
+      - go test -v -race -cover ./...
+
+  up:
+    desc: Démarre la stack Docker Compose en arrière-plan.
+    cmds:
+      - docker-compose up -d
+
+  down:
+    desc: Arrête la stack Docker Compose.
+    cmds:
+      - docker-compose down
