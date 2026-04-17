@@ -18,6 +18,7 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             go
+            go-task
             nodejs_20
             livekit-cli
             docker-compose
