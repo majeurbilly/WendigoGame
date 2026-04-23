@@ -169,6 +169,9 @@ func TestWS_FiveSimultaneousConnections(t *testing.T) {
 		t.Fatalf("répartition hôte/invités: hostCount=%d guestCount=%d (%+v)", hostCount, guestCount, full.Players)
 	}
 
+	// Laisse le temps au hub de terminer les broadcasts LOBBY_SYNC en cours (CI / charge).
+	time.Sleep(50 * time.Millisecond)
+
 	for _, c := range conns {
 		if c == nil {
 			t.Fatal("connexion WebSocket nil")

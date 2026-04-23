@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -35,17 +36,40 @@ func NewHub(lobbyStore *store.Store) *Hub {
 	}
 }
 
+func isWebSocketWriteClosed(err error) bool {
+	if err == nil {
+		return false
+	}
+	if errors.Is(err, net.ErrClosed) {
+		return true
+	}
+	if websocket.IsCloseError(err,
+		websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseAbnormalClosure,
+		websocket.CloseNoStatusReceived) {
+		return true
+	}
+	s := strings.ToLower(err.Error())
+	return strings.Contains(s, "use of closed network connection") ||
+		strings.Contains(s, "broken pipe") ||
+		strings.Contains(s, "connection reset by peer") ||
+		strings.Contains(s, "websocket: close sent") ||
+		strings.Contains(s, "forcibly closed") ||
+		(strings.Contains(s, "write tcp") && strings.Contains(s, "closed"))
+}
+
 // Broadcast envoie un message JSON à toutes les connexions WebSocket du lobby (copie des connexions sous verrou de lecture).
-func (h *Hub) Broadcast(code string, messageType string, payload any) {
+// En cas d’écriture sur une connexion déjà fermée, nettoie le hub via Unregister (sans log).
+// Renvoie la première erreur d’écriture « non fermeture » pour permettre au producteur (ex. boucle de jeu) de la journaliser.
+func (h *Hub) Broadcast(code string, messageType string, payload any) error {
 	if h == nil {
-		return
+		return nil
 	}
 	msg := models.WSMessage{Type: messageType, Payload: payload}
 	h.hubMutex.RLock()
 	connSet, ok := h.connectionsByLobbyCode[code]
 	if !ok || len(connSet) == 0 {
 		h.hubMutex.RUnlock()
-		return
+		return nil
 	}
 	conns := make([]*websocket.Conn, 0, len(connSet))
 	for c := range connSet {
@@ -53,11 +77,20 @@ func (h *Hub) Broadcast(code string, messageType string, payload any) {
 	}
 	h.hubMutex.RUnlock()
 
+	var firstErr error
 	for _, c := range conns {
 		if err := c.WriteJSON(msg); err != nil {
+			if isWebSocketWriteClosed(err) {
+				h.Unregister(c)
+				continue
+			}
 			log.Printf("hub: WriteJSON(%s): %v", messageType, err)
+			if firstErr == nil {
+				firstErr = err
+			}
 		}
 	}
+	return firstErr
 }
 
 func (h *Hub) Register(lobbyCode string, websocketConn *websocket.Conn, playerID string) {
@@ -101,7 +134,7 @@ func (h *Hub) Unregister(websocketConn *websocket.Conn) {
 		return
 	}
 	if len(lobby.Players) > 0 {
-		h.Broadcast(session.lobbyCode, models.MessageTypeLobbySync, lobby)
+		_ = h.Broadcast(session.lobbyCode, models.MessageTypeLobbySync, lobby)
 	}
 }
 
@@ -215,7 +248,7 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 	serverConfig.Hub.Register(lobbyCode, websocketConn, playerID)
 	syncCtx, cancelSync := context.WithTimeout(context.Background(), 5*time.Second)
 	if lobbyAfterJoin, syncErr := serverConfig.Store.GetLobby(syncCtx, lobbyCode); syncErr == nil {
-		serverConfig.Hub.Broadcast(lobbyCode, models.MessageTypeLobbySync, lobbyAfterJoin)
+		_ = serverConfig.Hub.Broadcast(lobbyCode, models.MessageTypeLobbySync, lobbyAfterJoin)
 	} else {
 		log.Printf("hub: GetLobby après connexion WS (%s): %v", lobbyCode, syncErr)
 	}

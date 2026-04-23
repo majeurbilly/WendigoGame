@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"errors"
+	"log"
 	"time"
 
 	"github.com/majeurbilly/wendigogame/internal/models"
@@ -38,9 +40,14 @@ func StartGameLoop(ctx context.Context, st *store.Store, h *Hub, code string) {
 				updated, gerr := st.GetLobby(tickCtx, code)
 				cancelTick()
 				if gerr != nil {
+					if errors.Is(gerr, store.ErrLobbyNotFound) {
+						return
+					}
 					continue
 				}
-				h.Broadcast(code, models.MessageTypeGameTick, updated)
+				if berr := h.Broadcast(code, models.MessageTypeGameTick, updated); berr != nil {
+					log.Printf("game loop: broadcast GAME_TICK (%s): %v", code, berr)
+				}
 			}
 		}
 	}()
