@@ -22,3 +22,8 @@ tasks:
     desc: Arrête la stack Docker Compose.
     cmds:
       - docker-compose down
+
+  logs:
+    desc: Affiche le flux des logs du conteneur Valkey (Ctrl+C pour quitter).
+    cmds:
+      - docker-compose logs -f valkey

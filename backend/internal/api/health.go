@@ -5,20 +5,24 @@ import (
 	"net/http"
 )
 
+// healthResponse est le corps minimal de GET /health pour les sondes (load balancer, k8s, etc.).
 type healthResponse struct {
 	Status string `json:"status"`
 }
 
-// NewRouter wires API routes for the HTTP server.
-func NewRouter() *http.ServeMux {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/health", healthHandler)
-	return mux
+// NewRouter enregistre les routes HTTP sur un ServeMux standard (Go 1.22+ : méthode + chemin).
+func NewRouter(serverConfig Config) *http.ServeMux {
+	httpServeMux := http.NewServeMux()
+	httpServeMux.HandleFunc("/health", healthHandler)
+	httpServeMux.HandleFunc("POST /lobbies", serverConfig.handleCreateLobby)
+	httpServeMux.HandleFunc("GET /ws", serverConfig.handleWebSocket)
+	return httpServeMux
 }
 
-func healthHandler(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+// healthHandler répond 200 JSON sans toucher au store (vérification légère du processus).
+func healthHandler(responseWriter http.ResponseWriter, _ *http.Request) {
+	responseWriter.Header().Set("Content-Type", "application/json")
+	responseWriter.WriteHeader(http.StatusOK)
 
-	_ = json.NewEncoder(w).Encode(healthResponse{Status: "ok"})
+	_ = json.NewEncoder(responseWriter).Encode(healthResponse{Status: "ok"})
 }

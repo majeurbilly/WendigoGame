@@ -8,20 +8,22 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      redis:
+      valkey:
         condition: service_healthy
       livekit:
         condition: service_started
+    environment:
+      REDIS_URL: redis://valkey:6379
     restart: unless-stopped
     networks:
       - wendigame_network
 
-  redis:
-    image: redis:7-alpine
-    container_name: wendigame_redis
-    command: ["redis-server", "--appendonly", "yes"]
+  valkey:
+    image: valkey/valkey:8-alpine
+    container_name: wendigame_valkey
+    command: ["valkey-server", "--appendonly", "yes"]
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "valkey-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 10

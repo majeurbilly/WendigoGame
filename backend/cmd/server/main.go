@@ -11,17 +11,31 @@ import (
 	"time"
 
 	"github.com/majeurbilly/wendigogame/internal/api"
+	"github.com/majeurbilly/wendigogame/internal/store"
 )
 
-func newServer(addr string) *http.Server {
+// newServer encapsule la configuration minimale du serveur HTTP (adresse + handler racine).
+func newServer(addr string, handler http.Handler) *http.Server {
 	return &http.Server{
 		Addr:    addr,
-		Handler: api.NewRouter(),
+		Handler: handler,
 	}
 }
 
 func main() {
-	server := newServer(":8080")
+	lobbyStore, err := store.NewFromEnv()
+	if err != nil {
+		log.Fatalf("valkey: %v", err)
+	}
+	defer func() {
+		if closeErr := lobbyStore.Close(); closeErr != nil {
+			log.Printf("valkey close: %v", closeErr)
+		}
+	}()
+
+	connectionHub := api.NewHub(lobbyStore)
+	handler := api.NewRouter(api.Config{Store: lobbyStore, Hub: connectionHub})
+	server := newServer(":8080", handler)
 
 	go func() {
 		log.Printf("server listening on %s", server.Addr)
@@ -31,16 +45,16 @@ func main() {
 		}
 	}()
 
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-	<-sigChan
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, syscall.SIGINT, syscall.SIGTERM)
+	<-signalChannel
 
 	log.Println("shutdown signal received")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelShutdown()
 
-	if err := server.Shutdown(ctx); err != nil {
+	if err := server.Shutdown(shutdownCtx); err != nil {
 		log.Printf("graceful shutdown failed: %v", err)
 		if closeErr := server.Close(); closeErr != nil {
 			log.Printf("forced close failed: %v", closeErr)
