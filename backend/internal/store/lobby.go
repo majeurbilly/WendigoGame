@@ -31,23 +31,6 @@ func lobbyKey(code string) string {
 	return lobbyKeyPrefix + code
 }
 
-func (s *Store) GenerateUniqueCode(ctx context.Context) (string, error) {
-	for range maxCodeAttempts {
-		code, err := randomUpperCode(4)
-		if err != nil {
-			return "", err
-		}
-		n, err := s.redisClient.Exists(ctx, lobbyKey(code)).Result()
-		if err != nil {
-			return "", err
-		}
-		if n == 0 {
-			return code, nil
-		}
-	}
-	return "", ErrCodeGeneration
-}
-
 func randomUpperCode(length int) (string, error) {
 	const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	out := make([]byte, length)
@@ -62,33 +45,45 @@ func randomUpperCode(length int) (string, error) {
 }
 
 func (s *Store) CreateLobby(ctx context.Context, mode models.GameMode, hostName string) (*models.Lobby, error) {
-	code, err := s.GenerateUniqueCode(ctx)
-	if err != nil {
-		return nil, err
-	}
+	for range maxCodeAttempts {
+		code, err := randomUpperCode(4)
+		if err != nil {
+			return nil, err
+		}
 
-	host := models.Player{
-		ID:     uuid.NewString(),
-		Name:   hostName,
-		IsHost: true,
-	}
+		host := models.Player{
+			ID:     uuid.NewString(),
+			Name:   hostName,
+			IsHost: true,
+		}
 
-	lobby := &models.Lobby{
-		Code:      code,
-		Mode:      mode,
-		Players:   []models.Player{host},
-		CreatedAt: time.Now().UTC(),
-	}
+		lobby := &models.Lobby{
+			Code:      code,
+			Mode:      mode,
+			Players:   []models.Player{host},
+			CreatedAt: time.Now().UTC(),
+		}
 
-	payload, err := json.Marshal(lobby)
-	if err != nil {
-		return nil, fmt.Errorf("marshal lobby: %w", err)
-	}
+		payload, err := json.Marshal(lobby)
+		if err != nil {
+			return nil, fmt.Errorf("marshal lobby: %w", err)
+		}
 
-	if err := s.redisClient.Set(ctx, lobbyKey(code), payload, lobbyTTL).Err(); err != nil {
-		return nil, err
+		status, err := s.redisClient.SetArgs(ctx, lobbyKey(code), payload, redis.SetArgs{
+			TTL:  lobbyTTL,
+			Mode: string(redis.NX),
+		}).Result()
+		if err != nil {
+			if errors.Is(err, redis.Nil) {
+				continue
+			}
+			return nil, err
+		}
+		if status == "OK" {
+			return lobby, nil
+		}
 	}
-	return lobby, nil
+	return nil, ErrCodeGeneration
 }
 
 func (s *Store) SaveLobby(ctx context.Context, lobby *models.Lobby) error {

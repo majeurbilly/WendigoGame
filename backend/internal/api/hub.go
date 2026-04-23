@@ -118,13 +118,36 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 
 	ctx, cancel := context.WithTimeout(request.Context(), 5*time.Second)
 	defer cancel()
-	if _, err := serverConfig.Store.GetLobby(ctx, lobbyCode); err != nil {
+	existingLobby, err := serverConfig.Store.GetLobby(ctx, lobbyCode)
+	if err != nil {
 		if err == store.ErrLobbyNotFound {
 			http.Error(responseWriter, "lobby introuvable", http.StatusNotFound)
 			return
 		}
 		http.Error(responseWriter, "erreur lecture lobby", http.StatusInternalServerError)
 		return
+	}
+
+	playerIDClaim := strings.TrimSpace(request.URL.Query().Get("player_id"))
+	bindExistingHost := false
+	if playerIDClaim != "" {
+		var hostPlayer *models.Player
+		for i := range existingLobby.Players {
+			p := &existingLobby.Players[i]
+			if p.ID == playerIDClaim && p.IsHost {
+				hostPlayer = p
+				break
+			}
+		}
+		if hostPlayer == nil {
+			http.Error(responseWriter, "player_id ne correspond pas à l'hôte du lobby", http.StatusForbidden)
+			return
+		}
+		if strings.TrimSpace(playerName) != strings.TrimSpace(hostPlayer.Name) {
+			http.Error(responseWriter, "le nom ne correspond pas à l'hôte du lobby", http.StatusForbidden)
+			return
+		}
+		bindExistingHost = true
 	}
 
 	websocketConn, err := websocketUpgrader.Upgrade(responseWriter, request, nil)
@@ -138,21 +161,26 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 		return
 	}
 
-	player := models.Player{
-		ID:     uuid.NewString(),
-		Name:   playerName,
-		IsHost: false,
+	var playerID string
+	if bindExistingHost {
+		playerID = playerIDClaim
+	} else {
+		player := models.Player{
+			ID:     uuid.NewString(),
+			Name:   playerName,
+			IsHost: false,
+		}
+		appendCtx, cancelAppend := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancelAppend()
+		if _, err := serverConfig.Store.AppendPlayer(appendCtx, lobbyCode, player); err != nil {
+			log.Printf("append player: %v", err)
+			_ = websocketConn.Close()
+			return
+		}
+		playerID = player.ID
 	}
 
-	appendCtx, cancelAppend := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancelAppend()
-	if _, err := serverConfig.Store.AppendPlayer(appendCtx, lobbyCode, player); err != nil {
-		log.Printf("append player: %v", err)
-		_ = websocketConn.Close()
-		return
-	}
-
-	serverConfig.Hub.Register(lobbyCode, websocketConn, player.ID)
+	serverConfig.Hub.Register(lobbyCode, websocketConn, playerID)
 	defer func() {
 		serverConfig.Hub.Unregister(websocketConn)
 		_ = websocketConn.Close()
