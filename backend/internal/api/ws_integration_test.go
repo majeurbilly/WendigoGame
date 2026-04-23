@@ -2,6 +2,7 @@ package api_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http/httptest"
 	"strconv"
@@ -257,4 +258,67 @@ func TestWS_LobbyDestroyedWhenEmpty(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 	}
 	t.Fatalf("timeout: la clé Redis %q aurait dû être supprimée (0 joueur)", key)
+}
+
+func TestWS_ReceivesBroadcastOnJoin(t *testing.T) {
+	miniredisServer := miniredis.RunT(t)
+	redisClient := redis.NewClient(&redis.Options{Addr: miniredisServer.Addr()})
+	t.Cleanup(func() { _ = redisClient.Close() })
+	lobbyStore := store.NewForTesting(redisClient)
+	connectionHub := api.NewHub(lobbyStore)
+	mux := api.NewRouter(api.Config{Store: lobbyStore, Hub: connectionHub})
+
+	ctx := context.Background()
+	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModePresentiel, "Host")
+	if err != nil {
+		t.Fatalf("CreateLobby: %v", err)
+	}
+	hostID := lobby.Players[0].ID
+
+	httpServer := httptest.NewServer(mux)
+	defer httpServer.Close()
+	baseWS := strings.Replace(httpServer.URL, "http", "ws", 1)
+
+	hostURL := baseWS + "/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID
+	hostConn, _, err := websocket.DefaultDialer.Dial(hostURL, nil)
+	if err != nil {
+		t.Fatalf("Dial hôte: %v", err)
+	}
+	defer func() { _ = hostConn.Close() }()
+
+	_ = hostConn.SetReadDeadline(time.Now().Add(3 * time.Second))
+	var first models.WSMessage
+	if err := hostConn.ReadJSON(&first); err != nil {
+		t.Fatalf("premier message hôte: %v", err)
+	}
+	if first.Type != models.MessageTypeLobbySync {
+		t.Fatalf("premier type: got %q, veut %q", first.Type, models.MessageTypeLobbySync)
+	}
+
+	guestURL := baseWS + "/ws?code=" + lobby.Code + "&name=Invité"
+	guestConn, _, err := websocket.DefaultDialer.Dial(guestURL, nil)
+	if err != nil {
+		t.Fatalf("Dial invité: %v", err)
+	}
+	defer func() { _ = guestConn.Close() }()
+
+	_ = hostConn.SetReadDeadline(time.Now().Add(3 * time.Second))
+	var second models.WSMessage
+	if err := hostConn.ReadJSON(&second); err != nil {
+		t.Fatalf("message hôte après arrivée invité: %v", err)
+	}
+	if second.Type != models.MessageTypeLobbySync {
+		t.Fatalf("deuxième type: got %q, veut %q", second.Type, models.MessageTypeLobbySync)
+	}
+	raw, err := json.Marshal(second.Payload)
+	if err != nil {
+		t.Fatalf("payload: %v", err)
+	}
+	var synced models.Lobby
+	if err := json.Unmarshal(raw, &synced); err != nil {
+		t.Fatalf("lobby dans payload: %v", err)
+	}
+	if len(synced.Players) != 2 {
+		t.Fatalf("joueurs dans LOBBY_SYNC: got %d, veut 2 (%+v)", len(synced.Players), synced.Players)
+	}
 }

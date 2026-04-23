@@ -16,8 +16,10 @@ type Player struct {
 }
 
 type Lobby struct {
-	Code      string    `json:"code"`
-	Mode      GameMode  `json:"mode"`
-	Players   []Player  `json:"players"`
-	CreatedAt time.Time `json:"created_at"`
+	Code           string    `json:"code"`
+	Mode           GameMode  `json:"mode"`
+	Players        []Player  `json:"players"`
+	CreatedAt      time.Time `json:"created_at"`
+	Phase          GamePhase `json:"phase"`
+	TimeRemaining  int       `json:"time_remaining"`
 }
