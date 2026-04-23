@@ -69,11 +69,17 @@ func (s *Store) CreateLobby(ctx context.Context, mode models.GameMode, hostName 
 			return nil, fmt.Errorf("marshal lobby: %w", err)
 		}
 
-		ok, err := s.redisClient.SetNX(ctx, lobbyKey(code), payload, lobbyTTL).Result()
+		status, err := s.redisClient.SetArgs(ctx, lobbyKey(code), payload, redis.SetArgs{
+			TTL:  lobbyTTL,
+			Mode: string(redis.NX),
+		}).Result()
 		if err != nil {
+			if errors.Is(err, redis.Nil) {
+				continue
+			}
 			return nil, err
 		}
-		if ok {
+		if status == "OK" {
 			return lobby, nil
 		}
 	}
