@@ -39,5 +39,8 @@ jobs:
       - name: Run golangci-lint
         run: $(go env GOPATH)/bin/golangci-lint run ./...
 
+      - name: Build backend
+        run: go build -v -o ./server-bin ./cmd/server
+
       - name: Run unit tests with race detector and coverage
         run: go test -v -race -cover ./...
