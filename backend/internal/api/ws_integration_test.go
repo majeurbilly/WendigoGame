@@ -35,7 +35,10 @@ func TestWSAddsPlayerThenDisconnectKeepsHostInValkey(t *testing.T) {
 	key := "lobby:" + lobby.Code
 
 	httpServer := httptest.NewServer(mux)
-	defer httpServer.Close()
+	t.Cleanup(func() {
+		httpServer.Close()
+		time.Sleep(150 * time.Millisecond)
+	})
 
 	wsURL := strings.Replace(httpServer.URL, "http", "ws", 1) + "/ws?code=" + lobby.Code + "&name=Gaston"
 	wsConn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
@@ -114,7 +117,10 @@ func TestWS_FiveSimultaneousConnections(t *testing.T) {
 	}
 
 	httpServer := httptest.NewServer(mux)
-	defer httpServer.Close()
+	t.Cleanup(func() {
+		httpServer.Close()
+		time.Sleep(150 * time.Millisecond)
+	})
 	baseWS := strings.Replace(httpServer.URL, "http", "ws", 1) + "/ws?code=" + lobby.Code
 
 	var dialWait sync.WaitGroup
@@ -223,7 +229,10 @@ func TestWS_LobbyDestroyedWhenEmpty(t *testing.T) {
 	key := "lobby:" + lobby.Code
 
 	httpServer := httptest.NewServer(mux)
-	defer httpServer.Close()
+	t.Cleanup(func() {
+		httpServer.Close()
+		time.Sleep(150 * time.Millisecond)
+	})
 
 	wsURL := strings.Replace(httpServer.URL, "http", "ws", 1) +
 		"/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID
@@ -279,7 +288,10 @@ func TestWS_ReceivesBroadcastOnJoin(t *testing.T) {
 	hostID := lobby.Players[0].ID
 
 	httpServer := httptest.NewServer(mux)
-	defer httpServer.Close()
+	t.Cleanup(func() {
+		httpServer.Close()
+		time.Sleep(150 * time.Millisecond)
+	})
 	baseWS := strings.Replace(httpServer.URL, "http", "ws", 1)
 
 	hostURL := baseWS + "/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID

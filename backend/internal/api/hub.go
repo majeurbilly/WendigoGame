@@ -23,6 +23,7 @@ type websocketSession struct {
 
 type Hub struct {
 	hubMutex               sync.RWMutex
+	broadcastMu            sync.Mutex // sérialise WriteJSON (gorilla/websocket n’est pas concurrent-safe en écriture)
 	connectionsByLobbyCode map[string]map[*websocket.Conn]struct{}
 	sessionByConnection    map[*websocket.Conn]websocketSession
 	lobbyStore             *store.Store
@@ -65,10 +66,13 @@ func (h *Hub) Broadcast(code string, messageType string, payload any) error {
 		return nil
 	}
 	msg := models.WSMessage{Type: messageType, Payload: payload}
+
+	h.broadcastMu.Lock()
 	h.hubMutex.RLock()
 	connSet, ok := h.connectionsByLobbyCode[code]
 	if !ok || len(connSet) == 0 {
 		h.hubMutex.RUnlock()
+		h.broadcastMu.Unlock()
 		return nil
 	}
 	conns := make([]*websocket.Conn, 0, len(connSet))
@@ -78,10 +82,11 @@ func (h *Hub) Broadcast(code string, messageType string, payload any) error {
 	h.hubMutex.RUnlock()
 
 	var firstErr error
+	var dead []*websocket.Conn
 	for _, c := range conns {
 		if err := c.WriteJSON(msg); err != nil {
 			if isWebSocketWriteClosed(err) {
-				h.Unregister(c)
+				dead = append(dead, c)
 				continue
 			}
 			log.Printf("hub: WriteJSON(%s): %v", messageType, err)
@@ -89,6 +94,11 @@ func (h *Hub) Broadcast(code string, messageType string, payload any) error {
 				firstErr = err
 			}
 		}
+	}
+	h.broadcastMu.Unlock()
+
+	for _, c := range dead {
+		h.Unregister(c)
 	}
 	return firstErr
 }
