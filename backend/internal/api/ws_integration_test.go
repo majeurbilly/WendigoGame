@@ -176,6 +176,27 @@ func TestWS_FiveSimultaneousConnections(t *testing.T) {
 			t.Fatalf("Close client: %v", err)
 		}
 	}
+
+	// Attendre que les 5 goroutines serveur aient terminé RemovePlayerByID
+	// avant la fin du test (évite des Unregister après fermeture du client Redis).
+	deadlineHost := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadlineHost) {
+		alone, err := lobbyStore.GetLobby(ctx, lobby.Code)
+		if err != nil {
+			t.Fatalf("GetLobby après fermetures: %v", err)
+		}
+		if len(alone.Players) == 1 {
+			break
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	afterClose, err := lobbyStore.GetLobby(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobby après fermetures: %v", err)
+	}
+	if len(afterClose.Players) != 1 || !afterClose.Players[0].IsHost {
+		t.Fatalf("après fermeture des 5 WS: attendu hôte seul, obtenu %+v", afterClose.Players)
+	}
 }
 
 func TestWS_LobbyDestroyedWhenEmpty(t *testing.T) {
