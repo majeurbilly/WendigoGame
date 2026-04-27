@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/majeurbilly/wendigogame/internal/api"
+	"github.com/majeurbilly/wendigogame/internal/services"
 	"github.com/majeurbilly/wendigogame/internal/store"
 )
 
@@ -33,7 +34,12 @@ func main() {
 		}
 	}()
 
-	connectionHub := api.NewHub(lobbyStore)
+	liveKitService, err := services.NewLiveKitServiceFromEnv()
+	if err != nil {
+		log.Fatalf("livekit: %v", err)
+	}
+
+	connectionHub := api.NewHub(lobbyStore, liveKitService)
 	handler := api.NewRouter(api.Config{Store: lobbyStore, Hub: connectionHub})
 	server := newServer(":8080", handler)
 

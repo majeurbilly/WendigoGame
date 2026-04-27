@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/majeurbilly/wendigogame/internal/models"
+	"github.com/majeurbilly/wendigogame/internal/services"
 	"github.com/majeurbilly/wendigogame/internal/store"
 )
 
@@ -28,13 +29,19 @@ type Hub struct {
 	connectionsByLobbyCode map[string]map[*websocket.Conn]struct{}
 	sessionByConnection    map[*websocket.Conn]websocketSession
 	lobbyStore             *store.Store
+	liveKitService         *services.LiveKitService
 }
 
-func NewHub(lobbyStore *store.Store) *Hub {
+func NewHub(lobbyStore *store.Store, optionalLiveKitService ...*services.LiveKitService) *Hub {
+	var liveKitService *services.LiveKitService
+	if len(optionalLiveKitService) > 0 {
+		liveKitService = optionalLiveKitService[0]
+	}
 	return &Hub{
 		connectionsByLobbyCode: make(map[string]map[*websocket.Conn]struct{}),
 		sessionByConnection:    make(map[*websocket.Conn]websocketSession),
 		lobbyStore:             lobbyStore,
+		liveKitService:         liveKitService,
 	}
 }
 
@@ -375,6 +382,7 @@ func (h *Hub) BroadcastState(ctx context.Context, gameTickProvider GameTickProvi
 	for _, connection := range connections {
 		session := sessionByConn[connection]
 		gameStateDTO := lobby.ToGameStateDTO(session.playerID)
+		gameStateDTO.LiveKitToken = h.generateLiveKitToken(lobby, session.playerID)
 		message := models.WSMessage{
 			Type:    models.MessageTypeGameTick,
 			Payload: gameStateDTO,
@@ -399,4 +407,25 @@ func (h *Hub) BroadcastState(ctx context.Context, gameTickProvider GameTickProvi
 	}
 
 	return firstErr
+}
+
+func (h *Hub) generateLiveKitToken(lobby *models.Lobby, playerID string) string {
+	if h == nil || h.liveKitService == nil || lobby == nil {
+		return ""
+	}
+
+	playerName := ""
+	for i := range lobby.Players {
+		if lobby.Players[i].ID == playerID {
+			playerName = lobby.Players[i].Name
+			break
+		}
+	}
+
+	token, err := h.liveKitService.GenerateToken(lobby.Code, playerID, playerName)
+	if err != nil {
+		log.Printf("hub: LiveKit token generation failed for lobby %s player %s: %v", lobby.Code, playerID, err)
+		return ""
+	}
+	return token
 }
