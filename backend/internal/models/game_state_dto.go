@@ -10,7 +10,10 @@ type PlayerDTO struct {
 }
 
 type GameStateDTO struct {
-	Phase         GamePhase   `json:"phase"`
-	TimeRemaining int         `json:"time_remaining"`
-	Players       []PlayerDTO `json:"players"`
+	Phase         GamePhase      `json:"phase"`
+	TimeRemaining int            `json:"time_remaining"`
+	Players       []PlayerDTO    `json:"players"`
+	DefendantID   string         `json:"defendant_id,omitempty"`
+	VoteCounts    map[string]int `json:"vote_counts,omitempty"`
+	MyVote        string         `json:"my_vote,omitempty"`
 }

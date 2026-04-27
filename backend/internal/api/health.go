@@ -16,6 +16,7 @@ func NewRouter(serverConfig Config) *http.ServeMux {
 	httpServeMux.HandleFunc("/health", healthHandler)
 	httpServeMux.HandleFunc("POST /lobbies", serverConfig.handleCreateLobby)
 	httpServeMux.HandleFunc("POST /lobbies/{code}/start", serverConfig.handleStartGame)
+	httpServeMux.HandleFunc("POST /lobbies/{code}/seat", serverConfig.handleSelectSeat)
 	httpServeMux.HandleFunc("GET /ws", serverConfig.handleWebSocket)
 	return httpServeMux
 }

@@ -2,6 +2,9 @@ package models
 
 import "time"
 
+// UnseatedChair is the ChairID value for a player who has not chosen a seat yet (seats are 0–15).
+const UnseatedChair = -1
+
 type GameMode string
 
 const (
@@ -19,12 +22,14 @@ type Player struct {
 }
 
 type Lobby struct {
-	Code           string    `json:"code"`
-	Mode           GameMode  `json:"mode"`
-	Players        []Player  `json:"players"`
-	CreatedAt      time.Time `json:"created_at"`
-	Phase          GamePhase `json:"phase"`
-	TimeRemaining  int       `json:"time_remaining"`
+	Code          string            `json:"code"`
+	Mode          GameMode          `json:"mode"`
+	Players       []Player          `json:"players"`
+	CreatedAt     time.Time         `json:"created_at"`
+	Phase         GamePhase         `json:"phase"`
+	TimeRemaining int               `json:"time_remaining"`
+	Votes         map[string]string `json:"votes,omitempty"`
+	DefendantID   string            `json:"defendant_id,omitempty"`
 }
 
 // LobbyManager defines the contract required by the game engine.
@@ -62,6 +67,15 @@ func (lobby *Lobby) ToGameStateDTO(forPlayerID string) GameStateDTO {
 		Phase:         lobby.Phase,
 		TimeRemaining: lobby.TimeRemaining,
 		Players:       make([]PlayerDTO, 0, len(lobby.Players)),
+		DefendantID:   lobby.DefendantID,
+		VoteCounts:    voteCountsByTarget(lobby),
+		MyVote:        "",
+	}
+
+	if lobby.Votes != nil {
+		if targetID, ok := lobby.Votes[forPlayerID]; ok {
+			gameStateDTO.MyVote = targetID
+		}
 	}
 
 	for _, player := range lobby.Players {
@@ -82,6 +96,31 @@ func (lobby *Lobby) ToGameStateDTO(forPlayerID string) GameStateDTO {
 	}
 
 	return gameStateDTO
+}
+
+func voteCountsByTarget(lobby *Lobby) map[string]int {
+	counts := make(map[string]int)
+	if lobby.Votes == nil {
+		return counts
+	}
+	alive := alivePlayerIDs(lobby)
+	for voterID, targetID := range lobby.Votes {
+		if !alive[voterID] || !alive[targetID] {
+			continue
+		}
+		counts[targetID]++
+	}
+	return counts
+}
+
+func alivePlayerIDs(lobby *Lobby) map[string]bool {
+	out := make(map[string]bool)
+	for i := range lobby.Players {
+		if lobby.Players[i].IsAlive {
+			out[lobby.Players[i].ID] = true
+		}
+	}
+	return out
 }
 
 func isRoleVisibleForAllPlayers(phase GamePhase) bool {

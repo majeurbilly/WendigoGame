@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log"
 	"net"
@@ -245,6 +246,7 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 			Name:    playerName,
 			IsHost:  false,
 			IsAlive: true,
+			ChairID: models.UnseatedChair,
 		}
 		appendCtx, cancelAppend := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancelAppend()
@@ -278,12 +280,52 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 	})
 
 	for {
-		_, _, err := websocketConn.ReadMessage()
+		_, payloadBytes, err := websocketConn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("websocket read: %v", err)
 			}
 			break
+		}
+		if len(payloadBytes) == 0 {
+			continue
+		}
+
+		var inbound struct {
+			Type    string          `json:"type"`
+			Payload json.RawMessage `json:"payload"`
+		}
+		if err := json.Unmarshal(payloadBytes, &inbound); err != nil {
+			log.Printf("websocket: invalid JSON from player %s: %v", playerID, err)
+			continue
+		}
+
+		if inbound.Type != models.MessageTypeVoteDay {
+			continue
+		}
+
+		var voteBody struct {
+			TargetID string `json:"target_id"`
+		}
+		if err := json.Unmarshal(inbound.Payload, &voteBody); err != nil {
+			log.Printf("websocket: invalid VOTE_DAY payload: %v", err)
+			continue
+		}
+
+		voteCtx, voteCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		voteErr := serverConfig.Store.SubmitDayVote(voteCtx, lobbyCode, playerID, voteBody.TargetID)
+		voteCancel()
+		if voteErr != nil {
+			log.Printf("websocket: SubmitDayVote(%s, %s): %v", lobbyCode, playerID, voteErr)
+			continue
+		}
+
+		if serverConfig.Hub != nil {
+			stateCtx, stateCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			if broadcastErr := serverConfig.Hub.BroadcastState(stateCtx, serverConfig.Store, lobbyCode); broadcastErr != nil {
+				log.Printf("websocket: BroadcastState after vote (%s): %v", lobbyCode, broadcastErr)
+			}
+			stateCancel()
 		}
 	}
 }

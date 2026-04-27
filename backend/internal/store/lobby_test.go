@@ -85,9 +85,11 @@ func TestAppendPlayerConcurrentNoLostPlayers(t *testing.T) {
 		go func() {
 			defer waitGroup.Done()
 			player := models.Player{
-				ID:     uuid.NewString(),
-				Name:   "Player",
-				IsHost: false,
+				ID:      uuid.NewString(),
+				Name:    "Player",
+				IsHost:  false,
+				IsAlive: true,
+				ChairID: models.UnseatedChair,
 			}
 			_, err := lobbyStore.AppendPlayer(ctx, code, player)
 			errCh <- err
@@ -129,6 +131,7 @@ func TestRoleDistribution_Fairness(t *testing.T) {
 			Name:    "Player",
 			IsHost:  false,
 			IsAlive: true,
+			ChairID: models.UnseatedChair,
 		}
 		_, appendErr := lobbyStore.AppendPlayer(ctx, lobby.Code, player)
 		if appendErr != nil {
