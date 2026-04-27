@@ -2,28 +2,28 @@ version: "3"
 
 tasks:
   run:
-    desc: Lance le serveur API (cmd/server).
+    desc: Run the API server (cmd/server).
     cmds:
       - go run ./cmd/server/main.go
 
   test:
-    desc: Exécute tous les tests (verbose, race, couverture ; CGO activé).
+    desc: Run all tests (verbose, race, coverage; CGO enabled).
     env:
       CGO_ENABLED: "1"
     cmds:
       - go test -v -race -cover ./...
 
   up:
-    desc: Démarre la stack Docker Compose en arrière-plan.
+    desc: Start the Docker Compose stack in background.
     cmds:
       - docker-compose up -d
 
   down:
-    desc: Arrête la stack Docker Compose.
+    desc: Stop the Docker Compose stack.
     cmds:
       - docker-compose down
 
   logs:
-    desc: Affiche le flux des logs du conteneur Valkey (Ctrl+C pour quitter).
+    desc: Stream logs from the Valkey container (Ctrl+C to quit).
     cmds:
       - docker-compose logs -f valkey

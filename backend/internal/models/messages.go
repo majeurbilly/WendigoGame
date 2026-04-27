@@ -5,7 +5,7 @@ const (
 	MessageTypeGameTick  = "GAME_TICK"
 )
 
-// WSMessage est le format JSON envoyé sur les WebSockets.
+// WSMessage is the JSON format sent over WebSockets.
 type WSMessage struct {
 	Type    string `json:"type"`
 	Payload any    `json:"payload"`

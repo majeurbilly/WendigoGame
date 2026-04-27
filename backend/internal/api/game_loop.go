@@ -2,20 +2,23 @@ package api
 
 import (
 	"context"
-	"errors"
 	"log"
 	"time"
 
 	"github.com/majeurbilly/wendigogame/internal/models"
-	"github.com/majeurbilly/wendigogame/internal/store"
 )
+
+type GameTickProvider interface {
+	ProcessGameTick(ctx context.Context, code string) (continueLoop bool, err error)
+	GetLobby(ctx context.Context, code string) (*models.Lobby, error)
+}
 
 // StartGameLoop launches a goroutine that decrements the lobby timer every second
 // and applies phase transitions. The loop stops if the context is canceled,
 // if the lobby disappears, or if the phase returns to LOBBY.
 // If h is not nil, each successful tick triggers a GAME_TICK broadcast with the lobby state.
-func StartGameLoop(ctx context.Context, st *store.Store, h *Hub, lobby models.LobbyManager) {
-	if st == nil || lobby == nil || lobby.GetCode() == "" {
+func StartGameLoop(ctx context.Context, gameTickProvider GameTickProvider, h *Hub, lobby models.LobbyManager) {
+	if gameTickProvider == nil || lobby == nil || lobby.GetCode() == "" {
 		return
 	}
 	code := lobby.GetCode()
@@ -27,23 +30,24 @@ func StartGameLoop(ctx context.Context, st *store.Store, h *Hub, lobby models.Lo
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				cont, err := st.ProcessGameTick(ctx, code)
+				if ctx.Err() != nil {
+					return
+				}
+				cont, err := gameTickProvider.ProcessGameTick(ctx, code)
 				if err != nil {
 					return
 				}
 				if !cont {
+					log.Printf("Stopping game loop for lobby %s", code)
 					return
 				}
 				if h == nil {
 					continue
 				}
 				tickCtx, cancelTick := context.WithTimeout(context.Background(), 5*time.Second)
-				updated, gerr := st.GetLobby(tickCtx, code)
+				updated, gerr := gameTickProvider.GetLobby(tickCtx, code)
 				cancelTick()
 				if gerr != nil {
-					if errors.Is(gerr, store.ErrLobbyNotFound) {
-						return
-					}
 					continue
 				}
 				if berr := h.Broadcast(code, models.MessageTypeGameTick, updated); berr != nil {
