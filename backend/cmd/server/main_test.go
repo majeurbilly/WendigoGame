@@ -13,7 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// testRouter construit un handler HTTP complet avec Valkey simulé (miniredis) pour les tests d’intégration légers.
+// testRouter builds a full HTTP handler with simulated Valkey (miniredis) for lightweight integration tests.
 func testRouter(t *testing.T) http.Handler {
 	t.Helper()
 	miniredisServer := miniredis.RunT(t)
