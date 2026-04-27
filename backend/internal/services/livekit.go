@@ -2,10 +2,12 @@ package services
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
 	"github.com/livekit/protocol/auth"
+	"github.com/majeurbilly/wendigogame/internal/models"
 )
 
 type LiveKitService struct {
@@ -36,40 +38,78 @@ func NewLiveKitServiceFromEnv() (*LiveKitService, error) {
 	return NewLiveKitService(apiKey, apiSecret)
 }
 
-func (service *LiveKitService) GenerateToken(lobbyCode string, playerID string, playerName string) (string, error) {
+func (service *LiveKitService) GenerateToken(lobby *models.Lobby, playerID string) (string, error) {
 	if service == nil {
 		return "", nil
 	}
 
-	trimmedLobbyCode := strings.TrimSpace(lobbyCode)
+	if lobby == nil {
+		return "", fmt.Errorf("livekit: lobby is required")
+	}
+
+	trimmedLobbyCode := strings.TrimSpace(lobby.Code)
 	trimmedPlayerID := strings.TrimSpace(playerID)
-	trimmedPlayerName := strings.TrimSpace(playerName)
 	if trimmedLobbyCode == "" || trimmedPlayerID == "" {
 		return "", fmt.Errorf("livekit: lobbyCode and playerID are required")
 	}
-	if trimmedPlayerName == "" {
-		trimmedPlayerName = trimmedPlayerID
+
+	playerName := trimmedPlayerID
+	playerAlive := false
+	for i := range lobby.Players {
+		if lobby.Players[i].ID == trimmedPlayerID {
+			if strings.TrimSpace(lobby.Players[i].Name) != "" {
+				playerName = strings.TrimSpace(lobby.Players[i].Name)
+			}
+			playerAlive = lobby.Players[i].IsAlive
+			break
+		}
 	}
+
+	canPublish, tokenProfile := resolveAudioPublishPolicy(lobby.Phase, playerAlive)
 
 	grant := &auth.VideoGrant{
 		RoomJoin:     true,
 		Room:         trimmedLobbyCode,
-		CanPublish:   boolPtr(true),
+		CanPublish:   boolPtr(canPublish),
 		CanSubscribe: boolPtr(true),
 	}
 
 	accessToken := auth.NewAccessToken(service.apiKey, service.apiSecret)
 	accessToken.SetIdentity(trimmedPlayerID)
-	accessToken.SetName(trimmedPlayerName)
-	accessToken.AddGrant(grant)
+	accessToken.SetName(playerName)
+	accessToken.SetVideoGrant(grant)
 
 	token, err := accessToken.ToJWT()
 	if err != nil {
 		return "", fmt.Errorf("livekit: generate token: %w", err)
 	}
+	log.Printf(
+		"livekit: generated %s for lobby %s player %s phase=%s alive=%t can_publish=%t",
+		tokenProfile,
+		trimmedLobbyCode,
+		trimmedPlayerID,
+		lobby.Phase,
+		playerAlive,
+		canPublish,
+	)
 	return token, nil
 }
 
 func boolPtr(value bool) *bool {
 	return &value
+}
+
+func resolveAudioPublishPolicy(phase models.GamePhase, playerAlive bool) (bool, string) {
+	if !playerAlive {
+		return false, "Council Token"
+	}
+
+	switch phase {
+	case models.GamePhaseNight:
+		return false, "Silent Token"
+	case models.GamePhaseDay, models.GamePhaseAccusation:
+		return true, "Council Token"
+	default:
+		return false, "Silent Token"
+	}
 }

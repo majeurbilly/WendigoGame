@@ -414,15 +414,7 @@ func (h *Hub) generateLiveKitToken(lobby *models.Lobby, playerID string) string 
 		return ""
 	}
 
-	playerName := ""
-	for i := range lobby.Players {
-		if lobby.Players[i].ID == playerID {
-			playerName = lobby.Players[i].Name
-			break
-		}
-	}
-
-	token, err := h.liveKitService.GenerateToken(lobby.Code, playerID, playerName)
+	token, err := h.liveKitService.GenerateToken(lobby, playerID)
 	if err != nil {
 		log.Printf("hub: LiveKit token generation failed for lobby %s player %s: %v", lobby.Code, playerID, err)
 		return ""
