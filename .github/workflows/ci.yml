@@ -32,12 +32,13 @@ jobs:
           cache: true
           cache-dependency-path: backend/go.mod
 
-      - name: Install golangci-lint
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.64.5
-
       - name: Run golangci-lint
-        run: $(go env GOPATH)/bin/golangci-lint run ./...
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64
+          working-directory: backend
+          # L'argument ci-lint-only permet d'éviter les erreurs de cache si tu as plusieurs jobs
+          args: --timeout=5m
 
       - name: Build backend
         run: go build -v -o ./server-bin ./cmd/server
