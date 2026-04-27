@@ -2,6 +2,9 @@ package models
 
 import "time"
 
+// UnseatedChair is the ChairID value for a player who has not chosen a seat yet (seats are 0–15).
+const UnseatedChair = -1
+
 type GameMode string
 
 const (
@@ -10,18 +13,23 @@ const (
 )
 
 type Player struct {
-	ID     string `json:"id"`
-	Name   string `json:"name,omitempty"`
-	IsHost bool   `json:"is_host"`
+	ID      string `json:"id"`
+	Name    string `json:"name,omitempty"`
+	IsHost  bool   `json:"is_host"`
+	IsAlive bool   `json:"is_alive"`
+	ChairID int    `json:"chair_id"`
+	Role    string `json:"role,omitempty"`
 }
 
 type Lobby struct {
-	Code           string    `json:"code"`
-	Mode           GameMode  `json:"mode"`
-	Players        []Player  `json:"players"`
-	CreatedAt      time.Time `json:"created_at"`
-	Phase          GamePhase `json:"phase"`
-	TimeRemaining  int       `json:"time_remaining"`
+	Code          string            `json:"code"`
+	Mode          GameMode          `json:"mode"`
+	Players       []Player          `json:"players"`
+	CreatedAt     time.Time         `json:"created_at"`
+	Phase         GamePhase         `json:"phase"`
+	TimeRemaining int               `json:"time_remaining"`
+	Votes         map[string]string `json:"votes,omitempty"`
+	DefendantID   string            `json:"defendant_id,omitempty"`
 }
 
 // LobbyManager defines the contract required by the game engine.
@@ -31,6 +39,7 @@ type LobbyManager interface {
 	GetPhase() GamePhase
 	GetTimeRemaining() int
 	GetNextPhase() (GamePhase, int)
+	ToGameStateDTO(forPlayerID string) GameStateDTO
 }
 
 func (lobby *Lobby) GetCode() string {
@@ -51,4 +60,69 @@ func (lobby *Lobby) GetTimeRemaining() int {
 
 func (lobby *Lobby) GetNextPhase() (GamePhase, int) {
 	return GetNextPhaseAndTime(lobby.Phase)
+}
+
+func (lobby *Lobby) ToGameStateDTO(forPlayerID string) GameStateDTO {
+	gameStateDTO := GameStateDTO{
+		Phase:         lobby.Phase,
+		TimeRemaining: lobby.TimeRemaining,
+		Players:       make([]PlayerDTO, 0, len(lobby.Players)),
+		DefendantID:   lobby.DefendantID,
+		VoteCounts:    voteCountsByTarget(lobby),
+		MyVote:        "",
+	}
+
+	if lobby.Votes != nil {
+		if targetID, ok := lobby.Votes[forPlayerID]; ok {
+			gameStateDTO.MyVote = targetID
+		}
+	}
+
+	for _, player := range lobby.Players {
+		playerDTO := PlayerDTO{
+			ID:      player.ID,
+			Name:    player.Name,
+			IsHost:  player.IsHost,
+			IsAlive: player.IsAlive,
+			ChairID: player.ChairID,
+			Role:    "",
+		}
+
+		if player.ID == forPlayerID || isRoleVisibleForAllPlayers(lobby.Phase) {
+			playerDTO.Role = player.Role
+		}
+
+		gameStateDTO.Players = append(gameStateDTO.Players, playerDTO)
+	}
+
+	return gameStateDTO
+}
+
+func voteCountsByTarget(lobby *Lobby) map[string]int {
+	counts := make(map[string]int)
+	if lobby.Votes == nil {
+		return counts
+	}
+	alive := alivePlayerIDs(lobby)
+	for voterID, targetID := range lobby.Votes {
+		if !alive[voterID] || !alive[targetID] {
+			continue
+		}
+		counts[targetID]++
+	}
+	return counts
+}
+
+func alivePlayerIDs(lobby *Lobby) map[string]bool {
+	out := make(map[string]bool)
+	for i := range lobby.Players {
+		if lobby.Players[i].IsAlive {
+			out[lobby.Players[i].ID] = true
+		}
+	}
+	return out
+}
+
+func isRoleVisibleForAllPlayers(phase GamePhase) bool {
+	return phase == GamePhaseLobby
 }

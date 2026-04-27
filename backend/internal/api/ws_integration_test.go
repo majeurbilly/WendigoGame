@@ -180,7 +180,7 @@ func TestWS_FiveSimultaneousConnections(t *testing.T) {
 
 	for _, c := range conns {
 		if c == nil {
-			t.Fatal("connexion WebSocket nil")
+			t.Fatal("nil WebSocket connection")
 		}
 		if err := c.Close(); err != nil {
 			t.Fatalf("Close client: %v", err)
@@ -335,5 +335,163 @@ func TestWS_ReceivesBroadcastOnJoin(t *testing.T) {
 	}
 	if len(synced.Players) != 2 {
 		t.Fatalf("players in LOBBY_SYNC: got %d, want 2 (%+v)", len(synced.Players), synced.Players)
+	}
+}
+
+func TestWS_RoleFiltering(t *testing.T) {
+	miniredisServer := miniredis.RunT(t)
+	redisClient := redis.NewClient(&redis.Options{Addr: miniredisServer.Addr()})
+	t.Cleanup(func() { _ = redisClient.Close() })
+	lobbyStore := store.NewForTesting(redisClient)
+	connectionHub := api.NewHub(lobbyStore)
+	mux := api.NewRouter(api.Config{Store: lobbyStore, Hub: connectionHub})
+
+	ctx := context.Background()
+	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Host")
+	if err != nil {
+		t.Fatalf("CreateLobby: %v", err)
+	}
+	hostID := lobby.Players[0].ID
+
+	httpServer := httptest.NewServer(mux)
+	t.Cleanup(func() {
+		httpServer.Close()
+		time.Sleep(150 * time.Millisecond)
+	})
+	baseWS := strings.Replace(httpServer.URL, "http", "ws", 1)
+
+	hostURL := baseWS + "/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID
+	hostConn, _, err := websocket.DefaultDialer.Dial(hostURL, nil)
+	if err != nil {
+		t.Fatalf("Dial host: %v", err)
+	}
+	defer func() { _ = hostConn.Close() }()
+
+	guestURL := baseWS + "/ws?code=" + lobby.Code + "&name=Guest"
+	guestConn, _, err := websocket.DefaultDialer.Dial(guestURL, nil)
+	if err != nil {
+		t.Fatalf("Dial guest: %v", err)
+	}
+	defer func() { _ = guestConn.Close() }()
+
+	_ = hostConn.SetReadDeadline(time.Now().Add(3 * time.Second))
+	_ = guestConn.SetReadDeadline(time.Now().Add(3 * time.Second))
+	var hostLobbySync models.WSMessage
+	var guestLobbySync models.WSMessage
+	if err := hostConn.ReadJSON(&hostLobbySync); err != nil {
+		t.Fatalf("host initial message: %v", err)
+	}
+	if err := guestConn.ReadJSON(&guestLobbySync); err != nil {
+		t.Fatalf("guest initial message: %v", err)
+	}
+
+	deadline := time.Now().Add(2 * time.Second)
+	var lobbyWithGuest *models.Lobby
+	for time.Now().Before(deadline) {
+		lobbyWithGuest, err = lobbyStore.GetLobby(ctx, lobby.Code)
+		if err != nil {
+			t.Fatalf("GetLobby: %v", err)
+		}
+		if len(lobbyWithGuest.Players) == 2 {
+			break
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	if len(lobbyWithGuest.Players) != 2 {
+		t.Fatalf("expected 2 players in lobby, got %d", len(lobbyWithGuest.Players))
+	}
+
+	guestID := ""
+	for _, player := range lobbyWithGuest.Players {
+		if !player.IsHost {
+			guestID = player.ID
+		}
+	}
+	if guestID == "" {
+		t.Fatal("guest player ID not found")
+	}
+
+	for index := range lobbyWithGuest.Players {
+		if lobbyWithGuest.Players[index].ID == hostID {
+			lobbyWithGuest.Players[index].Role = "werewolf"
+		}
+		if lobbyWithGuest.Players[index].ID == guestID {
+			lobbyWithGuest.Players[index].Role = "villager"
+		}
+	}
+	lobbyWithGuest.Phase = models.GamePhaseDay
+	lobbyWithGuest.TimeRemaining = 5
+	if err := lobbyStore.SaveLobby(ctx, lobbyWithGuest); err != nil {
+		t.Fatalf("SaveLobby: %v", err)
+	}
+
+	loopCtx, cancelLoop := context.WithCancel(context.Background())
+	defer cancelLoop()
+	lobbyManager, err := lobbyStore.GetLobbyManager(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobbyManager: %v", err)
+	}
+	api.StartGameLoop(loopCtx, lobbyStore, connectionHub, lobbyManager)
+
+	readUntilType := func(conn *websocket.Conn, wantedType string) (models.WSMessage, error) {
+		_ = conn.SetReadDeadline(time.Now().Add(4 * time.Second))
+		for range 6 {
+			var message models.WSMessage
+			readErr := conn.ReadJSON(&message)
+			if readErr != nil {
+				return models.WSMessage{}, readErr
+			}
+			if message.Type == wantedType {
+				return message, nil
+			}
+		}
+		return models.WSMessage{}, errors.New("wanted message type not received before timeout")
+	}
+
+	hostTick, hostTickErr := readUntilType(hostConn, models.MessageTypeGameTick)
+	if hostTickErr != nil {
+		t.Fatalf("host tick message: %v", hostTickErr)
+	}
+	guestTick, guestTickErr := readUntilType(guestConn, models.MessageTypeGameTick)
+	if guestTickErr != nil {
+		t.Fatalf("guest tick message: %v", guestTickErr)
+	}
+
+	hostPayloadRaw, err := json.Marshal(hostTick.Payload)
+	if err != nil {
+		t.Fatalf("marshal host payload: %v", err)
+	}
+	guestPayloadRaw, err := json.Marshal(guestTick.Payload)
+	if err != nil {
+		t.Fatalf("marshal guest payload: %v", err)
+	}
+
+	var hostState models.GameStateDTO
+	var guestState models.GameStateDTO
+	if err := json.Unmarshal(hostPayloadRaw, &hostState); err != nil {
+		t.Fatalf("unmarshal host state: %v", err)
+	}
+	if err := json.Unmarshal(guestPayloadRaw, &guestState); err != nil {
+		t.Fatalf("unmarshal guest state: %v", err)
+	}
+
+	hostSeesGuestRole := ""
+	guestSeesHostRole := ""
+	for _, player := range hostState.Players {
+		if player.ID == guestID {
+			hostSeesGuestRole = player.Role
+		}
+	}
+	for _, player := range guestState.Players {
+		if player.ID == hostID {
+			guestSeesHostRole = player.Role
+		}
+	}
+
+	if hostSeesGuestRole != "" {
+		t.Fatalf("host should not see guest role, got %q", hostSeesGuestRole)
+	}
+	if guestSeesHostRole != "" {
+		t.Fatalf("guest should not see host role, got %q", guestSeesHostRole)
 	}
 }

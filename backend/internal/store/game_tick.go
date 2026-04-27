@@ -36,6 +36,7 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 			if err := json.Unmarshal([]byte(raw), &lobby); err != nil {
 				return fmt.Errorf("unmarshal lobby: %w", err)
 			}
+			ensureLobbyVotes(&lobby)
 			if lobby.Phase == "" {
 				lobby.Phase = models.GamePhaseLobby
 			}
@@ -45,9 +46,34 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 
 			lobby.TimeRemaining--
 			if lobby.TimeRemaining <= 0 {
+				previousPhase := lobby.Phase
+
+				if previousPhase == models.GamePhaseDay && lobby.DefendantID == "" {
+					lobby.DefendantID = pickDefendantAtEndOfDay(&lobby)
+				}
+
 				next, seconds := lobby.GetNextPhase()
 				lobby.Phase = next
 				lobby.TimeRemaining = seconds
+
+				if previousPhase == models.GamePhaseChairSelection && next == models.GamePhaseDay {
+					requiredRoles := models.GetRequiredRoles(len(lobby.Players))
+					if len(requiredRoles) != len(lobby.Players) {
+						return fmt.Errorf("role distribution mismatch: roles=%d players=%d", len(requiredRoles), len(lobby.Players))
+					}
+					if err := shuffleRoles(requiredRoles); err != nil {
+						return fmt.Errorf("shuffle roles: %w", err)
+					}
+					for playerIndex := range lobby.Players {
+						lobby.Players[playerIndex].Role = requiredRoles[playerIndex].Name
+					}
+				}
+
+				if previousPhase == models.GamePhaseAccusation && next == models.GamePhaseNight {
+					lobby.DefendantID = ""
+				}
+
+				lobby.Votes = make(map[string]string)
 			}
 
 			payload, err := json.Marshal(&lobby)

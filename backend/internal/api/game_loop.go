@@ -45,13 +45,10 @@ func StartGameLoop(ctx context.Context, gameTickProvider GameTickProvider, h *Hu
 					continue
 				}
 				tickCtx, cancelTick := context.WithTimeout(context.Background(), 5*time.Second)
-				updated, gerr := gameTickProvider.GetLobby(tickCtx, code)
+				berr := h.BroadcastState(tickCtx, gameTickProvider, code)
 				cancelTick()
-				if gerr != nil {
-					continue
-				}
-				if berr := h.Broadcast(code, models.MessageTypeGameTick, updated); berr != nil {
-					log.Printf("game loop: broadcast GAME_TICK (%s): %v", code, berr)
+				if berr != nil {
+					log.Printf("game loop: broadcast state (%s): %v", code, berr)
 				}
 			}
 		}

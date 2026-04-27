@@ -31,8 +31,26 @@ var ErrUnauthorized = errors.New("store: action not allowed for this player")
 
 var ErrGameAlreadyStarted = errors.New("store: game has already started")
 
+var ErrWrongPhase = errors.New("store: invalid game phase for this action")
+
+var ErrInvalidChair = errors.New("store: invalid chair id")
+
+var ErrSeatOccupied = errors.New("store: seat is already occupied")
+
+var ErrAlreadySeated = errors.New("store: player already has a seat")
+
+var ErrPlayerNotInLobby = errors.New("store: player not in lobby")
+
+var ErrVoteInvalid = errors.New("store: invalid vote")
+
 func lobbyKey(code string) string {
 	return lobbyKeyPrefix + code
+}
+
+func ensureLobbyVotes(lobby *models.Lobby) {
+	if lobby.Votes == nil {
+		lobby.Votes = make(map[string]string)
+	}
 }
 
 func randomUpperCode(length int) (string, error) {
@@ -56,9 +74,11 @@ func (s *Store) CreateLobby(ctx context.Context, mode models.GameMode, hostName 
 		}
 
 		host := models.Player{
-			ID:     uuid.NewString(),
-			Name:   hostName,
-			IsHost: true,
+			ID:      uuid.NewString(),
+			Name:    hostName,
+			IsHost:  true,
+			IsAlive: true,
+			ChairID: models.UnseatedChair,
 		}
 
 		lobby := &models.Lobby{
@@ -68,6 +88,7 @@ func (s *Store) CreateLobby(ctx context.Context, mode models.GameMode, hostName 
 			CreatedAt:      time.Now().UTC(),
 			Phase:          models.GamePhaseLobby,
 			TimeRemaining:  0,
+			Votes:          make(map[string]string),
 		}
 
 		payload, err := json.Marshal(lobby)
@@ -128,6 +149,7 @@ func (s *Store) AppendPlayer(ctx context.Context, code string, player models.Pla
 			if err := json.Unmarshal([]byte(raw), &lobby); err != nil {
 				return fmt.Errorf("unmarshal lobby: %w", err)
 			}
+			ensureLobbyVotes(&lobby)
 			lobby.Players = append(lobby.Players, player)
 			payload, err := json.Marshal(&lobby)
 			if err != nil {
@@ -173,6 +195,7 @@ func (s *Store) RemovePlayerByID(ctx context.Context, code, playerID string) err
 			if err := json.Unmarshal([]byte(raw), &lobby); err != nil {
 				return fmt.Errorf("unmarshal lobby: %w", err)
 			}
+			ensureLobbyVotes(&lobby)
 			remainingPlayers := make([]models.Player, 0, len(lobby.Players))
 			for _, pl := range lobby.Players {
 				if pl.ID != playerID {
@@ -233,6 +256,7 @@ func (s *Store) StartGame(ctx context.Context, code, hostID string) error {
 			if err := json.Unmarshal([]byte(raw), &lobby); err != nil {
 				return fmt.Errorf("unmarshal lobby: %w", err)
 			}
+			ensureLobbyVotes(&lobby)
 			creatorID := ""
 			for _, p := range lobby.Players {
 				if p.IsHost {
@@ -293,6 +317,7 @@ func (s *Store) GetLobby(ctx context.Context, code string) (*models.Lobby, error
 	if err := json.Unmarshal([]byte(raw), &lobby); err != nil {
 		return nil, fmt.Errorf("unmarshal lobby: %w", err)
 	}
+	ensureLobbyVotes(&lobby)
 	return &lobby, nil
 }
 

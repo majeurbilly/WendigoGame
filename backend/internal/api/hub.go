@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log"
 	"net"
@@ -241,9 +242,11 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 		playerID = playerIDClaim
 	} else {
 		player := models.Player{
-			ID:     uuid.NewString(),
-			Name:   playerName,
-			IsHost: false,
+			ID:      uuid.NewString(),
+			Name:    playerName,
+			IsHost:  false,
+			IsAlive: true,
+			ChairID: models.UnseatedChair,
 		}
 		appendCtx, cancelAppend := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancelAppend()
@@ -277,12 +280,111 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 	})
 
 	for {
-		_, _, err := websocketConn.ReadMessage()
+		_, payloadBytes, err := websocketConn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("websocket read: %v", err)
 			}
 			break
 		}
+		if len(payloadBytes) == 0 {
+			continue
+		}
+
+		var inbound struct {
+			Type    string          `json:"type"`
+			Payload json.RawMessage `json:"payload"`
+		}
+		if err := json.Unmarshal(payloadBytes, &inbound); err != nil {
+			log.Printf("websocket: invalid JSON from player %s: %v", playerID, err)
+			continue
+		}
+
+		if inbound.Type != models.MessageTypeVoteDay {
+			continue
+		}
+
+		var voteBody struct {
+			TargetID string `json:"target_id"`
+		}
+		if err := json.Unmarshal(inbound.Payload, &voteBody); err != nil {
+			log.Printf("websocket: invalid VOTE_DAY payload: %v", err)
+			continue
+		}
+
+		voteCtx, voteCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		voteErr := serverConfig.Store.SubmitDayVote(voteCtx, lobbyCode, playerID, voteBody.TargetID)
+		voteCancel()
+		if voteErr != nil {
+			log.Printf("websocket: SubmitDayVote(%s, %s): %v", lobbyCode, playerID, voteErr)
+			continue
+		}
+
+		if serverConfig.Hub != nil {
+			stateCtx, stateCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			if broadcastErr := serverConfig.Hub.BroadcastState(stateCtx, serverConfig.Store, lobbyCode); broadcastErr != nil {
+				log.Printf("websocket: BroadcastState after vote (%s): %v", lobbyCode, broadcastErr)
+			}
+			stateCancel()
+		}
 	}
+}
+
+// BroadcastState sends a personalized game state to each connection in a lobby.
+func (h *Hub) BroadcastState(ctx context.Context, gameTickProvider GameTickProvider, code string) error {
+	if h == nil || gameTickProvider == nil {
+		return nil
+	}
+
+	lobby, err := gameTickProvider.GetLobby(ctx, code)
+	if err != nil {
+		return err
+	}
+
+	h.broadcastMu.Lock()
+	h.hubMutex.RLock()
+	connSet, ok := h.connectionsByLobbyCode[code]
+	if !ok || len(connSet) == 0 {
+		h.hubMutex.RUnlock()
+		h.broadcastMu.Unlock()
+		return nil
+	}
+
+	connections := make([]*websocket.Conn, 0, len(connSet))
+	sessionByConn := make(map[*websocket.Conn]websocketSession, len(connSet))
+	for connection := range connSet {
+		connections = append(connections, connection)
+		sessionByConn[connection] = h.sessionByConnection[connection]
+	}
+	h.hubMutex.RUnlock()
+
+	var firstErr error
+	var deadConnections []*websocket.Conn
+	for _, connection := range connections {
+		session := sessionByConn[connection]
+		gameStateDTO := lobby.ToGameStateDTO(session.playerID)
+		message := models.WSMessage{
+			Type:    models.MessageTypeGameTick,
+			Payload: gameStateDTO,
+		}
+
+		writeErr := connection.WriteJSON(message)
+		if writeErr != nil {
+			if isWebSocketWriteClosed(writeErr) {
+				deadConnections = append(deadConnections, connection)
+				continue
+			}
+			log.Printf("hub: BroadcastState WriteJSON(%s): %v", code, writeErr)
+			if firstErr == nil {
+				firstErr = writeErr
+			}
+		}
+	}
+	h.broadcastMu.Unlock()
+
+	for _, deadConnection := range deadConnections {
+		h.Unregister(deadConnection)
+	}
+
+	return firstErr
 }
