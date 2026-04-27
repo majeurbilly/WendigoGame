@@ -45,9 +45,23 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 
 			lobby.TimeRemaining--
 			if lobby.TimeRemaining <= 0 {
+				previousPhase := lobby.Phase
 				next, seconds := lobby.GetNextPhase()
 				lobby.Phase = next
 				lobby.TimeRemaining = seconds
+
+				if previousPhase == models.GamePhaseChairSelection && next == models.GamePhaseDay {
+					requiredRoles := models.GetRequiredRoles(len(lobby.Players))
+					if len(requiredRoles) != len(lobby.Players) {
+						return fmt.Errorf("role distribution mismatch: roles=%d players=%d", len(requiredRoles), len(lobby.Players))
+					}
+					if err := shuffleRoles(requiredRoles); err != nil {
+						return fmt.Errorf("shuffle roles: %w", err)
+					}
+					for playerIndex := range lobby.Players {
+						lobby.Players[playerIndex].Role = requiredRoles[playerIndex].Name
+					}
+				}
 			}
 
 			payload, err := json.Marshal(&lobby)

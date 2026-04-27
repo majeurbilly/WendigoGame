@@ -109,3 +109,83 @@ func TestAppendPlayerConcurrentNoLostPlayers(t *testing.T) {
 		t.Fatalf("expected %d players, got %d (%+v)", 1+playerCount, len(final.Players), final.Players)
 	}
 }
+
+func TestRoleDistribution_Fairness(t *testing.T) {
+	miniredisServer := miniredis.RunT(t)
+	redisClient := redis.NewClient(&redis.Options{Addr: miniredisServer.Addr()})
+	t.Cleanup(func() { _ = redisClient.Close() })
+
+	lobbyStore := store.NewForTesting(redisClient)
+	ctx := context.Background()
+
+	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Host")
+	if err != nil {
+		t.Fatalf("CreateLobby: %v", err)
+	}
+
+	for index := 0; index < 7; index++ {
+		player := models.Player{
+			ID:      uuid.NewString(),
+			Name:    "Player",
+			IsHost:  false,
+			IsAlive: true,
+		}
+		_, appendErr := lobbyStore.AppendPlayer(ctx, lobby.Code, player)
+		if appendErr != nil {
+			t.Fatalf("AppendPlayer: %v", appendErr)
+		}
+	}
+
+	lobbyForGame, err := lobbyStore.GetLobby(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobby: %v", err)
+	}
+	lobbyForGame.Phase = models.GamePhaseChairSelection
+	lobbyForGame.TimeRemaining = 1
+	if err := lobbyStore.SaveLobby(ctx, lobbyForGame); err != nil {
+		t.Fatalf("SaveLobby: %v", err)
+	}
+
+	keepGoing, err := lobbyStore.ProcessGameTick(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("ProcessGameTick: %v", err)
+	}
+	if !keepGoing {
+		t.Fatal("expected loop to keep going after role distribution")
+	}
+
+	updatedLobby, err := lobbyStore.GetLobby(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobby updated: %v", err)
+	}
+	if updatedLobby.Phase != models.GamePhaseDay {
+		t.Fatalf("phase: got %q, want %q", updatedLobby.Phase, models.GamePhaseDay)
+	}
+	if len(updatedLobby.Players) != 8 {
+		t.Fatalf("player count: got %d, want 8", len(updatedLobby.Players))
+	}
+
+	roleSet := make(map[string]struct{})
+	werewolfCount := 0
+	for _, player := range updatedLobby.Players {
+		if player.Role == "" {
+			t.Fatalf("missing role for player %s", player.ID)
+		}
+		if _, exists := roleSet[player.Role]; exists {
+			t.Fatalf("duplicate role assigned: %s", player.Role)
+		}
+		roleSet[player.Role] = struct{}{}
+
+		for _, templateRole := range models.RoleTemplates {
+			if templateRole.Name == player.Role && templateRole.Team == models.RoleTeamWerewolf {
+				werewolfCount++
+				break
+			}
+		}
+	}
+
+	expectedWerewolves := (len(updatedLobby.Players) + 3) / 4
+	if werewolfCount != expectedWerewolves {
+		t.Fatalf("werewolf count: got %d, want %d", werewolfCount, expectedWerewolves)
+	}
+}

@@ -56,9 +56,10 @@ func (s *Store) CreateLobby(ctx context.Context, mode models.GameMode, hostName 
 		}
 
 		host := models.Player{
-			ID:     uuid.NewString(),
-			Name:   hostName,
-			IsHost: true,
+			ID:      uuid.NewString(),
+			Name:    hostName,
+			IsHost:  true,
+			IsAlive: true,
 		}
 
 		lobby := &models.Lobby{

@@ -241,9 +241,10 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 		playerID = playerIDClaim
 	} else {
 		player := models.Player{
-			ID:     uuid.NewString(),
-			Name:   playerName,
-			IsHost: false,
+			ID:      uuid.NewString(),
+			Name:    playerName,
+			IsHost:  false,
+			IsAlive: true,
 		}
 		appendCtx, cancelAppend := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancelAppend()
@@ -285,4 +286,63 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 			break
 		}
 	}
+}
+
+// BroadcastState sends a personalized game state to each connection in a lobby.
+func (h *Hub) BroadcastState(ctx context.Context, gameTickProvider GameTickProvider, code string) error {
+	if h == nil || gameTickProvider == nil {
+		return nil
+	}
+
+	lobby, err := gameTickProvider.GetLobby(ctx, code)
+	if err != nil {
+		return err
+	}
+
+	h.broadcastMu.Lock()
+	h.hubMutex.RLock()
+	connSet, ok := h.connectionsByLobbyCode[code]
+	if !ok || len(connSet) == 0 {
+		h.hubMutex.RUnlock()
+		h.broadcastMu.Unlock()
+		return nil
+	}
+
+	connections := make([]*websocket.Conn, 0, len(connSet))
+	sessionByConn := make(map[*websocket.Conn]websocketSession, len(connSet))
+	for connection := range connSet {
+		connections = append(connections, connection)
+		sessionByConn[connection] = h.sessionByConnection[connection]
+	}
+	h.hubMutex.RUnlock()
+
+	var firstErr error
+	var deadConnections []*websocket.Conn
+	for _, connection := range connections {
+		session := sessionByConn[connection]
+		gameStateDTO := lobby.ToGameStateDTO(session.playerID)
+		message := models.WSMessage{
+			Type:    models.MessageTypeGameTick,
+			Payload: gameStateDTO,
+		}
+
+		writeErr := connection.WriteJSON(message)
+		if writeErr != nil {
+			if isWebSocketWriteClosed(writeErr) {
+				deadConnections = append(deadConnections, connection)
+				continue
+			}
+			log.Printf("hub: BroadcastState WriteJSON(%s): %v", code, writeErr)
+			if firstErr == nil {
+				firstErr = writeErr
+			}
+		}
+	}
+	h.broadcastMu.Unlock()
+
+	for _, deadConnection := range deadConnections {
+		h.Unregister(deadConnection)
+	}
+
+	return firstErr
 }
