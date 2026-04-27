@@ -10,7 +10,7 @@ const (
 	GamePhaseNight          GamePhase = "NIGHT"
 )
 
-// GetNextPhaseAndTime renvoie la phase suivante et sa durée initiale (secondes).
+// GetNextPhaseAndTime returns the next phase and its initial duration in seconds.
 func GetNextPhaseAndTime(currentPhase GamePhase) (GamePhase, int) {
 	switch currentPhase {
 	case GamePhaseLobby:

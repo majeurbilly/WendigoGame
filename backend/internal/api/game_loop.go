@@ -10,14 +10,15 @@ import (
 	"github.com/majeurbilly/wendigogame/internal/store"
 )
 
-// StartGameLoop lance une goroutine qui décrémente le timer du lobby chaque seconde
-// et applique les transitions de phase. La boucle s’arrête si le contexte est annulé,
-// si le lobby disparaît, ou si la phase redevient LOBBY.
-// Si h est non nil, chaque tick réussi déclenche un broadcast GAME_TICK avec l’état du lobby.
-func StartGameLoop(ctx context.Context, st *store.Store, h *Hub, code string) {
-	if st == nil || code == "" {
+// StartGameLoop launches a goroutine that decrements the lobby timer every second
+// and applies phase transitions. The loop stops if the context is canceled,
+// if the lobby disappears, or if the phase returns to LOBBY.
+// If h is not nil, each successful tick triggers a GAME_TICK broadcast with the lobby state.
+func StartGameLoop(ctx context.Context, st *store.Store, h *Hub, lobby models.LobbyManager) {
+	if st == nil || lobby == nil || lobby.GetCode() == "" {
 		return
 	}
+	code := lobby.GetCode()
 	go func() {
 		ticker := time.NewTicker(1 * time.Second)
 		defer ticker.Stop()

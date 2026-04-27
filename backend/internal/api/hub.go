@@ -23,7 +23,7 @@ type websocketSession struct {
 
 type Hub struct {
 	hubMutex               sync.RWMutex
-	broadcastMu            sync.Mutex // sérialise WriteJSON (gorilla/websocket n’est pas concurrent-safe en écriture)
+	broadcastMu            sync.Mutex // Serializes WriteJSON (gorilla/websocket is not concurrent-safe for writes).
 	connectionsByLobbyCode map[string]map[*websocket.Conn]struct{}
 	sessionByConnection    map[*websocket.Conn]websocketSession
 	lobbyStore             *store.Store
@@ -58,9 +58,9 @@ func isWebSocketWriteClosed(err error) bool {
 		(strings.Contains(s, "write tcp") && strings.Contains(s, "closed"))
 }
 
-// Broadcast envoie un message JSON à toutes les connexions WebSocket du lobby (copie des connexions sous verrou de lecture).
-// En cas d’écriture sur une connexion déjà fermée, nettoie le hub via Unregister (sans log).
-// Renvoie la première erreur d’écriture « non fermeture » pour permettre au producteur (ex. boucle de jeu) de la journaliser.
+// Broadcast sends a JSON message to all WebSocket connections in a lobby (connection snapshot under read lock).
+// On write to an already-closed connection, it cleans the hub via Unregister (without logging).
+// It returns the first non-close write error so producers (for example, the game loop) can log it.
 func (h *Hub) Broadcast(code string, messageType string, payload any) error {
 	if h == nil {
 		return nil
@@ -171,11 +171,11 @@ func normalizeLobbyCode(raw string) (normalizedLobbyCode string, isValid bool) {
 
 func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, request *http.Request) {
 	if serverConfig.Hub == nil || serverConfig.Store == nil {
-		http.Error(responseWriter, "configuration serveur invalide", http.StatusServiceUnavailable)
+		http.Error(responseWriter, "invalid server configuration", http.StatusServiceUnavailable)
 		return
 	}
 	if request.Method != http.MethodGet {
-		http.Error(responseWriter, "méthode non autorisée", http.StatusMethodNotAllowed)
+		http.Error(responseWriter, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -183,11 +183,11 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 	playerName := strings.TrimSpace(request.URL.Query().Get("name"))
 	lobbyCode, isValidCode := normalizeLobbyCode(codeRaw)
 	if !isValidCode {
-		http.Error(responseWriter, "paramètre code invalide (4 lettres A–Z)", http.StatusBadRequest)
+		http.Error(responseWriter, "invalid code parameter (4 letters A-Z)", http.StatusBadRequest)
 		return
 	}
 	if playerName == "" {
-		http.Error(responseWriter, "paramètre name requis", http.StatusBadRequest)
+		http.Error(responseWriter, "missing required name parameter", http.StatusBadRequest)
 		return
 	}
 
@@ -196,10 +196,10 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 	existingLobby, err := serverConfig.Store.GetLobby(ctx, lobbyCode)
 	if err != nil {
 		if err == store.ErrLobbyNotFound {
-			http.Error(responseWriter, "lobby introuvable", http.StatusNotFound)
+			http.Error(responseWriter, "lobby not found", http.StatusNotFound)
 			return
 		}
-		http.Error(responseWriter, "erreur lecture lobby", http.StatusInternalServerError)
+		http.Error(responseWriter, "lobby read error", http.StatusInternalServerError)
 		return
 	}
 
@@ -215,11 +215,11 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 			}
 		}
 		if hostPlayer == nil {
-			http.Error(responseWriter, "player_id ne correspond pas à l'hôte du lobby", http.StatusForbidden)
+			http.Error(responseWriter, "player_id does not match the lobby host", http.StatusForbidden)
 			return
 		}
 		if strings.TrimSpace(playerName) != strings.TrimSpace(hostPlayer.Name) {
-			http.Error(responseWriter, "le nom ne correspond pas à l'hôte du lobby", http.StatusForbidden)
+			http.Error(responseWriter, "name does not match the lobby host", http.StatusForbidden)
 			return
 		}
 		bindExistingHost = true
@@ -232,7 +232,7 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 		if errors.As(err, &handshakeErr) {
 			return
 		}
-		http.Error(responseWriter, "échec de la négociation WebSocket: "+err.Error(), http.StatusBadRequest)
+		http.Error(responseWriter, "websocket handshake failed: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -260,7 +260,7 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 	if lobbyAfterJoin, syncErr := serverConfig.Store.GetLobby(syncCtx, lobbyCode); syncErr == nil {
 		_ = serverConfig.Hub.Broadcast(lobbyCode, models.MessageTypeLobbySync, lobbyAfterJoin)
 	} else {
-		log.Printf("hub: GetLobby après connexion WS (%s): %v", lobbyCode, syncErr)
+		log.Printf("hub: GetLobby after WS connect (%s): %v", lobbyCode, syncErr)
 	}
 	cancelSync()
 

@@ -20,7 +20,7 @@ func TestGameLoop_TicksDownAndTransitions(t *testing.T) {
 	st := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := st.CreateLobby(ctx, models.GameModePresentiel, "Alice")
+	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Alice")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -35,7 +35,7 @@ func TestGameLoop_TicksDownAndTransitions(t *testing.T) {
 	loopCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	api.StartGameLoop(loopCtx, st, nil, code)
+	api.StartGameLoop(loopCtx, st, nil, lobby)
 
 	time.Sleep(3 * time.Second)
 
@@ -44,6 +44,6 @@ func TestGameLoop_TicksDownAndTransitions(t *testing.T) {
 		t.Fatalf("GetLobby: %v", err)
 	}
 	if got.Phase != models.GamePhaseDay {
-		t.Fatalf("phase: got %q, veut %q (time_remaining=%d)", got.Phase, models.GamePhaseDay, got.TimeRemaining)
+		t.Fatalf("phase: got %q, want %q (time_remaining=%d)", got.Phase, models.GamePhaseDay, got.TimeRemaining)
 	}
 }
