@@ -12,9 +12,9 @@ import (
 	"github.com/majeurbilly/wendigogame/internal/models"
 )
 
-// ProcessGameTick applique une seconde de jeu au lobby (lecture / écriture sous WATCH).
-// Renvoie continueLoop=false si le lobby n’existe plus, si la phase est LOBBY (ou vide), ou en cas d’erreur Redis.
-// Renvoie continueLoop=true après une écriture réussie (phase autre que LOBBY).
+// ProcessGameTick applies one second of game time to the lobby (read/write under WATCH).
+// It returns continueLoop=false if the lobby no longer exists, if the phase is LOBBY (or empty), or on Redis errors.
+// It returns continueLoop=true after a successful write (phase different from LOBBY).
 func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop bool, err error) {
 	code = strings.ToUpper(strings.TrimSpace(code))
 	if len(code) != 4 {
@@ -45,7 +45,7 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 
 			lobby.TimeRemaining--
 			if lobby.TimeRemaining <= 0 {
-				next, seconds := models.GetNextPhaseAndTime(lobby.Phase)
+				next, seconds := lobby.GetNextPhase()
 				lobby.Phase = next
 				lobby.TimeRemaining = seconds
 			}
@@ -72,5 +72,5 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 		}
 		return false, watchErr
 	}
-	return false, fmt.Errorf("process game tick: concurrence excessive sur le lobby %s", code)
+	return false, fmt.Errorf("process game tick: excessive contention on lobby %s", code)
 }

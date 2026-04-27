@@ -29,20 +29,20 @@ func TestStartGame_OKUpdatesPhaseInValkey(t *testing.T) {
 	st, handler := newGameTestRouter(t)
 	ctx := context.Background()
 
-	createBody := `{"mode":"presentiel","host_name":"Alice"}`
+	createBody := `{"mode":"local","host_name":"Alice"}`
 	createReq := httptest.NewRequest(http.MethodPost, "/lobbies", strings.NewReader(createBody))
 	createReq.Header.Set("Content-Type", "application/json")
 	createRec := httptest.NewRecorder()
 	handler.ServeHTTP(createRec, createReq)
 	if createRec.Code != http.StatusCreated {
-		t.Fatalf("CreateLobby HTTP: statut %d, corps %q", createRec.Code, createRec.Body.String())
+		t.Fatalf("CreateLobby HTTP: status %d, body %q", createRec.Code, createRec.Body.String())
 	}
 	var created models.Lobby
 	if err := json.Unmarshal(createRec.Body.Bytes(), &created); err != nil {
 		t.Fatalf("JSON lobby: %v", err)
 	}
 	if len(created.Players) != 1 {
-		t.Fatalf("joueurs: %+v", created.Players)
+		t.Fatalf("players: %+v", created.Players)
 	}
 	hostID := created.Players[0].ID
 	code := created.Code
@@ -52,7 +52,7 @@ func TestStartGame_OKUpdatesPhaseInValkey(t *testing.T) {
 	startRec := httptest.NewRecorder()
 	handler.ServeHTTP(startRec, startReq)
 	if startRec.Code != http.StatusOK {
-		t.Fatalf("StartGame HTTP: statut %d, corps %q", startRec.Code, startRec.Body.String())
+		t.Fatalf("StartGame HTTP: status %d, body %q", startRec.Code, startRec.Body.String())
 	}
 
 	got, err := st.GetLobby(ctx, code)
@@ -60,17 +60,17 @@ func TestStartGame_OKUpdatesPhaseInValkey(t *testing.T) {
 		t.Fatalf("GetLobby: %v", err)
 	}
 	if got.Phase != models.GamePhaseChairSelection {
-		t.Fatalf("phase Valkey: got %q, veut %q", got.Phase, models.GamePhaseChairSelection)
+		t.Fatalf("Valkey phase: got %q, want %q", got.Phase, models.GamePhaseChairSelection)
 	}
 	if got.TimeRemaining != 10 {
-		t.Fatalf("time_remaining: got %d, veut 10", got.TimeRemaining)
+		t.Fatalf("time_remaining: got %d, want 10", got.TimeRemaining)
 	}
 }
 
 func TestStartGame_WrongHostForbidden(t *testing.T) {
 	_, handler := newGameTestRouter(t)
 
-	createBody := `{"mode":"presentiel","host_name":"Bob"}`
+	createBody := `{"mode":"local","host_name":"Bob"}`
 	createReq := httptest.NewRequest(http.MethodPost, "/lobbies", strings.NewReader(createBody))
 	createReq.Header.Set("Content-Type", "application/json")
 	createRec := httptest.NewRecorder()
@@ -89,6 +89,6 @@ func TestStartGame_WrongHostForbidden(t *testing.T) {
 	startRec := httptest.NewRecorder()
 	handler.ServeHTTP(startRec, startReq)
 	if startRec.Code != http.StatusForbidden {
-		t.Fatalf("mauvais hôte: statut %d, corps %q", startRec.Code, startRec.Body.String())
+		t.Fatalf("wrong host: status %d, body %q", startRec.Code, startRec.Body.String())
 	}
 }

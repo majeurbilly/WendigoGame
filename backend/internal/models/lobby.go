@@ -5,8 +5,8 @@ import "time"
 type GameMode string
 
 const (
-	GameModePresentiel GameMode = "presentiel"
-	GameModeEnLigne    GameMode = "en_ligne"
+	GameModeLocal  GameMode = "local"
+	GameModeOnline GameMode = "online"
 )
 
 type Player struct {
@@ -22,4 +22,33 @@ type Lobby struct {
 	CreatedAt      time.Time `json:"created_at"`
 	Phase          GamePhase `json:"phase"`
 	TimeRemaining  int       `json:"time_remaining"`
+}
+
+// LobbyManager defines the contract required by the game engine.
+type LobbyManager interface {
+	GetCode() string
+	GetPlayers() []Player
+	GetPhase() GamePhase
+	GetTimeRemaining() int
+	GetNextPhase() (GamePhase, int)
+}
+
+func (lobby *Lobby) GetCode() string {
+	return lobby.Code
+}
+
+func (lobby *Lobby) GetPlayers() []Player {
+	return lobby.Players
+}
+
+func (lobby *Lobby) GetPhase() GamePhase {
+	return lobby.Phase
+}
+
+func (lobby *Lobby) GetTimeRemaining() int {
+	return lobby.TimeRemaining
+}
+
+func (lobby *Lobby) GetNextPhase() (GamePhase, int) {
+	return GetNextPhaseAndTime(lobby.Phase)
 }

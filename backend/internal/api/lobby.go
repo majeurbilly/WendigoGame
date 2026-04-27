@@ -23,24 +23,24 @@ type createLobbyBody struct {
 
 func (serverConfig Config) handleCreateLobby(responseWriter http.ResponseWriter, request *http.Request) {
 	if serverConfig.Store == nil {
-		http.Error(responseWriter, "configuration serveur invalide", http.StatusInternalServerError)
+		http.Error(responseWriter, "invalid server configuration", http.StatusInternalServerError)
 		return
 	}
 
 	var body createLobbyBody
 	if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
-		http.Error(responseWriter, "corps JSON invalide", http.StatusBadRequest)
+		http.Error(responseWriter, "invalid JSON body", http.StatusBadRequest)
 		return
 	}
 
 	var mode models.GameMode
 	switch strings.TrimSpace(body.Mode) {
-	case string(models.GameModePresentiel):
-		mode = models.GameModePresentiel
-	case string(models.GameModeEnLigne):
-		mode = models.GameModeEnLigne
+	case string(models.GameModeLocal):
+		mode = models.GameModeLocal
+	case string(models.GameModeOnline):
+		mode = models.GameModeOnline
 	default:
-		http.Error(responseWriter, `mode invalide : utiliser "presentiel" ou "en_ligne"`, http.StatusBadRequest)
+		http.Error(responseWriter, `invalid mode: use "local" or "online"`, http.StatusBadRequest)
 		return
 	}
 
@@ -49,7 +49,7 @@ func (serverConfig Config) handleCreateLobby(responseWriter http.ResponseWriter,
 
 	lobby, err := serverConfig.Store.CreateLobby(ctx, mode, strings.TrimSpace(body.HostName))
 	if err != nil {
-		http.Error(responseWriter, "impossible de créer le lobby", http.StatusInternalServerError)
+		http.Error(responseWriter, "unable to create lobby", http.StatusInternalServerError)
 		return
 	}
 

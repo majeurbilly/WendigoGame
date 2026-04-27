@@ -22,23 +22,23 @@ func TestCreateLobbyPersistsInValkeyWithTTL(t *testing.T) {
 	lobbyStore := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModePresentiel, "Alice")
+	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Alice")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
 	if len(lobby.Code) != 4 {
-		t.Fatalf("longueur du code: %d", len(lobby.Code))
+		t.Fatalf("code length: %d", len(lobby.Code))
 	}
 	for _, character := range lobby.Code {
 		if character < 'A' || character > 'Z' {
-			t.Fatalf("code non A–Z: %q", lobby.Code)
+			t.Fatalf("code not A-Z: %q", lobby.Code)
 		}
 	}
-	if lobby.Mode != models.GameModePresentiel {
+	if lobby.Mode != models.GameModeLocal {
 		t.Fatalf("mode: got %q", lobby.Mode)
 	}
 	if len(lobby.Players) != 1 || !lobby.Players[0].IsHost || lobby.Players[0].Name != "Alice" || lobby.Players[0].ID == "" {
-		t.Fatalf("hôte: %+v", lobby.Players)
+		t.Fatalf("host: %+v", lobby.Players)
 	}
 
 	raw, err := redisClient.Get(ctx, "lobby:"+lobby.Code).Result()
@@ -51,16 +51,16 @@ func TestCreateLobbyPersistsInValkeyWithTTL(t *testing.T) {
 		t.Fatalf("json: %v", err)
 	}
 	if got.Code != lobby.Code || got.Mode != lobby.Mode {
-		t.Fatalf("valeur stockée: %+v, attendu proche de %+v", got, lobby)
+		t.Fatalf("stored value: %+v, expected close to %+v", got, lobby)
 	}
 	if len(got.Players) != 1 || got.Players[0].ID != lobby.Players[0].ID ||
 		got.Players[0].Name != "Alice" || !got.Players[0].IsHost {
-		t.Fatalf("joueurs persistés: %+v", got.Players)
+		t.Fatalf("persisted players: %+v", got.Players)
 	}
 
 	ttl := redisClient.TTL(ctx, "lobby:"+lobby.Code).Val()
 	if ttl <= 0 || ttl > 24*time.Hour {
-		t.Fatalf("TTL inattendu: %v", ttl)
+		t.Fatalf("unexpected TTL: %v", ttl)
 	}
 }
 
@@ -72,7 +72,7 @@ func TestAppendPlayerConcurrentNoLostPlayers(t *testing.T) {
 	lobbyStore := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModePresentiel, "Host")
+	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -86,7 +86,7 @@ func TestAppendPlayerConcurrentNoLostPlayers(t *testing.T) {
 			defer waitGroup.Done()
 			player := models.Player{
 				ID:     uuid.NewString(),
-				Name:   "Joueur",
+				Name:   "Player",
 				IsHost: false,
 			}
 			_, err := lobbyStore.AppendPlayer(ctx, code, player)
@@ -106,6 +106,6 @@ func TestAppendPlayerConcurrentNoLostPlayers(t *testing.T) {
 		t.Fatalf("GetLobby: %v", err)
 	}
 	if len(final.Players) != 1+playerCount {
-		t.Fatalf("joueurs attendus %d, obtenu %d (%+v)", 1+playerCount, len(final.Players), final.Players)
+		t.Fatalf("expected %d players, got %d (%+v)", 1+playerCount, len(final.Players), final.Players)
 	}
 }

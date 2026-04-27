@@ -23,13 +23,13 @@ const (
 	maxLobbyTxRetries = 64
 )
 
-var ErrCodeGeneration = errors.New("store: impossible de générer un code lobby unique")
+var ErrCodeGeneration = errors.New("store: unable to generate a unique lobby code")
 
-var ErrLobbyNotFound = errors.New("store: lobby introuvable")
+var ErrLobbyNotFound = errors.New("store: lobby not found")
 
-var ErrUnauthorized = errors.New("store: action non autorisée pour ce joueur")
+var ErrUnauthorized = errors.New("store: action not allowed for this player")
 
-var ErrGameAlreadyStarted = errors.New("store: la partie a déjà été démarrée")
+var ErrGameAlreadyStarted = errors.New("store: game has already started")
 
 func lobbyKey(code string) string {
 	return lobbyKeyPrefix + code
@@ -98,7 +98,7 @@ func (s *Store) SaveLobby(ctx context.Context, lobby *models.Lobby) error {
 	}
 	code := strings.ToUpper(strings.TrimSpace(lobby.Code))
 	if len(code) != 4 {
-		return fmt.Errorf("code lobby invalide")
+		return fmt.Errorf("invalid lobby code")
 	}
 	lobby.Code = code
 	payload, err := json.Marshal(lobby)
@@ -151,7 +151,7 @@ func (s *Store) AppendPlayer(ctx context.Context, code string, player models.Pla
 		}
 		return nil, err
 	}
-	return nil, fmt.Errorf("append player: concurrence excessive sur le lobby %s", code)
+	return nil, fmt.Errorf("append player: excessive contention on lobby %s", code)
 }
 
 func (s *Store) RemovePlayerByID(ctx context.Context, code, playerID string) error {
@@ -205,11 +205,11 @@ func (s *Store) RemovePlayerByID(ctx context.Context, code, playerID string) err
 		}
 		return err
 	}
-	return fmt.Errorf("remove player: concurrence excessive sur le lobby %s", code)
+	return fmt.Errorf("remove player: excessive contention on lobby %s", code)
 }
 
-// StartGame passe le lobby de LOBBY à la première phase de jeu (CHAIR_SELECTION) avec le timer initial.
-// Seul le joueur hôte (IsHost) identifié par hostID peut démarrer.
+// StartGame transitions the lobby from LOBBY to the first game phase (CHAIR_SELECTION) with the initial timer.
+// Only the host player (IsHost), identified by hostID, can start the game.
 func (s *Store) StartGame(ctx context.Context, code, hostID string) error {
 	code = strings.ToUpper(strings.TrimSpace(code))
 	if len(code) != 4 {
@@ -250,7 +250,7 @@ func (s *Store) StartGame(ctx context.Context, code, hostID string) error {
 			if phase != models.GamePhaseLobby {
 				return ErrGameAlreadyStarted
 			}
-			nextPhase, seconds := models.GetNextPhaseAndTime(models.GamePhaseLobby)
+			nextPhase, seconds := lobby.GetNextPhase()
 			lobby.Phase = nextPhase
 			lobby.TimeRemaining = seconds
 			payload, err := json.Marshal(&lobby)
@@ -274,7 +274,7 @@ func (s *Store) StartGame(ctx context.Context, code, hostID string) error {
 		}
 		return err
 	}
-	return fmt.Errorf("start game: concurrence excessive sur le lobby %s", code)
+	return fmt.Errorf("start game: excessive contention on lobby %s", code)
 }
 
 func (s *Store) GetLobby(ctx context.Context, code string) (*models.Lobby, error) {
@@ -294,6 +294,14 @@ func (s *Store) GetLobby(ctx context.Context, code string) (*models.Lobby, error
 		return nil, fmt.Errorf("unmarshal lobby: %w", err)
 	}
 	return &lobby, nil
+}
+
+func (s *Store) GetLobbyManager(ctx context.Context, code string) (models.LobbyManager, error) {
+	lobby, err := s.GetLobby(ctx, code)
+	if err != nil {
+		return nil, err
+	}
+	return lobby, nil
 }
 
 func (s *Store) DeleteLobby(ctx context.Context, code string) error {

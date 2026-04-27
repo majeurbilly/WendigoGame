@@ -28,7 +28,7 @@ func TestWSAddsPlayerThenDisconnectKeepsHostInValkey(t *testing.T) {
 	mux := api.NewRouter(api.Config{Store: lobbyStore, Hub: connectionHub})
 
 	ctx := context.Background()
-	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModePresentiel, "Host")
+	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -59,7 +59,7 @@ func TestWSAddsPlayerThenDisconnectKeepsHostInValkey(t *testing.T) {
 		time.Sleep(5 * time.Millisecond)
 	}
 	if len(withGuest.Players) != 2 {
-		t.Fatalf("après connexion WS: attendu 2 joueurs, got %d (%+v)", len(withGuest.Players), withGuest.Players)
+		t.Fatalf("after WS connection: expected 2 players, got %d (%+v)", len(withGuest.Players), withGuest.Players)
 	}
 	var hostSeen, gastonSeen bool
 	for _, player := range withGuest.Players {
@@ -71,7 +71,7 @@ func TestWSAddsPlayerThenDisconnectKeepsHostInValkey(t *testing.T) {
 		}
 	}
 	if !hostSeen || !gastonSeen {
-		t.Fatalf("joueurs inattendus: %+v", withGuest.Players)
+		t.Fatalf("unexpected players: %+v", withGuest.Players)
 	}
 
 	if err := wsConn.Close(); err != nil {
@@ -85,21 +85,21 @@ func TestWSAddsPlayerThenDisconnectKeepsHostInValkey(t *testing.T) {
 			t.Fatalf("EXISTS: %v", err)
 		}
 		if keyExistsCount == 0 {
-			t.Fatalf("la clé %q ne devrait pas être supprimée : l’hôte reste en base", key)
+			t.Fatalf("key %q should not be deleted: host must remain persisted", key)
 		}
 		alone, err := lobbyStore.GetLobby(ctx, lobby.Code)
 		if err != nil {
-			t.Fatalf("GetLobby après déconnexion: %v", err)
+			t.Fatalf("GetLobby after disconnect: %v", err)
 		}
 		if len(alone.Players) == 1 {
 			if !alone.Players[0].IsHost || alone.Players[0].Name != "Host" {
-				t.Fatalf("hôte seul attendu: %+v", alone.Players)
+				t.Fatalf("expected host alone: %+v", alone.Players)
 			}
 			return
 		}
 		time.Sleep(5 * time.Millisecond)
 	}
-	t.Fatalf("timeout: lobby devrait n’avoir qu’un joueur (hôte) après déconnexion WS")
+	t.Fatalf("timeout: lobby should contain only one player (host) after WS disconnect")
 }
 
 func TestWS_FiveSimultaneousConnections(t *testing.T) {
@@ -111,7 +111,7 @@ func TestWS_FiveSimultaneousConnections(t *testing.T) {
 	mux := api.NewRouter(api.Config{Store: lobbyStore, Hub: connectionHub})
 
 	ctx := context.Background()
-	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModePresentiel, "Host")
+	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -160,7 +160,7 @@ func TestWS_FiveSimultaneousConnections(t *testing.T) {
 		time.Sleep(5 * time.Millisecond)
 	}
 	if len(full.Players) != 6 {
-		t.Fatalf("attendu 6 joueurs (hôte + 5 invités), obtenu %d (%+v)", len(full.Players), full.Players)
+		t.Fatalf("expected 6 players (host + 5 guests), got %d (%+v)", len(full.Players), full.Players)
 	}
 
 	hostCount, guestCount := 0, 0
@@ -172,10 +172,10 @@ func TestWS_FiveSimultaneousConnections(t *testing.T) {
 		}
 	}
 	if hostCount != 1 || guestCount != 5 {
-		t.Fatalf("répartition hôte/invités: hostCount=%d guestCount=%d (%+v)", hostCount, guestCount, full.Players)
+		t.Fatalf("host/guest split: hostCount=%d guestCount=%d (%+v)", hostCount, guestCount, full.Players)
 	}
 
-	// Laisse le temps au hub de terminer les broadcasts LOBBY_SYNC en cours (CI / charge).
+	// Give the hub time to finish in-flight LOBBY_SYNC broadcasts (CI / load).
 	time.Sleep(50 * time.Millisecond)
 
 	for _, c := range conns {
@@ -187,13 +187,13 @@ func TestWS_FiveSimultaneousConnections(t *testing.T) {
 		}
 	}
 
-	// Attendre que les 5 goroutines serveur aient terminé RemovePlayerByID
-	// avant la fin du test (évite des Unregister après fermeture du client Redis).
+	// Wait for the 5 server goroutines to finish RemovePlayerByID
+	// before ending the test (avoids Unregister after Redis client close).
 	deadlineHost := time.Now().Add(5 * time.Second)
 	for time.Now().Before(deadlineHost) {
 		alone, err := lobbyStore.GetLobby(ctx, lobby.Code)
 		if err != nil {
-			t.Fatalf("GetLobby après fermetures: %v", err)
+			t.Fatalf("GetLobby after closes: %v", err)
 		}
 		if len(alone.Players) == 1 {
 			break
@@ -202,10 +202,10 @@ func TestWS_FiveSimultaneousConnections(t *testing.T) {
 	}
 	afterClose, err := lobbyStore.GetLobby(ctx, lobby.Code)
 	if err != nil {
-		t.Fatalf("GetLobby après fermetures: %v", err)
+		t.Fatalf("GetLobby after closes: %v", err)
 	}
 	if len(afterClose.Players) != 1 || !afterClose.Players[0].IsHost {
-		t.Fatalf("après fermeture des 5 WS: attendu hôte seul, obtenu %+v", afterClose.Players)
+		t.Fatalf("after closing the 5 WS connections: expected host alone, got %+v", afterClose.Players)
 	}
 }
 
@@ -218,12 +218,12 @@ func TestWS_LobbyDestroyedWhenEmpty(t *testing.T) {
 	mux := api.NewRouter(api.Config{Store: lobbyStore, Hub: connectionHub})
 
 	ctx := context.Background()
-	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModePresentiel, "Host")
+	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
 	if len(lobby.Players) != 1 || !lobby.Players[0].IsHost {
-		t.Fatalf("lobby initial: %+v", lobby.Players)
+		t.Fatalf("initial lobby: %+v", lobby.Players)
 	}
 	hostID := lobby.Players[0].ID
 	key := "lobby:" + lobby.Code
@@ -238,7 +238,7 @@ func TestWS_LobbyDestroyedWhenEmpty(t *testing.T) {
 		"/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID
 	wsConn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 	if err != nil {
-		t.Fatalf("Dial WebSocket hôte: %v", err)
+		t.Fatalf("Dial host WebSocket: %v", err)
 	}
 
 	time.Sleep(200 * time.Millisecond)
@@ -247,7 +247,7 @@ func TestWS_LobbyDestroyedWhenEmpty(t *testing.T) {
 		t.Fatalf("GetLobby: %v", err)
 	}
 	if len(afterHostWS.Players) != 1 || afterHostWS.Players[0].ID != hostID || !afterHostWS.Players[0].IsHost {
-		t.Fatalf("liaison hôte: 1 seul joueur attendu (pas de doublon), obtenu %+v", afterHostWS.Players)
+		t.Fatalf("host binding: expected a single player (no duplicate), got %+v", afterHostWS.Players)
 	}
 
 	if err := wsConn.Close(); err != nil {
@@ -263,13 +263,13 @@ func TestWS_LobbyDestroyedWhenEmpty(t *testing.T) {
 		if n == 0 {
 			_, err := lobbyStore.GetLobby(ctx, lobby.Code)
 			if !errors.Is(err, store.ErrLobbyNotFound) {
-				t.Fatalf("GetLobby après suppression: %v", err)
+				t.Fatalf("GetLobby after deletion: %v", err)
 			}
 			return
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
-	t.Fatalf("timeout: la clé Redis %q aurait dû être supprimée (0 joueur)", key)
+	t.Fatalf("timeout: Redis key %q should have been deleted (0 player)", key)
 }
 
 func TestWS_ReceivesBroadcastOnJoin(t *testing.T) {
@@ -281,7 +281,7 @@ func TestWS_ReceivesBroadcastOnJoin(t *testing.T) {
 	mux := api.NewRouter(api.Config{Store: lobbyStore, Hub: connectionHub})
 
 	ctx := context.Background()
-	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModePresentiel, "Host")
+	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -297,33 +297,33 @@ func TestWS_ReceivesBroadcastOnJoin(t *testing.T) {
 	hostURL := baseWS + "/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID
 	hostConn, _, err := websocket.DefaultDialer.Dial(hostURL, nil)
 	if err != nil {
-		t.Fatalf("Dial hôte: %v", err)
+		t.Fatalf("Dial host: %v", err)
 	}
 	defer func() { _ = hostConn.Close() }()
 
 	_ = hostConn.SetReadDeadline(time.Now().Add(3 * time.Second))
 	var first models.WSMessage
 	if err := hostConn.ReadJSON(&first); err != nil {
-		t.Fatalf("premier message hôte: %v", err)
+		t.Fatalf("first host message: %v", err)
 	}
 	if first.Type != models.MessageTypeLobbySync {
-		t.Fatalf("premier type: got %q, veut %q", first.Type, models.MessageTypeLobbySync)
+		t.Fatalf("first type: got %q, want %q", first.Type, models.MessageTypeLobbySync)
 	}
 
-	guestURL := baseWS + "/ws?code=" + lobby.Code + "&name=Invité"
+	guestURL := baseWS + "/ws?code=" + lobby.Code + "&name=Guest"
 	guestConn, _, err := websocket.DefaultDialer.Dial(guestURL, nil)
 	if err != nil {
-		t.Fatalf("Dial invité: %v", err)
+		t.Fatalf("Dial guest: %v", err)
 	}
 	defer func() { _ = guestConn.Close() }()
 
 	_ = hostConn.SetReadDeadline(time.Now().Add(3 * time.Second))
 	var second models.WSMessage
 	if err := hostConn.ReadJSON(&second); err != nil {
-		t.Fatalf("message hôte après arrivée invité: %v", err)
+		t.Fatalf("host message after guest join: %v", err)
 	}
 	if second.Type != models.MessageTypeLobbySync {
-		t.Fatalf("deuxième type: got %q, veut %q", second.Type, models.MessageTypeLobbySync)
+		t.Fatalf("second type: got %q, want %q", second.Type, models.MessageTypeLobbySync)
 	}
 	raw, err := json.Marshal(second.Payload)
 	if err != nil {
@@ -331,9 +331,9 @@ func TestWS_ReceivesBroadcastOnJoin(t *testing.T) {
 	}
 	var synced models.Lobby
 	if err := json.Unmarshal(raw, &synced); err != nil {
-		t.Fatalf("lobby dans payload: %v", err)
+		t.Fatalf("lobby in payload: %v", err)
 	}
 	if len(synced.Players) != 2 {
-		t.Fatalf("joueurs dans LOBBY_SYNC: got %d, veut 2 (%+v)", len(synced.Players), synced.Players)
+		t.Fatalf("players in LOBBY_SYNC: got %d, want 2 (%+v)", len(synced.Players), synced.Players)
 	}
 }
