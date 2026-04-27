@@ -300,30 +300,42 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 			continue
 		}
 
-		if inbound.Type != models.MessageTypeVoteDay {
-			continue
-		}
-
 		var voteBody struct {
 			TargetID string `json:"target_id"`
 		}
-		if err := json.Unmarshal(inbound.Payload, &voteBody); err != nil {
-			log.Printf("websocket: invalid VOTE_DAY payload: %v", err)
-			continue
-		}
-
-		voteCtx, voteCancel := context.WithTimeout(context.Background(), 5*time.Second)
-		voteErr := serverConfig.Store.SubmitDayVote(voteCtx, lobbyCode, playerID, voteBody.TargetID)
-		voteCancel()
-		if voteErr != nil {
-			log.Printf("websocket: SubmitDayVote(%s, %s): %v", lobbyCode, playerID, voteErr)
+		switch inbound.Type {
+		case models.MessageTypeVoteDay:
+			if err := json.Unmarshal(inbound.Payload, &voteBody); err != nil {
+				log.Printf("websocket: invalid VOTE_DAY payload: %v", err)
+				continue
+			}
+			voteCtx, voteCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			voteErr := serverConfig.Store.SubmitDayVote(voteCtx, lobbyCode, playerID, voteBody.TargetID)
+			voteCancel()
+			if voteErr != nil {
+				log.Printf("websocket: SubmitDayVote(%s, %s): %v", lobbyCode, playerID, voteErr)
+				continue
+			}
+		case models.MessageTypeSubmitNightAction:
+			if err := json.Unmarshal(inbound.Payload, &voteBody); err != nil {
+				log.Printf("websocket: invalid SUBMIT_NIGHT_ACTION payload: %v", err)
+				continue
+			}
+			nightCtx, nightCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			nightErr := serverConfig.Store.SubmitNightAction(nightCtx, lobbyCode, playerID, voteBody.TargetID)
+			nightCancel()
+			if nightErr != nil {
+				log.Printf("websocket: SubmitNightAction(%s, %s): %v", lobbyCode, playerID, nightErr)
+				continue
+			}
+		default:
 			continue
 		}
 
 		if serverConfig.Hub != nil {
 			stateCtx, stateCancel := context.WithTimeout(context.Background(), 5*time.Second)
 			if broadcastErr := serverConfig.Hub.BroadcastState(stateCtx, serverConfig.Store, lobbyCode); broadcastErr != nil {
-				log.Printf("websocket: BroadcastState after vote (%s): %v", lobbyCode, broadcastErr)
+				log.Printf("websocket: BroadcastState after action (%s): %v", lobbyCode, broadcastErr)
 			}
 			stateCancel()
 		}
