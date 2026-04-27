@@ -1,0 +1,29 @@
+package models
+
+type GamePhase string
+
+const (
+	GamePhaseLobby          GamePhase = "LOBBY"
+	GamePhaseChairSelection GamePhase = "CHAIR_SELECTION"
+	GamePhaseDay            GamePhase = "DAY"
+	GamePhaseAccusation     GamePhase = "ACCUSATION"
+	GamePhaseNight          GamePhase = "NIGHT"
+)
+
+// GetNextPhaseAndTime renvoie la phase suivante et sa durée initiale (secondes).
+func GetNextPhaseAndTime(currentPhase GamePhase) (GamePhase, int) {
+	switch currentPhase {
+	case GamePhaseLobby:
+		return GamePhaseChairSelection, 10
+	case GamePhaseChairSelection:
+		return GamePhaseDay, 600
+	case GamePhaseDay:
+		return GamePhaseAccusation, 120
+	case GamePhaseAccusation:
+		return GamePhaseNight, 60
+	case GamePhaseNight:
+		return GamePhaseDay, 15
+	default:
+		return GamePhaseLobby, 0
+	}
+}

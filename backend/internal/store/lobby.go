@@ -27,6 +27,10 @@ var ErrCodeGeneration = errors.New("store: impossible de générer un code lobby
 
 var ErrLobbyNotFound = errors.New("store: lobby introuvable")
 
+var ErrUnauthorized = errors.New("store: action non autorisée pour ce joueur")
+
+var ErrGameAlreadyStarted = errors.New("store: la partie a déjà été démarrée")
+
 func lobbyKey(code string) string {
 	return lobbyKeyPrefix + code
 }
@@ -58,10 +62,12 @@ func (s *Store) CreateLobby(ctx context.Context, mode models.GameMode, hostName 
 		}
 
 		lobby := &models.Lobby{
-			Code:      code,
-			Mode:      mode,
-			Players:   []models.Player{host},
-			CreatedAt: time.Now().UTC(),
+			Code:           code,
+			Mode:           mode,
+			Players:        []models.Player{host},
+			CreatedAt:      time.Now().UTC(),
+			Phase:          models.GamePhaseLobby,
+			TimeRemaining:  0,
 		}
 
 		payload, err := json.Marshal(lobby)
@@ -200,6 +206,75 @@ func (s *Store) RemovePlayerByID(ctx context.Context, code, playerID string) err
 		return err
 	}
 	return fmt.Errorf("remove player: concurrence excessive sur le lobby %s", code)
+}
+
+// StartGame passe le lobby de LOBBY à la première phase de jeu (CHAIR_SELECTION) avec le timer initial.
+// Seul le joueur hôte (IsHost) identifié par hostID peut démarrer.
+func (s *Store) StartGame(ctx context.Context, code, hostID string) error {
+	code = strings.ToUpper(strings.TrimSpace(code))
+	if len(code) != 4 {
+		return ErrLobbyNotFound
+	}
+	hostID = strings.TrimSpace(hostID)
+	if hostID == "" {
+		return ErrUnauthorized
+	}
+	key := lobbyKey(code)
+	for range maxLobbyTxRetries {
+		err := s.redisClient.Watch(ctx, func(tx *redis.Tx) error {
+			raw, err := tx.Get(ctx, key).Result()
+			if err == redis.Nil {
+				return ErrLobbyNotFound
+			}
+			if err != nil {
+				return err
+			}
+			var lobby models.Lobby
+			if err := json.Unmarshal([]byte(raw), &lobby); err != nil {
+				return fmt.Errorf("unmarshal lobby: %w", err)
+			}
+			creatorID := ""
+			for _, p := range lobby.Players {
+				if p.IsHost {
+					creatorID = p.ID
+					break
+				}
+			}
+			if creatorID == "" || creatorID != hostID {
+				return ErrUnauthorized
+			}
+			phase := lobby.Phase
+			if phase == "" {
+				phase = models.GamePhaseLobby
+			}
+			if phase != models.GamePhaseLobby {
+				return ErrGameAlreadyStarted
+			}
+			nextPhase, seconds := models.GetNextPhaseAndTime(models.GamePhaseLobby)
+			lobby.Phase = nextPhase
+			lobby.TimeRemaining = seconds
+			payload, err := json.Marshal(&lobby)
+			if err != nil {
+				return fmt.Errorf("marshal lobby: %w", err)
+			}
+			_, err = tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
+				pipe.Set(ctx, key, payload, lobbyTTL)
+				return nil
+			})
+			return err
+		}, key)
+		if err == nil {
+			return nil
+		}
+		if errors.Is(err, ErrLobbyNotFound) || errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrGameAlreadyStarted) {
+			return err
+		}
+		if err == redis.TxFailedErr {
+			continue
+		}
+		return err
+	}
+	return fmt.Errorf("start game: concurrence excessive sur le lobby %s", code)
 }
 
 func (s *Store) GetLobby(ctx context.Context, code string) (*models.Lobby, error) {
