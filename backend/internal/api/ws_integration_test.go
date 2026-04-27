@@ -495,3 +495,166 @@ func TestWS_RoleFiltering(t *testing.T) {
 		t.Fatalf("guest should not see host role, got %q", guestSeesHostRole)
 	}
 }
+
+func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
+	miniredisServer := miniredis.RunT(t)
+	redisClient := redis.NewClient(&redis.Options{Addr: miniredisServer.Addr()})
+	t.Cleanup(func() { _ = redisClient.Close() })
+	lobbyStore := store.NewForTesting(redisClient)
+	connectionHub := api.NewHub(lobbyStore)
+	mux := api.NewRouter(api.Config{Store: lobbyStore, Hub: connectionHub})
+
+	ctx := context.Background()
+	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Host")
+	if err != nil {
+		t.Fatalf("CreateLobby: %v", err)
+	}
+	hostID := lobby.Players[0].ID
+
+	httpServer := httptest.NewServer(mux)
+	t.Cleanup(func() {
+		httpServer.Close()
+		time.Sleep(150 * time.Millisecond)
+	})
+	baseWS := strings.Replace(httpServer.URL, "http", "ws", 1)
+
+	hostURL := baseWS + "/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID
+	hostConn, _, err := websocket.DefaultDialer.Dial(hostURL, nil)
+	if err != nil {
+		t.Fatalf("Dial host: %v", err)
+	}
+	defer func() { _ = hostConn.Close() }()
+
+	guest1URL := baseWS + "/ws?code=" + lobby.Code + "&name=Guest1"
+	guest1Conn, _, err := websocket.DefaultDialer.Dial(guest1URL, nil)
+	if err != nil {
+		t.Fatalf("Dial guest1: %v", err)
+	}
+	defer func() { _ = guest1Conn.Close() }()
+
+	guest2URL := baseWS + "/ws?code=" + lobby.Code + "&name=Guest2"
+	guest2Conn, _, err := websocket.DefaultDialer.Dial(guest2URL, nil)
+	if err != nil {
+		t.Fatalf("Dial guest2: %v", err)
+	}
+	defer func() { _ = guest2Conn.Close() }()
+
+	time.Sleep(250 * time.Millisecond)
+	lobbyWithGuests, err := lobbyStore.GetLobby(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobby: %v", err)
+	}
+	if len(lobbyWithGuests.Players) != 3 {
+		t.Fatalf("players: got %d, want 3", len(lobbyWithGuests.Players))
+	}
+
+	guestIDs := make([]string, 0, 2)
+	for i := range lobbyWithGuests.Players {
+		if lobbyWithGuests.Players[i].ID != hostID {
+			guestIDs = append(guestIDs, lobbyWithGuests.Players[i].ID)
+		}
+	}
+	if len(guestIDs) != 2 {
+		t.Fatalf("guest IDs: got %d, want 2", len(guestIDs))
+	}
+	guest1ID := guestIDs[0]
+	guest2ID := guestIDs[1]
+
+	sendNightAction := func(conn *websocket.Conn, targetID string) {
+		message := models.WSMessage{
+			Type: models.MessageTypeSubmitNightAction,
+			Payload: map[string]string{
+				"target_id": targetID,
+			},
+		}
+		if err := conn.WriteJSON(message); err != nil {
+			t.Fatalf("WriteJSON SUBMIT_NIGHT_ACTION: %v", err)
+		}
+	}
+
+	prepareNight := func() {
+		currentLobby, getErr := lobbyStore.GetLobby(ctx, lobby.Code)
+		if getErr != nil {
+			t.Fatalf("GetLobby prepareNight: %v", getErr)
+		}
+
+		currentLobby.Phase = models.GamePhaseNight
+		currentLobby.TimeRemaining = 1
+		currentLobby.DefendantID = ""
+		currentLobby.Votes = make(map[string]string)
+		currentLobby.NightActions = make(map[string]string)
+
+		for i := range currentLobby.Players {
+			currentLobby.Players[i].IsAlive = true
+			if currentLobby.Players[i].ID == hostID {
+				currentLobby.Players[i].Role = "Wendigo"
+			} else {
+				currentLobby.Players[i].Role = "Villager"
+			}
+		}
+
+		if saveErr := lobbyStore.SaveLobby(ctx, currentLobby); saveErr != nil {
+			t.Fatalf("SaveLobby prepareNight: %v", saveErr)
+		}
+	}
+
+	waitForDay := func() *models.Lobby {
+		deadline := time.Now().Add(4 * time.Second)
+		for time.Now().Before(deadline) {
+			currentLobby, getErr := lobbyStore.GetLobby(ctx, lobby.Code)
+			if getErr != nil {
+				t.Fatalf("GetLobby waitForDay: %v", getErr)
+			}
+			if currentLobby.Phase == models.GamePhaseDay {
+				return currentLobby
+			}
+			time.Sleep(20 * time.Millisecond)
+		}
+		t.Fatal("timeout waiting for DAY phase")
+		return nil
+	}
+
+	loopCtx, cancelLoop := context.WithCancel(context.Background())
+	defer cancelLoop()
+	lobbyManager, err := lobbyStore.GetLobbyManager(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobbyManager: %v", err)
+	}
+	api.StartGameLoop(loopCtx, lobbyStore, connectionHub, lobbyManager)
+
+	t.Run("CaseA_ShieldBlocksKill", func(t *testing.T) {
+		prepareNight()
+
+		sendNightAction(guest1Conn, guest1ID)
+		sendNightAction(guest2Conn, guest1ID)
+		sendNightAction(hostConn, guest1ID)
+
+		dayLobby := waitForDay()
+		for i := range dayLobby.Players {
+			if !dayLobby.Players[i].IsAlive {
+				t.Fatalf("expected all players alive in shield case, got dead player %s", dayLobby.Players[i].ID)
+			}
+		}
+	})
+
+	t.Run("CaseB_NoMajorityKillSucceeds", func(t *testing.T) {
+		prepareNight()
+
+		sendNightAction(guest1Conn, guest1ID)
+		sendNightAction(guest2Conn, guest2ID)
+		sendNightAction(hostConn, guest1ID)
+
+		dayLobby := waitForDay()
+		aliveByID := make(map[string]bool)
+		for i := range dayLobby.Players {
+			aliveByID[dayLobby.Players[i].ID] = dayLobby.Players[i].IsAlive
+		}
+
+		if aliveByID[guest1ID] {
+			t.Fatalf("expected Wendigo victim %s to be dead", guest1ID)
+		}
+		if !aliveByID[guest2ID] || !aliveByID[hostID] {
+			t.Fatalf("unexpected extra death: host=%v guest2=%v", aliveByID[hostID], aliveByID[guest2ID])
+		}
+	})
+}

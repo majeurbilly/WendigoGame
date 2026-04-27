@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/redis/go-redis/v9"
@@ -73,7 +74,20 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 					lobby.DefendantID = ""
 				}
 
+				if previousPhase == models.GamePhaseNight {
+					deceasedIDs, summary := ResolveNight(&lobby)
+					for i := range deceasedIDs {
+						for playerIndex := range lobby.Players {
+							if lobby.Players[playerIndex].ID == deceasedIDs[i] {
+								lobby.Players[playerIndex].IsAlive = false
+							}
+						}
+					}
+					log.Printf("game tick: %s", summary)
+				}
+
 				lobby.Votes = make(map[string]string)
+				lobby.NightActions = make(map[string]string)
 			}
 
 			payload, err := json.Marshal(&lobby)

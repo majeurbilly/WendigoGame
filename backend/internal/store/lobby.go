@@ -42,6 +42,7 @@ var ErrAlreadySeated = errors.New("store: player already has a seat")
 var ErrPlayerNotInLobby = errors.New("store: player not in lobby")
 
 var ErrVoteInvalid = errors.New("store: invalid vote")
+var ErrNightActionInvalid = errors.New("store: invalid night action")
 
 func lobbyKey(code string) string {
 	return lobbyKeyPrefix + code
@@ -50,6 +51,9 @@ func lobbyKey(code string) string {
 func ensureLobbyVotes(lobby *models.Lobby) {
 	if lobby.Votes == nil {
 		lobby.Votes = make(map[string]string)
+	}
+	if lobby.NightActions == nil {
+		lobby.NightActions = make(map[string]string)
 	}
 }
 
@@ -89,6 +93,7 @@ func (s *Store) CreateLobby(ctx context.Context, mode models.GameMode, hostName 
 			Phase:          models.GamePhaseLobby,
 			TimeRemaining:  0,
 			Votes:          make(map[string]string),
+			NightActions:   make(map[string]string),
 		}
 
 		payload, err := json.Marshal(lobby)
