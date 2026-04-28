@@ -30,6 +30,7 @@ type Lobby struct {
 	Players       []Player          `json:"players"`
 	CreatedAt     time.Time         `json:"created_at"`
 	Phase         GamePhase         `json:"phase"`
+	WinnerTeam    string            `json:"winner_team,omitempty"`
 	TimeRemaining int               `json:"time_remaining"`
 	Votes         map[string]string `json:"votes,omitempty"`
 	NightActions  map[string]string `json:"night_actions,omitempty"`
@@ -69,6 +70,7 @@ func (lobby *Lobby) GetNextPhase() (GamePhase, int) {
 func (lobby *Lobby) ToGameStateDTO(forPlayerID string) GameStateDTO {
 	gameStateDTO := GameStateDTO{
 		Phase:         lobby.Phase,
+		WinnerTeam:    lobby.WinnerTeam,
 		TimeRemaining: lobby.TimeRemaining,
 		Players:       make([]PlayerDTO, 0, len(lobby.Players)),
 		DefendantID:   lobby.DefendantID,
@@ -129,7 +131,7 @@ func alivePlayerIDs(lobby *Lobby) map[string]bool {
 }
 
 func isRoleVisibleForAllPlayers(phase GamePhase) bool {
-	return phase == GamePhaseLobby
+	return phase == GamePhaseLobby || phase == PhaseGameOver
 }
 
 func nightInstructionForPlayer(lobby *Lobby, playerID string) string {
