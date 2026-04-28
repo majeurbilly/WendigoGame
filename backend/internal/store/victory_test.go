@@ -3,6 +3,7 @@ package store_test
 import (
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/majeurbilly/wendigogame/internal/models"
 	"github.com/majeurbilly/wendigogame/internal/store"
 )
@@ -10,9 +11,9 @@ import (
 func TestCheckVictoryConditions_LastWendigoDies_VillagersWin(t *testing.T) {
 	lobby := &models.Lobby{
 		Players: []models.Player{
-			{ID: "w1", Role: "WENDIGO", IsAlive: false},
-			{ID: "v1", Role: "VILLAGER", IsAlive: true},
-			{ID: "v2", Role: "SEER", IsAlive: true},
+			{ID: uuid.New(), Role: "WENDIGO", IsAlive: false},
+			{ID: uuid.New(), Role: "VILLAGER", IsAlive: true},
+			{ID: uuid.New(), Role: "SEER", IsAlive: true},
 		},
 	}
 

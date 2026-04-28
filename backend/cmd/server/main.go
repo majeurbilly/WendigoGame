@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/majeurbilly/wendigogame/internal/api"
+	"github.com/majeurbilly/wendigogame/internal/database"
 	"github.com/majeurbilly/wendigogame/internal/services"
 	"github.com/majeurbilly/wendigogame/internal/store"
 )
@@ -24,10 +25,18 @@ func newServer(addr string, handler http.Handler) *http.Server {
 }
 
 func main() {
+	dbPool, err := database.InitDB(os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Fatalf("postgres: %v", err)
+	}
+	defer dbPool.Close()
+	userStore := database.NewUserStore(dbPool)
+
 	lobbyStore, err := store.NewFromEnv()
 	if err != nil {
 		log.Fatalf("valkey: %v", err)
 	}
+	lobbyStore.SetUserStore(userStore)
 	defer func() {
 		if closeErr := lobbyStore.Close(); closeErr != nil {
 			log.Printf("valkey close: %v", closeErr)
@@ -40,7 +49,7 @@ func main() {
 	}
 
 	connectionHub := api.NewHub(lobbyStore, liveKitService)
-	handler := api.NewRouter(api.Config{Store: lobbyStore, Hub: connectionHub})
+	handler := api.NewRouter(api.Config{Store: lobbyStore, UserStore: userStore, Hub: connectionHub})
 	server := newServer(":8080", handler)
 
 	go func() {

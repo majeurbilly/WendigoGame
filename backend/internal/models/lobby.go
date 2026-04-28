@@ -15,15 +15,6 @@ const (
 	GameModeOnline GameMode = "online"
 )
 
-type Player struct {
-	ID      string `json:"id"`
-	Name    string `json:"name,omitempty"`
-	IsHost  bool   `json:"is_host"`
-	IsAlive bool   `json:"is_alive"`
-	ChairID int    `json:"chair_id"`
-	Role    string `json:"role,omitempty"`
-}
-
 type Lobby struct {
 	Code          string            `json:"code"`
 	Mode          GameMode          `json:"mode"`
@@ -87,7 +78,7 @@ func (lobby *Lobby) ToGameStateDTO(forPlayerID string) GameStateDTO {
 
 	for _, player := range lobby.Players {
 		playerDTO := PlayerDTO{
-			ID:      player.ID,
+			ID:      player.ID.String(),
 			Name:    player.Name,
 			IsHost:  player.IsHost,
 			IsAlive: player.IsAlive,
@@ -95,7 +86,7 @@ func (lobby *Lobby) ToGameStateDTO(forPlayerID string) GameStateDTO {
 			Role:    "",
 		}
 
-		if player.ID == forPlayerID || isRoleVisibleForAllPlayers(lobby.Phase) {
+		if player.ID.String() == forPlayerID || isRoleVisibleForAllPlayers(lobby.Phase) {
 			playerDTO.Role = player.Role
 		}
 
@@ -124,7 +115,7 @@ func alivePlayerIDs(lobby *Lobby) map[string]bool {
 	out := make(map[string]bool)
 	for i := range lobby.Players {
 		if lobby.Players[i].IsAlive {
-			out[lobby.Players[i].ID] = true
+			out[lobby.Players[i].ID.String()] = true
 		}
 	}
 	return out
@@ -141,7 +132,7 @@ func nightInstructionForPlayer(lobby *Lobby, playerID string) string {
 
 	for i := range lobby.Players {
 		player := lobby.Players[i]
-		if player.ID != playerID {
+		if player.ID.String() != playerID {
 			continue
 		}
 		if isWendigoRole(player.Role) {

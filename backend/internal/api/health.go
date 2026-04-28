@@ -14,6 +14,9 @@ type healthResponse struct {
 func NewRouter(serverConfig Config) *http.ServeMux {
 	httpServeMux := http.NewServeMux()
 	httpServeMux.HandleFunc("/health", healthHandler)
+	httpServeMux.HandleFunc("POST /auth/register", serverConfig.handleRegister)
+	httpServeMux.HandleFunc("POST /auth/login", serverConfig.handleLogin)
+	httpServeMux.Handle("GET /auth/me", AuthMiddleware(http.HandlerFunc(serverConfig.handleMe)))
 	httpServeMux.HandleFunc("POST /lobbies", serverConfig.handleCreateLobby)
 	httpServeMux.HandleFunc("POST /lobbies/{code}/start", serverConfig.handleStartGame)
 	httpServeMux.HandleFunc("POST /lobbies/{code}/seat", serverConfig.handleSelectSeat)

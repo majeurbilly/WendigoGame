@@ -48,7 +48,7 @@ func (s *Store) SelectSeat(ctx context.Context, code, playerID string, chairID i
 
 			playerIndex := -1
 			for i := range lobby.Players {
-				if lobby.Players[i].ID == playerID {
+				if lobby.Players[i].ID.String() == playerID {
 					playerIndex = i
 					break
 				}

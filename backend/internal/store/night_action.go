@@ -47,10 +47,10 @@ func (s *Store) SubmitNightAction(ctx context.Context, code, sourcePlayerID, tar
 			sourceAlive := false
 			targetAlive := false
 			for i := range lobby.Players {
-				if lobby.Players[i].ID == sourcePlayerID && lobby.Players[i].IsAlive {
+				if lobby.Players[i].ID.String() == sourcePlayerID && lobby.Players[i].IsAlive {
 					sourceAlive = true
 				}
-				if lobby.Players[i].ID == targetPlayerID && lobby.Players[i].IsAlive {
+				if lobby.Players[i].ID.String() == targetPlayerID && lobby.Players[i].IsAlive {
 					targetAlive = true
 				}
 			}

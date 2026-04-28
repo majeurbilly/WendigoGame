@@ -17,7 +17,7 @@ func ResolveNight(lobby *models.Lobby) ([]string, string) {
 	for i := range lobby.Players {
 		player := lobby.Players[i]
 		if player.IsAlive {
-			alivePlayers[player.ID] = player
+			alivePlayers[player.ID.String()] = player
 		}
 	}
 

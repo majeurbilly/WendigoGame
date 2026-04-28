@@ -6,11 +6,13 @@ import (
 	"os"
 	"strings"
 
+	"github.com/majeurbilly/wendigogame/internal/database"
 	"github.com/redis/go-redis/v9"
 )
 
 type Store struct {
 	redisClient *redis.Client
+	userStore   *database.UserStore
 }
 
 func NewFromEnv() (*Store, error) {
@@ -39,6 +41,13 @@ func NewFromEnv() (*Store, error) {
 
 func NewForTesting(redisClient *redis.Client) *Store {
 	return &Store{redisClient: redisClient}
+}
+
+func (s *Store) SetUserStore(userStore *database.UserStore) {
+	if s == nil {
+		return
+	}
+	s.userStore = userStore
 }
 
 func (s *Store) Close() error {

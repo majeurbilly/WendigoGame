@@ -78,7 +78,7 @@ func (s *Store) CreateLobby(ctx context.Context, mode models.GameMode, hostName 
 		}
 
 		host := models.Player{
-			ID:      uuid.NewString(),
+			ID:      uuid.New(),
 			Name:    hostName,
 			IsHost:  true,
 			IsAlive: true,
@@ -203,7 +203,7 @@ func (s *Store) RemovePlayerByID(ctx context.Context, code, playerID string) err
 			ensureLobbyVotes(&lobby)
 			remainingPlayers := make([]models.Player, 0, len(lobby.Players))
 			for _, pl := range lobby.Players {
-				if pl.ID != playerID {
+				if pl.ID.String() != playerID {
 					remainingPlayers = append(remainingPlayers, pl)
 				}
 			}
@@ -236,6 +236,60 @@ func (s *Store) RemovePlayerByID(ctx context.Context, code, playerID string) err
 	return fmt.Errorf("remove player: excessive contention on lobby %s", code)
 }
 
+func (s *Store) ReplacePlayerID(ctx context.Context, code, oldPlayerID, newPlayerID string) error {
+	code = strings.ToUpper(strings.TrimSpace(code))
+	if len(code) != 4 {
+		return ErrLobbyNotFound
+	}
+	key := lobbyKey(code)
+	for range maxLobbyTxRetries {
+		err := s.redisClient.Watch(ctx, func(tx *redis.Tx) error {
+			raw, err := tx.Get(ctx, key).Result()
+			if err == redis.Nil {
+				return ErrLobbyNotFound
+			}
+			if err != nil {
+				return err
+			}
+			var lobby models.Lobby
+			if err := json.Unmarshal([]byte(raw), &lobby); err != nil {
+				return fmt.Errorf("unmarshal lobby: %w", err)
+			}
+			ensureLobbyVotes(&lobby)
+			for i := range lobby.Players {
+				if lobby.Players[i].ID.String() == oldPlayerID {
+					parsedID, parseErr := uuid.Parse(newPlayerID)
+					if parseErr != nil {
+						return ErrPlayerNotInLobby
+					}
+					lobby.Players[i].ID = parsedID
+					payload, marshalErr := json.Marshal(&lobby)
+					if marshalErr != nil {
+						return fmt.Errorf("marshal lobby: %w", marshalErr)
+					}
+					_, pipeErr := tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
+						pipe.Set(ctx, key, payload, lobbyTTL)
+						return nil
+					})
+					return pipeErr
+				}
+			}
+			return ErrPlayerNotInLobby
+		}, key)
+		if err == nil {
+			return nil
+		}
+		if errors.Is(err, ErrLobbyNotFound) || errors.Is(err, ErrPlayerNotInLobby) {
+			return err
+		}
+		if err == redis.TxFailedErr {
+			continue
+		}
+		return err
+	}
+	return fmt.Errorf("replace player id: excessive contention on lobby %s", code)
+}
+
 // StartGame transitions the lobby from LOBBY to the first game phase (CHAIR_SELECTION) with the initial timer.
 // Only the host player (IsHost), identified by hostID, can start the game.
 func (s *Store) StartGame(ctx context.Context, code, hostID string) error {
@@ -265,7 +319,7 @@ func (s *Store) StartGame(ctx context.Context, code, hostID string) error {
 			creatorID := ""
 			for _, p := range lobby.Players {
 				if p.IsHost {
-					creatorID = p.ID
+					creatorID = p.ID.String()
 					break
 				}
 			}
