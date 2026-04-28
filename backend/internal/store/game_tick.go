@@ -41,7 +41,7 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 			if lobby.Phase == "" {
 				lobby.Phase = models.GamePhaseLobby
 			}
-			if lobby.Phase == models.GamePhaseLobby {
+			if lobby.Phase == models.GamePhaseLobby || lobby.Phase == models.PhaseGameOver {
 				return nil
 			}
 
@@ -71,7 +71,20 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 				}
 
 				if previousPhase == models.GamePhaseAccusation && next == models.GamePhaseNight {
+					if lobby.DefendantID != "" {
+						for playerIndex := range lobby.Players {
+							if lobby.Players[playerIndex].ID == lobby.DefendantID {
+								lobby.Players[playerIndex].IsAlive = false
+								break
+							}
+						}
+					}
 					lobby.DefendantID = ""
+					if victory, winner := CheckVictoryConditions(&lobby); victory {
+						lobby.Phase = models.PhaseGameOver
+						lobby.WinnerTeam = winner
+						lobby.TimeRemaining = 0
+					}
 				}
 
 				if previousPhase == models.GamePhaseNight {
@@ -84,6 +97,11 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 						}
 					}
 					log.Printf("game tick: %s", summary)
+					if victory, winner := CheckVictoryConditions(&lobby); victory {
+						lobby.Phase = models.PhaseGameOver
+						lobby.WinnerTeam = winner
+						lobby.TimeRemaining = 0
+					}
 				}
 
 				lobby.Votes = make(map[string]string)

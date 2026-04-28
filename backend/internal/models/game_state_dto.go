@@ -11,6 +11,7 @@ type PlayerDTO struct {
 
 type GameStateDTO struct {
 	Phase         GamePhase      `json:"phase"`
+	WinnerTeam    string         `json:"winner_team,omitempty"`
 	TimeRemaining int            `json:"time_remaining"`
 	Players       []PlayerDTO    `json:"players"`
 	DefendantID   string         `json:"defendant_id,omitempty"`

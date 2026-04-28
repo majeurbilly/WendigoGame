@@ -598,19 +598,19 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 		}
 	}
 
-	waitForDay := func() *models.Lobby {
+	waitForDayOrGameOver := func() *models.Lobby {
 		deadline := time.Now().Add(4 * time.Second)
 		for time.Now().Before(deadline) {
 			currentLobby, getErr := lobbyStore.GetLobby(ctx, lobby.Code)
 			if getErr != nil {
 				t.Fatalf("GetLobby waitForDay: %v", getErr)
 			}
-			if currentLobby.Phase == models.GamePhaseDay {
+			if currentLobby.Phase == models.GamePhaseDay || currentLobby.Phase == models.PhaseGameOver {
 				return currentLobby
 			}
 			time.Sleep(20 * time.Millisecond)
 		}
-		t.Fatal("timeout waiting for DAY phase")
+		t.Fatal("timeout waiting for DAY/GAME_OVER phase")
 		return nil
 	}
 
@@ -629,7 +629,10 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 		sendNightAction(guest2Conn, guest1ID)
 		sendNightAction(hostConn, guest1ID)
 
-		dayLobby := waitForDay()
+		dayLobby := waitForDayOrGameOver()
+		if dayLobby.Phase != models.GamePhaseDay {
+			t.Fatalf("expected phase DAY for shield case, got %s", dayLobby.Phase)
+		}
 		for i := range dayLobby.Players {
 			if !dayLobby.Players[i].IsAlive {
 				t.Fatalf("expected all players alive in shield case, got dead player %s", dayLobby.Players[i].ID)
@@ -644,7 +647,7 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 		sendNightAction(guest2Conn, guest2ID)
 		sendNightAction(hostConn, guest1ID)
 
-		dayLobby := waitForDay()
+		dayLobby := waitForDayOrGameOver()
 		aliveByID := make(map[string]bool)
 		for i := range dayLobby.Players {
 			aliveByID[dayLobby.Players[i].ID] = dayLobby.Players[i].IsAlive
@@ -655,6 +658,12 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 		}
 		if !aliveByID[guest2ID] || !aliveByID[hostID] {
 			t.Fatalf("unexpected extra death: host=%v guest2=%v", aliveByID[hostID], aliveByID[guest2ID])
+		}
+		if dayLobby.Phase != models.PhaseGameOver {
+			t.Fatalf("expected GAME_OVER after parity, got %s", dayLobby.Phase)
+		}
+		if dayLobby.WinnerTeam != store.VictoryTeamWendigos {
+			t.Fatalf("winner team: got %q, want %q", dayLobby.WinnerTeam, store.VictoryTeamWendigos)
 		}
 	})
 }
