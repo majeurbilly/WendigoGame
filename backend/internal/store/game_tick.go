@@ -47,6 +47,12 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 			if lobby.Phase == models.GamePhaseLobby || lobby.Phase == models.PhaseGameOver {
 				return nil
 			}
+			if lobby.Phase == models.GamePhaseNight {
+				alivePlayers := countAlivePlayers(&lobby)
+				if alivePlayers > 0 && len(lobby.NightActions) >= alivePlayers {
+					lobby.TimeRemaining = 0
+				}
+			}
 
 			lobby.TimeRemaining--
 			if lobby.TimeRemaining <= 0 {

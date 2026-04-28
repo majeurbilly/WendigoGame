@@ -341,6 +341,7 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 
 		var voteBody struct {
 			TargetID string `json:"target_id"`
+			Action   string `json:"action"`
 		}
 		switch inbound.Type {
 		case models.MessageTypeVoteDay:
@@ -361,7 +362,7 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 				continue
 			}
 			nightCtx, nightCancel := context.WithTimeout(context.Background(), 5*time.Second)
-			nightErr := serverConfig.Store.SubmitNightAction(nightCtx, lobbyCode, playerID, voteBody.TargetID)
+			nightErr := serverConfig.Store.SubmitNightAction(nightCtx, lobbyCode, playerID, voteBody.TargetID, voteBody.Action)
 			nightCancel()
 			if nightErr != nil {
 				log.Printf("websocket: SubmitNightAction(%s, %s): %v", lobbyCode, playerID, nightErr)

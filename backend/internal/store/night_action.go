@@ -12,15 +12,16 @@ import (
 	"github.com/majeurbilly/wendigogame/internal/models"
 )
 
-// SubmitNightAction records or updates a night action (source -> target) during NIGHT.
-func (s *Store) SubmitNightAction(ctx context.Context, code, sourcePlayerID, targetPlayerID string) error {
+// SubmitNightAction records or updates a night action during NIGHT with role-aware validation.
+func (s *Store) SubmitNightAction(ctx context.Context, code, sourcePlayerID, targetPlayerID, actionType string) error {
 	code = strings.ToUpper(strings.TrimSpace(code))
 	if len(code) != 4 {
 		return ErrLobbyNotFound
 	}
 	sourcePlayerID = strings.TrimSpace(sourcePlayerID)
 	targetPlayerID = strings.TrimSpace(targetPlayerID)
-	if sourcePlayerID == "" || targetPlayerID == "" {
+	actionType = strings.ToUpper(strings.TrimSpace(actionType))
+	if sourcePlayerID == "" || actionType == "" {
 		return ErrNightActionInvalid
 	}
 
@@ -45,17 +46,34 @@ func (s *Store) SubmitNightAction(ctx context.Context, code, sourcePlayerID, tar
 			}
 
 			sourceAlive := false
+			sourceRole := ""
 			targetAlive := false
 			for i := range lobby.Players {
 				if lobby.Players[i].ID.String() == sourcePlayerID && lobby.Players[i].IsAlive {
 					sourceAlive = true
+					sourceRole = strings.ToUpper(strings.TrimSpace(lobby.Players[i].Role))
 				}
-				if lobby.Players[i].ID.String() == targetPlayerID && lobby.Players[i].IsAlive {
+				if targetPlayerID != "" && lobby.Players[i].ID.String() == targetPlayerID && lobby.Players[i].IsAlive {
 					targetAlive = true
 				}
 			}
-			if !sourceAlive || !targetAlive {
+			if !sourceAlive || sourceRole == "" {
 				return ErrNightActionInvalid
+			}
+
+			switch {
+			case strings.Contains(sourceRole, "WENDIGO") || strings.Contains(sourceRole, "WEREWOLF"):
+				if actionType != "KILL" || !targetAlive {
+					return ErrNightActionInvalid
+				}
+			case strings.Contains(sourceRole, "SEER"):
+				if actionType != "INSPECT" || !targetAlive {
+					return ErrNightActionInvalid
+				}
+			default:
+				if actionType != "PRAY" {
+					return ErrNightActionInvalid
+				}
 			}
 
 			lobby.NightActions[sourcePlayerID] = targetPlayerID

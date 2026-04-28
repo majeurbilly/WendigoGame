@@ -6,13 +6,13 @@ import (
 	"github.com/majeurbilly/wendigogame/internal/models"
 )
 
-func TestResolveAudioPublishPolicy_NightIsSilentForEveryone(t *testing.T) {
+func TestResolveAudioPublishPolicy_NightIsCouncilForAliveOnly(t *testing.T) {
 	canPublishAlive, profileAlive := resolveAudioPublishPolicy(models.GamePhaseNight, true)
-	if canPublishAlive {
-		t.Fatal("alive player should not publish during NIGHT")
+	if !canPublishAlive {
+		t.Fatal("alive player should publish during NIGHT")
 	}
-	if profileAlive != "Silent Token" {
-		t.Fatalf("profile: got %q, want %q", profileAlive, "Silent Token")
+	if profileAlive != "Council Token" {
+		t.Fatalf("profile: got %q, want %q", profileAlive, "Council Token")
 	}
 
 	canPublishDead, profileDead := resolveAudioPublishPolicy(models.GamePhaseNight, false)
