@@ -56,7 +56,7 @@ func (service *LiveKitService) GenerateToken(lobby *models.Lobby, playerID strin
 	playerName := trimmedPlayerID
 	playerAlive := false
 	for i := range lobby.Players {
-		if lobby.Players[i].ID == trimmedPlayerID {
+		if lobby.Players[i].ID.String() == trimmedPlayerID {
 			if strings.TrimSpace(lobby.Players[i].Name) != "" {
 				playerName = strings.TrimSpace(lobby.Players[i].Name)
 			}

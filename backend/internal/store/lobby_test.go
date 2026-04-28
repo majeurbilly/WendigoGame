@@ -37,7 +37,7 @@ func TestCreateLobbyPersistsInValkeyWithTTL(t *testing.T) {
 	if lobby.Mode != models.GameModeLocal {
 		t.Fatalf("mode: got %q", lobby.Mode)
 	}
-	if len(lobby.Players) != 1 || !lobby.Players[0].IsHost || lobby.Players[0].Name != "Alice" || lobby.Players[0].ID == "" {
+	if len(lobby.Players) != 1 || !lobby.Players[0].IsHost || lobby.Players[0].Name != "Alice" || lobby.Players[0].ID == uuid.Nil {
 		t.Fatalf("host: %+v", lobby.Players)
 	}
 
@@ -85,7 +85,7 @@ func TestAppendPlayerConcurrentNoLostPlayers(t *testing.T) {
 		go func() {
 			defer waitGroup.Done()
 			player := models.Player{
-				ID:      uuid.NewString(),
+				ID:      uuid.New(),
 				Name:    "Player",
 				IsHost:  false,
 				IsAlive: true,
@@ -127,7 +127,7 @@ func TestRoleDistribution_Fairness(t *testing.T) {
 
 	for index := 0; index < 7; index++ {
 		player := models.Player{
-			ID:      uuid.NewString(),
+			ID:      uuid.New(),
 			Name:    "Player",
 			IsHost:  false,
 			IsAlive: true,

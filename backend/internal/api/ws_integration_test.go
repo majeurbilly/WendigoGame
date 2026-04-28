@@ -235,7 +235,7 @@ func TestWS_LobbyDestroyedWhenEmpty(t *testing.T) {
 	})
 
 	wsURL := strings.Replace(httpServer.URL, "http", "ws", 1) +
-		"/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID
+		"/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID.String()
 	wsConn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 	if err != nil {
 		t.Fatalf("Dial host WebSocket: %v", err)
@@ -294,7 +294,7 @@ func TestWS_ReceivesBroadcastOnJoin(t *testing.T) {
 	})
 	baseWS := strings.Replace(httpServer.URL, "http", "ws", 1)
 
-	hostURL := baseWS + "/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID
+	hostURL := baseWS + "/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID.String()
 	hostConn, _, err := websocket.DefaultDialer.Dial(hostURL, nil)
 	if err != nil {
 		t.Fatalf("Dial host: %v", err)
@@ -360,7 +360,7 @@ func TestWS_RoleFiltering(t *testing.T) {
 	})
 	baseWS := strings.Replace(httpServer.URL, "http", "ws", 1)
 
-	hostURL := baseWS + "/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID
+	hostURL := baseWS + "/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID.String()
 	hostConn, _, err := websocket.DefaultDialer.Dial(hostURL, nil)
 	if err != nil {
 		t.Fatalf("Dial host: %v", err)
@@ -404,7 +404,7 @@ func TestWS_RoleFiltering(t *testing.T) {
 	guestID := ""
 	for _, player := range lobbyWithGuest.Players {
 		if !player.IsHost {
-			guestID = player.ID
+			guestID = player.ID.String()
 		}
 	}
 	if guestID == "" {
@@ -415,7 +415,7 @@ func TestWS_RoleFiltering(t *testing.T) {
 		if lobbyWithGuest.Players[index].ID == hostID {
 			lobbyWithGuest.Players[index].Role = "werewolf"
 		}
-		if lobbyWithGuest.Players[index].ID == guestID {
+		if lobbyWithGuest.Players[index].ID.String() == guestID {
 			lobbyWithGuest.Players[index].Role = "villager"
 		}
 	}
@@ -483,7 +483,7 @@ func TestWS_RoleFiltering(t *testing.T) {
 		}
 	}
 	for _, player := range guestState.Players {
-		if player.ID == hostID {
+		if player.ID == hostID.String() {
 			guestSeesHostRole = player.Role
 		}
 	}
@@ -518,7 +518,7 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 	})
 	baseWS := strings.Replace(httpServer.URL, "http", "ws", 1)
 
-	hostURL := baseWS + "/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID
+	hostURL := baseWS + "/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID.String()
 	hostConn, _, err := websocket.DefaultDialer.Dial(hostURL, nil)
 	if err != nil {
 		t.Fatalf("Dial host: %v", err)
@@ -551,7 +551,7 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 	guestIDs := make([]string, 0, 2)
 	for i := range lobbyWithGuests.Players {
 		if lobbyWithGuests.Players[i].ID != hostID {
-			guestIDs = append(guestIDs, lobbyWithGuests.Players[i].ID)
+			guestIDs = append(guestIDs, lobbyWithGuests.Players[i].ID.String())
 		}
 	}
 	if len(guestIDs) != 2 {
@@ -650,14 +650,14 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 		dayLobby := waitForDayOrGameOver()
 		aliveByID := make(map[string]bool)
 		for i := range dayLobby.Players {
-			aliveByID[dayLobby.Players[i].ID] = dayLobby.Players[i].IsAlive
+			aliveByID[dayLobby.Players[i].ID.String()] = dayLobby.Players[i].IsAlive
 		}
 
 		if aliveByID[guest1ID] {
 			t.Fatalf("expected Wendigo victim %s to be dead", guest1ID)
 		}
-		if !aliveByID[guest2ID] || !aliveByID[hostID] {
-			t.Fatalf("unexpected extra death: host=%v guest2=%v", aliveByID[hostID], aliveByID[guest2ID])
+		if !aliveByID[guest2ID] || !aliveByID[hostID.String()] {
+			t.Fatalf("unexpected extra death: host=%v guest2=%v", aliveByID[hostID.String()], aliveByID[guest2ID])
 		}
 		if dayLobby.Phase != models.PhaseGameOver {
 			t.Fatalf("expected GAME_OVER after parity, got %s", dayLobby.Phase)

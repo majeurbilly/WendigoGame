@@ -7,13 +7,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/majeurbilly/wendigogame/internal/database"
 	"github.com/majeurbilly/wendigogame/internal/models"
 	"github.com/majeurbilly/wendigogame/internal/store"
 )
 
 type Config struct {
-	Store *store.Store
-	Hub   *Hub
+	Store     *store.Store
+	UserStore *database.UserStore
+	Hub       *Hub
 }
 
 type createLobbyBody struct {

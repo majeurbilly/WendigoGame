@@ -48,10 +48,10 @@ func (s *Store) SubmitDayVote(ctx context.Context, code, voterID, targetID strin
 			voterAlive := false
 			targetAlive := false
 			for i := range lobby.Players {
-				if lobby.Players[i].ID == voterID && lobby.Players[i].IsAlive {
+				if lobby.Players[i].ID.String() == voterID && lobby.Players[i].IsAlive {
 					voterAlive = true
 				}
-				if lobby.Players[i].ID == targetID && lobby.Players[i].IsAlive {
+				if lobby.Players[i].ID.String() == targetID && lobby.Players[i].IsAlive {
 					targetAlive = true
 				}
 			}
@@ -124,7 +124,7 @@ func tallyEffectiveVotes(lobby *models.Lobby) map[string]int {
 	alive := make(map[string]bool)
 	for i := range lobby.Players {
 		if lobby.Players[i].IsAlive {
-			alive[lobby.Players[i].ID] = true
+			alive[lobby.Players[i].ID.String()] = true
 		}
 	}
 	tally := make(map[string]int)

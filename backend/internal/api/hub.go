@@ -13,6 +13,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/majeurbilly/wendigogame/internal/auth"
 	"github.com/majeurbilly/wendigogame/internal/models"
 	"github.com/majeurbilly/wendigogame/internal/services"
 	"github.com/majeurbilly/wendigogame/internal/store"
@@ -211,26 +212,28 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 		return
 	}
 
-	playerIDClaim := strings.TrimSpace(request.URL.Query().Get("player_id"))
-	bindExistingHost := false
-	if playerIDClaim != "" {
-		var hostPlayer *models.Player
-		for i := range existingLobby.Players {
-			p := &existingLobby.Players[i]
-			if p.ID == playerIDClaim && p.IsHost {
-				hostPlayer = p
-				break
+	token := strings.TrimSpace(request.URL.Query().Get("token"))
+	var (
+		authUserID    uuid.UUID
+		useJWTAuth    bool
+		playerIDClaim string
+	)
+	if token != "" {
+		useJWTAuth = true
+		authUserID, err = auth.ValidateToken(token)
+		if err != nil {
+			http.Error(responseWriter, "invalid or expired token", http.StatusUnauthorized)
+			return
+		}
+	} else {
+		playerIDClaim = strings.TrimSpace(request.URL.Query().Get("player_id"))
+		if playerIDClaim != "" {
+			authUserID, err = uuid.Parse(playerIDClaim)
+			if err != nil {
+				http.Error(responseWriter, "invalid player_id", http.StatusBadRequest)
+				return
 			}
 		}
-		if hostPlayer == nil {
-			http.Error(responseWriter, "player_id does not match the lobby host", http.StatusForbidden)
-			return
-		}
-		if strings.TrimSpace(playerName) != strings.TrimSpace(hostPlayer.Name) {
-			http.Error(responseWriter, "name does not match the lobby host", http.StatusForbidden)
-			return
-		}
-		bindExistingHost = true
 	}
 
 	websocketConn, err := websocketUpgrader.Upgrade(responseWriter, request, nil)
@@ -244,25 +247,54 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 		return
 	}
 
-	var playerID string
-	if bindExistingHost {
-		playerID = playerIDClaim
-	} else {
-		player := models.Player{
-			ID:      uuid.NewString(),
-			Name:    playerName,
-			IsHost:  false,
-			IsAlive: true,
-			ChairID: models.UnseatedChair,
+	playerID := ""
+	isAlreadyInLobby := false
+	if useJWTAuth || authUserID != uuid.Nil {
+		playerID = authUserID.String()
+		for i := range existingLobby.Players {
+			if existingLobby.Players[i].ID == authUserID {
+				isAlreadyInLobby = true
+				break
+			}
 		}
-		appendCtx, cancelAppend := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancelAppend()
-		if _, err := serverConfig.Store.AppendPlayer(appendCtx, lobbyCode, player); err != nil {
-			log.Printf("append player: %v", err)
-			_ = websocketConn.Close()
-			return
+	}
+	if !isAlreadyInLobby {
+		hostClaimed := false
+		for i := range existingLobby.Players {
+			if existingLobby.Players[i].IsHost && strings.EqualFold(strings.TrimSpace(existingLobby.Players[i].Name), playerName) {
+				replaceCtx, cancelReplace := context.WithTimeout(context.Background(), 5*time.Second)
+				err = serverConfig.Store.ReplacePlayerID(replaceCtx, lobbyCode, existingLobby.Players[i].ID.String(), authUserID.String())
+				cancelReplace()
+				if err == nil {
+					hostClaimed = true
+				}
+				break
+			}
 		}
-		playerID = player.ID
+
+		if !hostClaimed {
+			if authUserID == uuid.Nil {
+				authUserID = uuid.New()
+				playerID = authUserID.String()
+			}
+			player := models.Player{
+				ID:      authUserID,
+				Name:    playerName,
+				IsHost:  false,
+				IsAlive: true,
+				ChairID: models.UnseatedChair,
+			}
+			appendCtx, cancelAppend := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancelAppend()
+			if _, err := serverConfig.Store.AppendPlayer(appendCtx, lobbyCode, player); err != nil {
+				log.Printf("append player: %v", err)
+				_ = websocketConn.Close()
+				return
+			}
+		}
+	}
+	if playerID == "" {
+		playerID = authUserID.String()
 	}
 
 	serverConfig.Hub.Register(lobbyCode, websocketConn, playerID)

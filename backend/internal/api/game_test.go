@@ -48,7 +48,7 @@ func TestStartGame_OKUpdatesPhaseInValkey(t *testing.T) {
 	code := created.Code
 
 	startReq := httptest.NewRequest(http.MethodPost, "/lobbies/"+code+"/start", nil)
-	startReq.Header.Set("X-Player-ID", hostID)
+	startReq.Header.Set("X-Player-ID", hostID.String())
 	startRec := httptest.NewRecorder()
 	handler.ServeHTTP(startRec, startReq)
 	if startRec.Code != http.StatusOK {

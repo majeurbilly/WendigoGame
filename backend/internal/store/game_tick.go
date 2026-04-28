@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 
@@ -24,6 +25,8 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 	key := lobbyKey(code)
 	for range maxLobbyTxRetries {
 		var keepGoing bool
+		var shouldPersistOutcome bool
+		var finishedLobbySnapshot models.Lobby
 		watchErr := s.redisClient.Watch(ctx, func(tx *redis.Tx) error {
 			keepGoing = false
 			raw, err := tx.Get(ctx, key).Result()
@@ -73,7 +76,7 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 				if previousPhase == models.GamePhaseAccusation && next == models.GamePhaseNight {
 					if lobby.DefendantID != "" {
 						for playerIndex := range lobby.Players {
-							if lobby.Players[playerIndex].ID == lobby.DefendantID {
+							if lobby.Players[playerIndex].ID.String() == lobby.DefendantID {
 								lobby.Players[playerIndex].IsAlive = false
 								break
 							}
@@ -84,6 +87,8 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 						lobby.Phase = models.PhaseGameOver
 						lobby.WinnerTeam = winner
 						lobby.TimeRemaining = 0
+						shouldPersistOutcome = true
+						finishedLobbySnapshot = lobby
 					}
 				}
 
@@ -91,7 +96,7 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 					deceasedIDs, summary := ResolveNight(&lobby)
 					for i := range deceasedIDs {
 						for playerIndex := range lobby.Players {
-							if lobby.Players[playerIndex].ID == deceasedIDs[i] {
+							if lobby.Players[playerIndex].ID.String() == deceasedIDs[i] {
 								lobby.Players[playerIndex].IsAlive = false
 							}
 						}
@@ -101,6 +106,8 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 						lobby.Phase = models.PhaseGameOver
 						lobby.WinnerTeam = winner
 						lobby.TimeRemaining = 0
+						shouldPersistOutcome = true
+						finishedLobbySnapshot = lobby
 					}
 				}
 
@@ -123,6 +130,16 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 			return nil
 		}, key)
 		if watchErr == nil {
+			if shouldPersistOutcome && s.userStore != nil {
+				snapshot := finishedLobbySnapshot
+				go func() {
+					persistCtx, cancelPersist := context.WithTimeout(context.Background(), 10*time.Second)
+					defer cancelPersist()
+					if persistErr := s.userStore.RecordGameResult(persistCtx, snapshot.Code, snapshot.WinnerTeam, snapshot.Players); persistErr != nil {
+						log.Printf("persist game result (%s): %v", snapshot.Code, persistErr)
+					}
+				}()
+			}
 			return keepGoing, nil
 		}
 		if errors.Is(watchErr, redis.TxFailedErr) {
