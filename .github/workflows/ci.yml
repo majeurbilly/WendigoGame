@@ -2,14 +2,9 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main, night]
   pull_request:
-    branches:
-      - main
-
-permissions:
-  contents: read
+    branches: [main, night]
 
 jobs:
   backend:
@@ -30,14 +25,16 @@ jobs:
         with:
           go-version-file: backend/go.mod
           cache: true
-          cache-dependency-path: backend/go.mod
 
-      - name: Install golangci-lint
+      - name: Run golangci-lint (Force build from source)
         run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.64.5
+          # On installe (compile) le linter avec Go 1.25
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.5
+          # On l'exécute avec un timeout généreux de 10 minutes
+          $(go env GOPATH)/bin/golangci-lint run ./... --timeout=10m
 
-      - name: Run golangci-lint
-        run: $(go env GOPATH)/bin/golangci-lint run ./...
+      - name: Build backend
+        run: go build -v -o ./server-bin ./cmd/server
 
-      - name: Run unit tests with race detector and coverage
+      - name: Run unit tests
         run: go test -v -race -cover ./...
