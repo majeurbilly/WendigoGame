@@ -71,6 +71,18 @@ func randomUpperCode(length int) (string, error) {
 }
 
 func (s *Store) CreateLobby(ctx context.Context, mode models.GameMode, hostName string) (*models.Lobby, error) {
+	return s.createLobbyWithHost(ctx, mode, uuid.Nil, hostName)
+}
+
+func (s *Store) CreateLobbyForHost(ctx context.Context, mode models.GameMode, hostID uuid.UUID, hostName string) (*models.Lobby, error) {
+	return s.createLobbyWithHost(ctx, mode, hostID, hostName)
+}
+
+func (s *Store) createLobbyWithHost(ctx context.Context, mode models.GameMode, hostID uuid.UUID, hostName string) (*models.Lobby, error) {
+	if hostID == uuid.Nil {
+		hostID = uuid.New()
+	}
+
 	for range maxCodeAttempts {
 		code, err := randomUpperCode(4)
 		if err != nil {
@@ -78,7 +90,7 @@ func (s *Store) CreateLobby(ctx context.Context, mode models.GameMode, hostName 
 		}
 
 		host := models.Player{
-			ID:      uuid.New(),
+			ID:      hostID,
 			Name:    hostName,
 			IsHost:  true,
 			IsAlive: true,

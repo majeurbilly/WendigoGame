@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/majeurbilly/wendigogame/internal/auth"
 	"github.com/majeurbilly/wendigogame/internal/database"
 	"github.com/majeurbilly/wendigogame/internal/models"
 	"github.com/majeurbilly/wendigogame/internal/store"
@@ -59,7 +60,32 @@ func (serverConfig Config) handleCreateLobby(responseWriter http.ResponseWriter,
 	ctx, cancel := context.WithTimeout(request.Context(), 10*time.Second)
 	defer cancel()
 
-	lobby, err := serverConfig.Store.CreateLobby(ctx, mode, strings.TrimSpace(body.HostName))
+	hostName := strings.TrimSpace(body.HostName)
+	authHeader := strings.TrimSpace(request.Header.Get("Authorization"))
+	if authHeader != "" {
+		parts := strings.SplitN(authHeader, " ", 2)
+		if len(parts) == 2 && strings.EqualFold(parts[0], "Bearer") {
+			if authUserID, tokenErr := auth.ValidateToken(strings.TrimSpace(parts[1])); tokenErr == nil {
+				if hostName == "" && serverConfig.UserStore != nil {
+					if u, userErr := serverConfig.UserStore.GetUserByID(ctx, authUserID); userErr == nil && u != nil {
+						hostName = strings.TrimSpace(u.Username)
+					}
+				}
+				lobby, err := serverConfig.Store.CreateLobbyForHost(ctx, mode, authUserID, hostName)
+				if err != nil {
+					http.Error(responseWriter, "unable to create lobby", http.StatusInternalServerError)
+					return
+				}
+
+				responseWriter.Header().Set("Content-Type", "application/json")
+				responseWriter.WriteHeader(http.StatusCreated)
+				_ = json.NewEncoder(responseWriter).Encode(lobby)
+				return
+			}
+		}
+	}
+
+	lobby, err := serverConfig.Store.CreateLobby(ctx, mode, hostName)
 	if err != nil {
 		http.Error(responseWriter, "unable to create lobby", http.StatusInternalServerError)
 		return
