@@ -30,6 +30,12 @@ func main() {
 		log.Fatalf("postgres: %v", err)
 	}
 	defer dbPool.Close()
+
+	if err := database.MigrateSchema(context.Background(), dbPool); err != nil {
+		log.Fatalf("postgres migrate: %v", err)
+	}
+	log.Println("postgres schema migrated (users, game_history, game_participants)")
+
 	userStore := database.NewUserStore(dbPool)
 
 	lobbyStore, err := store.NewFromEnv()
@@ -49,7 +55,9 @@ func main() {
 	}
 
 	connectionHub := api.NewHub(lobbyStore, liveKitService)
-	handler := api.NewRouter(api.Config{Store: lobbyStore, UserStore: userStore, Hub: connectionHub})
+	router := api.NewRouter(api.Config{Store: lobbyStore, UserStore: userStore, Hub: connectionHub})
+	// CORS wraps the entire router: this handler is the one passed to http.Server (ListenAndServe).
+	handler := api.CORSMiddleware(router)
 	server := newServer(":8080", handler)
 
 	go func() {

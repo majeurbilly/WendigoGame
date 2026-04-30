@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"errors"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -54,6 +55,13 @@ func (serverConfig Config) handleStartGame(responseWriter http.ResponseWriter, r
 	lobby, getErr := serverConfig.Store.GetLobbyManager(ctx, code)
 	if getErr == nil {
 		StartGameLoop(context.Background(), serverConfig.Store, serverConfig.Hub, lobby)
+	}
+	if serverConfig.Hub != nil {
+		syncCtx, cancelSync := context.WithTimeout(context.Background(), 5*time.Second)
+		if syncErr := serverConfig.Hub.SyncLobbyConnections(syncCtx, serverConfig.Store, code); syncErr != nil {
+			log.Printf("handleStartGame: SyncLobbyConnections(%s): %v", code, syncErr)
+		}
+		cancelSync()
 	}
 	responseWriter.WriteHeader(http.StatusOK)
 }

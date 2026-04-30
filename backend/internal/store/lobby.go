@@ -71,6 +71,18 @@ func randomUpperCode(length int) (string, error) {
 }
 
 func (s *Store) CreateLobby(ctx context.Context, mode models.GameMode, hostName string) (*models.Lobby, error) {
+	return s.createLobbyWithHost(ctx, mode, uuid.Nil, hostName)
+}
+
+func (s *Store) CreateLobbyForHost(ctx context.Context, mode models.GameMode, hostID uuid.UUID, hostName string) (*models.Lobby, error) {
+	return s.createLobbyWithHost(ctx, mode, hostID, hostName)
+}
+
+func (s *Store) createLobbyWithHost(ctx context.Context, mode models.GameMode, hostID uuid.UUID, hostName string) (*models.Lobby, error) {
+	if hostID == uuid.Nil {
+		hostID = uuid.New()
+	}
+
 	for range maxCodeAttempts {
 		code, err := randomUpperCode(4)
 		if err != nil {
@@ -78,7 +90,7 @@ func (s *Store) CreateLobby(ctx context.Context, mode models.GameMode, hostName 
 		}
 
 		host := models.Player{
-			ID:      uuid.New(),
+			ID:      hostID,
 			Name:    hostName,
 			IsHost:  true,
 			IsAlive: true,
@@ -292,6 +304,26 @@ func (s *Store) ReplacePlayerID(ctx context.Context, code, oldPlayerID, newPlaye
 
 // StartGame transitions the lobby from LOBBY to the first game phase (CHAIR_SELECTION) with the initial timer.
 // Only the host player (IsHost), identified by hostID, can start the game.
+// assignSimpleWendigoRoles picks one random WENDIGO and sets all others to VILLAGER (in-place).
+func assignSimpleWendigoRoles(players []models.Player) error {
+	if len(players) == 0 {
+		return fmt.Errorf("assign roles: no players")
+	}
+	nBig, err := rand.Int(rand.Reader, big.NewInt(int64(len(players))))
+	if err != nil {
+		return fmt.Errorf("assign roles: %w", err)
+	}
+	wendigoIndex := int(nBig.Int64())
+	for i := range players {
+		if i == wendigoIndex {
+			players[i].Role = "WENDIGO"
+		} else {
+			players[i].Role = "VILLAGER"
+		}
+	}
+	return nil
+}
+
 func (s *Store) StartGame(ctx context.Context, code, hostID string) error {
 	code = strings.ToUpper(strings.TrimSpace(code))
 	if len(code) != 4 {
@@ -332,6 +364,9 @@ func (s *Store) StartGame(ctx context.Context, code, hostID string) error {
 			}
 			if phase != models.GamePhaseLobby {
 				return ErrGameAlreadyStarted
+			}
+			if err := assignSimpleWendigoRoles(lobby.Players); err != nil {
+				return err
 			}
 			nextPhase, seconds := lobby.GetNextPhase()
 			lobby.Phase = nextPhase

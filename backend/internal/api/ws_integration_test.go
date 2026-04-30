@@ -560,10 +560,11 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 	guest1ID := guestIDs[0]
 	guest2ID := guestIDs[1]
 
-	sendNightAction := func(conn *websocket.Conn, targetID string) {
+	sendNightAction := func(conn *websocket.Conn, action, targetID string) {
 		message := models.WSMessage{
 			Type: models.MessageTypeSubmitNightAction,
 			Payload: map[string]string{
+				"action":    action,
 				"target_id": targetID,
 			},
 		}
@@ -625,9 +626,9 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 	t.Run("CaseA_ShieldBlocksKill", func(t *testing.T) {
 		prepareNight()
 
-		sendNightAction(guest1Conn, guest1ID)
-		sendNightAction(guest2Conn, guest1ID)
-		sendNightAction(hostConn, guest1ID)
+		sendNightAction(guest1Conn, "PRAY", guest1ID)
+		sendNightAction(guest2Conn, "PRAY", guest1ID)
+		sendNightAction(hostConn, "KILL", guest1ID)
 
 		dayLobby := waitForDayOrGameOver()
 		if dayLobby.Phase != models.GamePhaseDay {
@@ -643,9 +644,9 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 	t.Run("CaseB_NoMajorityKillSucceeds", func(t *testing.T) {
 		prepareNight()
 
-		sendNightAction(guest1Conn, guest1ID)
-		sendNightAction(guest2Conn, guest2ID)
-		sendNightAction(hostConn, guest1ID)
+		sendNightAction(guest1Conn, "PRAY", guest1ID)
+		sendNightAction(guest2Conn, "PRAY", guest2ID)
+		sendNightAction(hostConn, "KILL", guest1ID)
 
 		dayLobby := waitForDayOrGameOver()
 		aliveByID := make(map[string]bool)

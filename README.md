@@ -1,50 +1,91 @@
-# WendiGame 🐺
+<div align="center">
+  <img src="docs/images/logo.png" alt="Logo WendiGame" width="120" height="120">
+  <h1>WendiGame 🐺</h1>
+  <p><b>Le jeu du Loup-Garou, réinventé pour ton téléphone et tes soirées entre amis.</b></p>
+</div>
 
-## Description
-**WendiGame** est un jeu de survie coopératif et de déduction sociale conçu pour s'adapter à ta façon de jouer. Que tu sois entouré d'amis dans un salon ou connecté avec eux à l'autre bout du monde, l'application garantit une immersion totale :
+---
 
-* **En présentiel :** L'application agit comme un compagnon intelligent qui automatise les phases de jeu complexes, gère les rôles secrets et synchronise les votes sur les téléphones de chaque joueur en temps réel.
-* **En ligne :** Le projet recrée l'ambiance d'une soirée autour d'une table grâce à un système d'audio spatialisé où la voix des autres joueurs dépend de leur position dans l'environnement virtuel.
+## 🏕️ C'est quoi WendiGame ?
 
-## Architecture & Technologies
-Chaque choix technique a été fait pour soutenir ces deux piliers :
+**WendiGame** est un jeu de déduction et de survie à rôles cachés. Imaginez le célèbre jeu du "Loup-Garou de Thiercelieux", mais sans avoir besoin de cartes en carton ou de quelqu'un qui sacrifie sa soirée pour faire le "Maître du Jeu". 
 
-* **Synchronisation Ultra-Fluide (Go & WebSockets) :** Essentiel pour le présentiel afin que tous les joueurs voient le passage du jour à la nuit sur leur téléphone à la milliseconde près.
-* **Audio Spatialisé (LiveKit) :** Le cœur de l'immersion pour les parties en ligne, permettant de situer ses alliés (ou ses ennemis) à l'oreille.
-* **Gestion des Lobbys (Valkey) :** Permet de créer et rejoindre instantanément une partie, que ce soit via un code QR dans une pièce ou une invitation en ligne.
-* **Infrastructure Hybride (Docker & Hetzner) :** Garantit que les serveurs sont toujours disponibles pour une partie improvisée, tout en restant une solution légère et économique.
+L'application s'occupe de tout et s'adapte à vous :
+* **Vous êtes tous dans le même salon ?** Sortez vos téléphones. L'application distribue les rôles en secret, synchronise la tombée de la nuit sur tous les écrans en même temps, et compte les votes pour vous.
+* **Vous jouez chacun chez vous sur PC ?** Mettez un casque. Le jeu intègre un système vocal "spatialisé" : vous entendrez les autres joueurs comme s'ils étaient vraiment assis autour de vous.
 
-## Structure du projet
-```text
-.
-├── backend/
-│   ├── cmd/server/       # Point d'entrée (Initialisation du serveur)
-│   ├── internal/api/     # Logique des rôles et des votes
-│   ├── Dockerfile        # Image optimisée pour le déploiement
-│   ├── docker-compose.yml# Orchestration App + Valkey + LiveKit
-│   └── Taskfile.yml      # Commandes de démarrage rapide (go-task)
-├── .github/workflows/    # Tests automatiques et CI/CD
-└── flake.nix             # Environnement de développement figé
+### Comment on joue ?
+1. **Les Villageois** doivent débusquer les monstres qui se cachent parmi eux et voter pour les éliminer pendant la journée.
+2. **Les Wendigos** (les monstres) se réveillent la nuit pour dévorer un villageois en secret.
+3. D'autres rôles spéciaux (comme la Voyante) ont des pouvoirs uniques pour aider leur camp.
+
+---
+
+## 🚀 Comment lancer le jeu chez toi (De A à Z)
+
+Tu veux faire tourner le jeu sur ton propre ordinateur pour tester ? Pas de panique, suis ce guide étape par étape. C'est comme une recette de cuisine !
+
+### Étape 1 : Les outils nécessaires (Les ingrédients)
+Avant de commencer, ton ordinateur a besoin de deux logiciels gratuits pour comprendre le code du jeu :
+1. **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** : C'est le moteur qui va faire tourner les serveurs du jeu de manière isolée. Télécharge-le, installe-le et lance-le.
+2. **[Nix](https://nixos.org/download.html)** : C'est une boîte à outils magique qui va installer automatiquement tout le reste pour toi (Go, Node.js, etc.) sans rien casser sur ton ordinateur.
+
+> ⚠️ **Petite note pour les utilisateurs de Windows :**
+> La boîte magique Nix ne comprend que le langage "Linux". Pas d'inquiétude ! Il te suffit d'installer un petit traducteur officiel appelé WSL. 
+> Cherche le programme **PowerShell** sur ton ordi, fais un clic droit pour l'ouvrir "en tant qu'administrateur", tape `wsl --install`, appuie sur Entrée, puis redémarre ton ordinateur. Tu es maintenant prêt !
+
+### Étape 2 : Récupérer le jeu
+Ouvre ton **Terminal** (ou Invite de commandes) et copie-colle ceci pour télécharger le dossier du jeu sur ton ordinateur :
+```bash
+git clone 
+cd WendiGame
 ```
 
-## Installation et démarrage
-
-### 1. Prérequis
-* [Nix](https://nixos.org/download.html) (Support des Flakes activé ; le shell inclut Go, Node, **go-task**, Docker Compose, etc.).
-* [Docker](https://www.docker.com/) et Docker-Compose.
-
-### 2. Lancement rapide
-Activez l'environnement, puis depuis le dossier `backend`, lancez la stack avec **Task** :
+### Étape 3 : Activer la boîte à outils
+Maintenant que tu es dans le dossier du jeu, dis à Nix de préparer tes outils. Dans ton terminal, tape :
 ```bash
 nix develop
+```
+*(Patiente un peu la première fois, il télécharge ce dont il a besoin).*
+
+### Étape 4 : Les clés secrètes
+Le jeu a besoin de fichiers de configuration (qu'on appelle variables d'environnement) pour que ses différents morceaux communiquent entre eux. On a préparé des fichiers "exemples" qu'il suffit de copier :
+
+Tape ces deux commandes pour créer tes propres fichiers `.env` :
+```bash
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+```
+
+### Étape 5 : Allumer le moteur !
+Tout est prêt. Déplace-toi dans le dossier du serveur et lance la commande magique de démarrage :
+```bash
 cd backend
 task up
 ```
+*(Docker va se mettre en route. Tu vas voir beaucoup de texte défiler, c'est normal : il construit le serveur, la base de données et le système vocal).*
 
-Les tâches disponibles : `task --list` (ex. `task run`, `task test`, `task down`, `task logs` pour suivre Valkey).
+### 🎉 Étape 6 : Jouer !
+Une fois que le terminal s'arrête de défiler frénétiquement :
+1. Ouvre ton navigateur internet (Chrome, Firefox, Safari...).
+2. Va à l'adresse suivante : **`http://localhost:5173`**
+3. Crée-toi un compte, clique sur **"Create Game"**, et amuse-toi !
 
-## Stratégie de Veille
-Le projet utilise une veille automatisée pour surveiller la sécurité des protocoles WebRTC et les performances du moteur Go, assurant ainsi une stabilité maximale pour les joueurs, peu importe leur mode de connexion.
+> **Pour tout éteindre quand tu as fini :** 
+> Retourne dans ton terminal et tape `task down`.
 
 ---
-Développé par **Billy Hallé**.
+
+## 🧠 Pour les curieux (Sous le capot)
+
+Si tu es un développeur et que tu te demandes comment ça marche :
+* **Backend :** Écrit en **Go** pur avec le framework réseau Gorilla WebSockets. Il agit comme un chef d'orchestre autoritaire (State Machine).
+* **Frontend :** Une interface ultra-réactive codée en **React / TypeScript**, stylisée avec Tailwind CSS.
+* **Audio en temps réel :** Propulsé par **LiveKit** pour gérer le chat vocal sans latence.
+* **Base de données :** **PostgreSQL** pour sauvegarder les joueurs et **Valkey/Redis** pour gérer les salons d'attente instantanés.
+
+---
+
+**Créé avec ❤️ et beaucoup de café par Billy Hallé.**  
+*Merci à Gabriel et Antony pour avoir enduré les premiers crash-tests du serveur.*
+```

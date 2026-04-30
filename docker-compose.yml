@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: wendigo
+      POSTGRES_PASSWORD: wendigo
+      POSTGRES_DB: wendigogame
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  livekit:
+    image: livekit/livekit-server:latest
+    command: ["--dev"]
+    restart: unless-stopped
+    ports:
+      - "7880:7880"
+      - "7881:7881/tcp"
+      - "7881:7881/udp"
+
+  redis:
+    image: valkey/valkey:8-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+      - livekit
+      - redis
+    environment:
+      DATABASE_URL: postgres://wendigo:wendigo@db:5432/wendigogame?sslmode=disable
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: supersecret_wendigogame_key_2026
+      LIVEKIT_API_KEY: devkey
+      LIVEKIT_API_SECRET: secret
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8080
+        VITE_LIVEKIT_URL: ws://localhost:7880
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  postgres_data:

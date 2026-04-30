@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -36,12 +37,15 @@ type authUserView struct {
 
 func (serverConfig Config) handleRegister(responseWriter http.ResponseWriter, request *http.Request) {
 	if serverConfig.UserStore == nil {
+		err := errors.New("user store is nil")
+		log.Printf("Erreur Register: %v", err)
 		http.Error(responseWriter, "invalid server configuration", http.StatusInternalServerError)
 		return
 	}
 
 	var body registerRequest
 	if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
+		log.Printf("Erreur Register: %v", err)
 		http.Error(responseWriter, "invalid JSON body", http.StatusBadRequest)
 		return
 	}
@@ -49,6 +53,8 @@ func (serverConfig Config) handleRegister(responseWriter http.ResponseWriter, re
 	body.Username = strings.TrimSpace(body.Username)
 	body.Email = strings.TrimSpace(strings.ToLower(body.Email))
 	if body.Username == "" || body.Email == "" || strings.TrimSpace(body.Password) == "" {
+		err := errors.New("missing username, email or password")
+		log.Printf("Erreur Register: %v", err)
 		http.Error(responseWriter, "username, email and password are required", http.StatusBadRequest)
 		return
 	}
@@ -58,14 +64,17 @@ func (serverConfig Config) handleRegister(responseWriter http.ResponseWriter, re
 
 	user, err := serverConfig.UserStore.CreateUser(ctx, body.Username, body.Email, body.Password)
 	if errors.Is(err, database.ErrEmailAlreadyExists) {
+		log.Printf("Erreur Register: %v", err)
 		http.Error(responseWriter, "email already exists", http.StatusConflict)
 		return
 	}
 	if errors.Is(err, database.ErrUsernameExists) {
+		log.Printf("Erreur Register: %v", err)
 		http.Error(responseWriter, "username already exists", http.StatusConflict)
 		return
 	}
 	if err != nil {
+		log.Printf("Erreur Register: %v", err)
 		http.Error(responseWriter, "unable to create user", http.StatusInternalServerError)
 		return
 	}
@@ -114,6 +123,7 @@ func (serverConfig Config) handleLogin(responseWriter http.ResponseWriter, reque
 
 	token, err := auth.GenerateToken(user.ID)
 	if err != nil {
+		log.Printf("Erreur génération token: %v", err)
 		http.Error(responseWriter, "unable to generate token", http.StatusInternalServerError)
 		return
 	}

@@ -58,8 +58,39 @@ func (lobby *Lobby) GetNextPhase() (GamePhase, int) {
 	return GetNextPhaseAndTime(lobby.Phase)
 }
 
+// SafeForFullLobbySync is true when broadcasting the raw Lobby JSON to every client is safe
+// (pregame lobby with no secret roles assigned yet).
+func (lobby *Lobby) SafeForFullLobbySync() bool {
+	if lobby.Phase != GamePhaseLobby {
+		return false
+	}
+	for i := range lobby.Players {
+		if strings.TrimSpace(lobby.Players[i].Role) != "" {
+			return false
+		}
+	}
+	return true
+}
+
+func shouldRevealRoleToEveryone(lobby *Lobby) bool {
+	if lobby.Phase == PhaseGameOver {
+		return true
+	}
+	if lobby.Phase == GamePhaseLobby {
+		for i := range lobby.Players {
+			if strings.TrimSpace(lobby.Players[i].Role) != "" {
+				return false
+			}
+		}
+		return true
+	}
+	return false
+}
+
 func (lobby *Lobby) ToGameStateDTO(forPlayerID string) GameStateDTO {
 	gameStateDTO := GameStateDTO{
+		Code:          lobby.Code,
+		Mode:          lobby.Mode,
 		Phase:         lobby.Phase,
 		WinnerTeam:    lobby.WinnerTeam,
 		TimeRemaining: lobby.TimeRemaining,
@@ -86,7 +117,7 @@ func (lobby *Lobby) ToGameStateDTO(forPlayerID string) GameStateDTO {
 			Role:    "",
 		}
 
-		if player.ID.String() == forPlayerID || isRoleVisibleForAllPlayers(lobby.Phase) {
+		if player.ID.String() == forPlayerID || shouldRevealRoleToEveryone(lobby) {
 			playerDTO.Role = player.Role
 		}
 
@@ -119,10 +150,6 @@ func alivePlayerIDs(lobby *Lobby) map[string]bool {
 		}
 	}
 	return out
-}
-
-func isRoleVisibleForAllPlayers(phase GamePhase) bool {
-	return phase == GamePhaseLobby || phase == PhaseGameOver
 }
 
 func nightInstructionForPlayer(lobby *Lobby, playerID string) string {

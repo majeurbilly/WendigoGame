@@ -153,15 +153,30 @@ func (h *Hub) Unregister(websocketConn *websocket.Conn) {
 		return
 	}
 	if len(lobby.Players) > 0 {
-		_ = h.Broadcast(session.lobbyCode, models.MessageTypeLobbySync, lobby)
+		syncCtx, cancelSync := context.WithTimeout(context.Background(), 5*time.Second)
+		if syncErr := h.SyncLobbyConnections(syncCtx, h.lobbyStore, session.lobbyCode); syncErr != nil {
+			log.Printf("hub: SyncLobbyConnections after unregister (%s): %v", session.lobbyCode, syncErr)
+		}
+		cancelSync()
 	}
 }
 
 var websocketUpgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
-	CheckOrigin: func(*http.Request) bool {
-		return true
+	CheckOrigin: func(request *http.Request) bool {
+		origin := strings.TrimSpace(request.Header.Get("Origin"))
+		if origin == "" {
+			return true
+		}
+		allowed := map[string]struct{}{
+			"http://localhost:5173":  {},
+			"http://127.0.0.1:5173":    {},
+			"http://localhost:4173":  {},
+			"http://127.0.0.1:4173":    {},
+		}
+		_, ok := allowed[origin]
+		return ok
 	},
 }
 
@@ -189,41 +204,41 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 	}
 
 	codeRaw := request.URL.Query().Get("code")
-	playerName := strings.TrimSpace(request.URL.Query().Get("name"))
 	lobbyCode, isValidCode := normalizeLobbyCode(codeRaw)
 	if !isValidCode {
 		http.Error(responseWriter, "invalid code parameter (4 letters A-Z)", http.StatusBadRequest)
 		return
 	}
-	if playerName == "" {
-		http.Error(responseWriter, "missing required name parameter", http.StatusBadRequest)
-		return
-	}
+
+	log.Printf("Tentative WS pour le code: %s", lobbyCode)
 
 	ctx, cancel := context.WithTimeout(request.Context(), 5*time.Second)
 	defer cancel()
-	existingLobby, err := serverConfig.Store.GetLobby(ctx, lobbyCode)
-	if err != nil {
-		if err == store.ErrLobbyNotFound {
-			http.Error(responseWriter, "lobby not found", http.StatusNotFound)
-			return
-		}
-		http.Error(responseWriter, "lobby read error", http.StatusInternalServerError)
-		return
-	}
 
 	token := strings.TrimSpace(request.URL.Query().Get("token"))
+	playerName := strings.TrimSpace(request.URL.Query().Get("name"))
+
 	var (
-		authUserID    uuid.UUID
-		useJWTAuth    bool
-		playerIDClaim string
+		authUserID      uuid.UUID
+		useJWTAuth      bool
+		playerIDClaim   string
+		err             error
 	)
+
 	if token != "" {
 		useJWTAuth = true
 		authUserID, err = auth.ValidateToken(token)
 		if err != nil {
+			log.Printf("Erreur WS: token JWT invalide pour lobby %s: %v", lobbyCode, err)
 			http.Error(responseWriter, "invalid or expired token", http.StatusUnauthorized)
 			return
+		}
+		if playerName == "" && serverConfig.UserStore != nil {
+			if u, userErr := serverConfig.UserStore.GetUserByID(ctx, authUserID); userErr == nil && u != nil {
+				playerName = strings.TrimSpace(u.Username)
+			} else if userErr != nil {
+				log.Printf("Erreur WS: impossible de charger le profil utilisateur (lobby %s): %v", lobbyCode, userErr)
+			}
 		}
 	} else {
 		playerIDClaim = strings.TrimSpace(request.URL.Query().Get("player_id"))
@@ -234,6 +249,24 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 				return
 			}
 		}
+	}
+
+	if playerName == "" {
+		log.Printf("Erreur WS: param name manquant pour lobby %s (fournir ?name= ou un JWT avec profil utilisateur)", lobbyCode)
+		http.Error(responseWriter, "missing required name parameter", http.StatusBadRequest)
+		return
+	}
+
+	existingLobby, err := serverConfig.Store.GetLobby(ctx, lobbyCode)
+	if err != nil {
+		if err == store.ErrLobbyNotFound {
+			log.Printf("Erreur WS: Lobby %s introuvable dans le store", lobbyCode)
+			http.Error(responseWriter, "lobby not found", http.StatusNotFound)
+			return
+		}
+		log.Printf("Erreur WS: lecture lobby %s: %v", lobbyCode, err)
+		http.Error(responseWriter, "lobby read error", http.StatusInternalServerError)
+		return
 	}
 
 	websocketConn, err := websocketUpgrader.Upgrade(responseWriter, request, nil)
@@ -299,10 +332,8 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 
 	serverConfig.Hub.Register(lobbyCode, websocketConn, playerID)
 	syncCtx, cancelSync := context.WithTimeout(context.Background(), 5*time.Second)
-	if lobbyAfterJoin, syncErr := serverConfig.Store.GetLobby(syncCtx, lobbyCode); syncErr == nil {
-		_ = serverConfig.Hub.Broadcast(lobbyCode, models.MessageTypeLobbySync, lobbyAfterJoin)
-	} else {
-		log.Printf("hub: GetLobby after WS connect (%s): %v", lobbyCode, syncErr)
+	if syncErr := serverConfig.Hub.SyncLobbyConnections(syncCtx, serverConfig.Store, lobbyCode); syncErr != nil {
+		log.Printf("hub: SyncLobbyConnections after WS connect (%s): %v", lobbyCode, syncErr)
 	}
 	cancelSync()
 
@@ -341,6 +372,7 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 
 		var voteBody struct {
 			TargetID string `json:"target_id"`
+			Action   string `json:"action"`
 		}
 		switch inbound.Type {
 		case models.MessageTypeVoteDay:
@@ -361,12 +393,47 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 				continue
 			}
 			nightCtx, nightCancel := context.WithTimeout(context.Background(), 5*time.Second)
-			nightErr := serverConfig.Store.SubmitNightAction(nightCtx, lobbyCode, playerID, voteBody.TargetID)
+			nightErr := serverConfig.Store.SubmitNightAction(nightCtx, lobbyCode, playerID, voteBody.TargetID, voteBody.Action)
 			nightCancel()
 			if nightErr != nil {
 				log.Printf("websocket: SubmitNightAction(%s, %s): %v", lobbyCode, playerID, nightErr)
 				continue
 			}
+		case models.MessageTypeStartGame:
+			startCtx, startCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			startErr := serverConfig.Store.StartGame(startCtx, lobbyCode, playerID)
+			startCancel()
+			if startErr != nil {
+				log.Printf("websocket: StartGame(%s, %s): %v", lobbyCode, playerID, startErr)
+				errMsg := "unable to start the game"
+				switch {
+				case errors.Is(startErr, store.ErrUnauthorized):
+					errMsg = "only the host can start the game"
+				case errors.Is(startErr, store.ErrGameAlreadyStarted):
+					errMsg = "game already started"
+				case errors.Is(startErr, store.ErrLobbyNotFound):
+					errMsg = "lobby not found"
+				}
+				_ = websocketConn.WriteJSON(models.WSMessage{
+					Type:    models.MessageTypeError,
+					Payload: map[string]string{"message": errMsg},
+				})
+				continue
+			}
+			gmCtx, gmCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			lobbyMgr, getErr := serverConfig.Store.GetLobbyManager(gmCtx, lobbyCode)
+			gmCancel()
+			if getErr != nil {
+				log.Printf("websocket: GetLobbyManager after START_GAME (%s): %v", lobbyCode, getErr)
+				continue
+			}
+			StartGameLoop(context.Background(), serverConfig.Store, serverConfig.Hub, lobbyMgr)
+			syncLobbyCtx, syncLobbyCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			if syncErr := serverConfig.Hub.SyncLobbyConnections(syncLobbyCtx, serverConfig.Store, lobbyCode); syncErr != nil {
+				log.Printf("websocket: SyncLobbyConnections after START_GAME (%s): %v", lobbyCode, syncErr)
+			}
+			syncLobbyCancel()
+			continue
 		default:
 			continue
 		}
@@ -439,6 +506,22 @@ func (h *Hub) BroadcastState(ctx context.Context, gameTickProvider GameTickProvi
 	}
 
 	return firstErr
+}
+
+// SyncLobbyConnections sends either a shared LOBBY_SYNC (pregame only, no secret roles)
+// or a per-connection GAME_TICK with redacted roles.
+func (h *Hub) SyncLobbyConnections(ctx context.Context, gameTickProvider GameTickProvider, code string) error {
+	if h == nil || gameTickProvider == nil {
+		return nil
+	}
+	lobby, err := gameTickProvider.GetLobby(ctx, code)
+	if err != nil {
+		return err
+	}
+	if lobby.SafeForFullLobbySync() {
+		return h.Broadcast(code, models.MessageTypeLobbySync, lobby)
+	}
+	return h.BroadcastState(ctx, gameTickProvider, code)
 }
 
 func (h *Hub) generateLiveKitToken(lobby *models.Lobby, playerID string) string {

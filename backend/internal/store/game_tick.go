@@ -47,6 +47,12 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 			if lobby.Phase == models.GamePhaseLobby || lobby.Phase == models.PhaseGameOver {
 				return nil
 			}
+			if lobby.Phase == models.GamePhaseNight {
+				alivePlayers := countAlivePlayers(&lobby)
+				if alivePlayers > 0 && len(lobby.NightActions) >= alivePlayers {
+					lobby.TimeRemaining = 0
+				}
+			}
 
 			lobby.TimeRemaining--
 			if lobby.TimeRemaining <= 0 {
@@ -61,15 +67,24 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 				lobby.TimeRemaining = seconds
 
 				if previousPhase == models.GamePhaseChairSelection && next == models.GamePhaseDay {
-					requiredRoles := models.GetRequiredRoles(len(lobby.Players))
-					if len(requiredRoles) != len(lobby.Players) {
-						return fmt.Errorf("role distribution mismatch: roles=%d players=%d", len(requiredRoles), len(lobby.Players))
-					}
-					if err := shuffleRoles(requiredRoles); err != nil {
-						return fmt.Errorf("shuffle roles: %w", err)
-					}
+					allHaveRoles := true
 					for playerIndex := range lobby.Players {
-						lobby.Players[playerIndex].Role = requiredRoles[playerIndex].Name
+						if strings.TrimSpace(lobby.Players[playerIndex].Role) == "" {
+							allHaveRoles = false
+							break
+						}
+					}
+					if !allHaveRoles {
+						requiredRoles := models.GetRequiredRoles(len(lobby.Players))
+						if len(requiredRoles) != len(lobby.Players) {
+							return fmt.Errorf("role distribution mismatch: roles=%d players=%d", len(requiredRoles), len(lobby.Players))
+						}
+						if err := shuffleRoles(requiredRoles); err != nil {
+							return fmt.Errorf("shuffle roles: %w", err)
+						}
+						for playerIndex := range lobby.Players {
+							lobby.Players[playerIndex].Role = requiredRoles[playerIndex].Name
+						}
 					}
 				}
 

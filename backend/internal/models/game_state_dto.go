@@ -10,6 +10,8 @@ type PlayerDTO struct {
 }
 
 type GameStateDTO struct {
+	Code          string         `json:"code"`
+	Mode          GameMode       `json:"mode,omitempty"`
 	Phase         GamePhase      `json:"phase"`
 	WinnerTeam    string         `json:"winner_team,omitempty"`
 	TimeRemaining int            `json:"time_remaining"`
