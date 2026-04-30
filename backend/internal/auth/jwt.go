@@ -3,7 +3,10 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -12,11 +15,24 @@ import (
 
 const tokenLifetime = 24 * time.Hour
 
-func GenerateToken(userID uuid.UUID) (string, error) {
-	secretKey := os.Getenv("JWT_SECRET")
-	if secretKey == "" {
-		return "", errors.New("jwt secret is required (JWT_SECRET)")
+// defaultJWTSecret matches docker-compose dev defaults; override with JWT_SECRET in production.
+const defaultJWTSecret = "supersecret_wendigogame_key_2026"
+
+var warnUnsetJWT sync.Once
+
+func jwtSecretBytes() []byte {
+	s := strings.TrimSpace(os.Getenv("JWT_SECRET"))
+	if s == "" {
+		warnUnsetJWT.Do(func() {
+			log.Printf("JWT_SECRET is not set; using development default (set JWT_SECRET in production)")
+		})
+		s = defaultJWTSecret
 	}
+	return []byte(s)
+}
+
+func GenerateToken(userID uuid.UUID) (string, error) {
+	secretKey := jwtSecretBytes()
 
 	claims := jwt.MapClaims{
 		"sub": userID.String(),
@@ -25,7 +41,7 @@ func GenerateToken(userID uuid.UUID) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedToken, err := token.SignedString([]byte(secretKey))
+	signedToken, err := token.SignedString(secretKey)
 	if err != nil {
 		return "", fmt.Errorf("sign jwt: %w", err)
 	}
@@ -33,16 +49,13 @@ func GenerateToken(userID uuid.UUID) (string, error) {
 }
 
 func ValidateToken(tokenString string) (uuid.UUID, error) {
-	secretKey := os.Getenv("JWT_SECRET")
-	if secretKey == "" {
-		return uuid.Nil, errors.New("jwt secret is required (JWT_SECRET)")
-	}
+	secretKey := jwtSecretBytes()
 
 	parsedToken, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(secretKey), nil
+		return secretKey, nil
 	})
 	if err != nil {
 		return uuid.Nil, err

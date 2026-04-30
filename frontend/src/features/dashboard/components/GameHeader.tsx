@@ -1,0 +1,72 @@
+import type { LobbyState } from '@/api/game'
+import { useLocalTimer } from '@/hooks/useLocalTimer'
+
+interface GameHeaderProps {
+  lobby: LobbyState
+}
+
+const phaseClassByLabel: Record<string, string> = {
+  LOBBY: 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/30',
+  WAITING: 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/30',
+  DAY: 'bg-sky-500/20 text-sky-300 ring-1 ring-sky-400/30',
+  NIGHT: 'bg-indigo-500/20 text-indigo-300 ring-1 ring-indigo-400/30',
+  ENDED: 'bg-rose-500/20 text-rose-300 ring-1 ring-rose-400/30',
+  GAME_OVER: 'bg-rose-500/20 text-rose-300 ring-1 ring-rose-400/30',
+}
+
+const modeLabel = (mode: string | undefined): string => {
+  const m = (mode ?? 'local').toLowerCase()
+  if (m === 'online') {
+    return 'En ligne'
+  }
+  return 'Présentiel'
+}
+
+const modeBadgeClass = (mode: string | undefined): string => {
+  const m = (mode ?? 'local').toLowerCase()
+  return m === 'online'
+    ? 'border-sky-500/40 bg-sky-500/15 text-sky-200'
+    : 'border-amber-500/40 bg-amber-500/15 text-amber-200'
+}
+
+const formatTimer = (seconds: number): string => {
+  const safeSeconds = Math.max(0, Math.floor(seconds))
+  const minutesPart = Math.floor(safeSeconds / 60)
+  const secondsPart = safeSeconds % 60
+  return `${String(minutesPart).padStart(2, '0')}:${String(secondsPart).padStart(2, '0')}`
+}
+
+const GameHeader = ({ lobby }: GameHeaderProps) => {
+  const localTime = useLocalTimer(lobby.timeRemaining)
+  const phaseLabel = lobby.phase.toUpperCase()
+  const phaseClasses =
+    phaseClassByLabel[phaseLabel] ?? 'bg-slate-700/40 text-slate-200 ring-1 ring-slate-500/50'
+
+  return (
+    <div className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg shadow-black/30 md:flex-row md:items-center md:justify-between">
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Lobby</p>
+          <span
+            className={`rounded-md border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${modeBadgeClass(lobby.mode)}`}
+          >
+            {modeLabel(lobby.mode)}
+          </span>
+        </div>
+        <h2 className="text-3xl font-bold tracking-widest text-slate-100">{lobby.code}</h2>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <span className={`rounded-full px-3 py-1 text-xs font-semibold tracking-wider ${phaseClasses}`}>
+          {phaseLabel}
+        </span>
+        <div className="rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-center">
+          <p className="text-xs uppercase tracking-wider text-slate-400">Time remaining</p>
+          <p className="font-mono text-xl font-semibold text-slate-100">{formatTimer(localTime)}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default GameHeader

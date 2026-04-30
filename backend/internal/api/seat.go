@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/majeurbilly/wendigogame/internal/models"
 	"github.com/majeurbilly/wendigogame/internal/store"
 )
 
@@ -75,8 +75,8 @@ func (serverConfig Config) handleSelectSeat(responseWriter http.ResponseWriter, 
 
 	if serverConfig.Hub != nil {
 		syncCtx, cancelSync := context.WithTimeout(context.Background(), 5*time.Second)
-		if lobbyAfterSeat, syncErr := serverConfig.Store.GetLobby(syncCtx, code); syncErr == nil {
-			_ = serverConfig.Hub.Broadcast(code, models.MessageTypeLobbySync, lobbyAfterSeat)
+		if syncErr := serverConfig.Hub.SyncLobbyConnections(syncCtx, serverConfig.Store, code); syncErr != nil {
+			log.Printf("handleSelectSeat: SyncLobbyConnections(%s): %v", code, syncErr)
 		}
 		cancelSync()
 	}

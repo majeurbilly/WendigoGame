@@ -16,14 +16,14 @@ tasks:
   up:
     desc: Start the Docker Compose stack in background.
     cmds:
-      - docker-compose up -d
+      - docker-compose -f ../docker-compose.yml up -d
 
   down:
     desc: Stop the Docker Compose stack.
     cmds:
-      - docker-compose down
+      - docker-compose -f ../docker-compose.yml down
 
   logs:
-    desc: Stream logs from the Valkey container (Ctrl+C to quit).
+    desc: Stream logs from the Redis container (Ctrl+C to quit).
     cmds:
-      - docker-compose logs -f valkey
+      - docker-compose -f ../docker-compose.yml logs -f redis

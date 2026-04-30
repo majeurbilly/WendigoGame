@@ -65,6 +65,19 @@ func TestStartGame_OKUpdatesPhaseInValkey(t *testing.T) {
 	if got.TimeRemaining != 10 {
 		t.Fatalf("time_remaining: got %d, want 10", got.TimeRemaining)
 	}
+	wendigo := 0
+	villager := 0
+	for _, p := range got.Players {
+		switch strings.ToUpper(strings.TrimSpace(p.Role)) {
+		case "WENDIGO":
+			wendigo++
+		case "VILLAGER":
+			villager++
+		}
+	}
+	if wendigo != 1 || villager != len(got.Players)-1 {
+		t.Fatalf("roles: want 1 WENDIGO and %d VILLAGER, got wendigo=%d villager=%d players=%+v", len(got.Players)-1, wendigo, villager, got.Players)
+	}
 }
 
 func TestStartGame_WrongHostForbidden(t *testing.T) {

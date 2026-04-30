@@ -3,6 +3,8 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -31,8 +33,16 @@ func (serverConfig Config) handleCreateLobby(responseWriter http.ResponseWriter,
 
 	var body createLobbyBody
 	if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
-		http.Error(responseWriter, "invalid JSON body", http.StatusBadRequest)
-		return
+		if errors.Is(err, io.EOF) {
+			body = createLobbyBody{Mode: string(models.GameModeLocal)}
+		} else {
+			http.Error(responseWriter, "invalid JSON body", http.StatusBadRequest)
+			return
+		}
+	}
+
+	if strings.TrimSpace(body.Mode) == "" {
+		body.Mode = string(models.GameModeLocal)
 	}
 
 	var mode models.GameMode
