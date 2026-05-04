@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/google/uuid"
@@ -16,14 +17,64 @@ type contextKey string
 
 const userIDContextKey contextKey = "auth_user_id"
 
+var defaultCORSOrigins = []string{
+	"http://localhost:5173",
+	"http://127.0.0.1:5173",
+	"http://127.0.0.1:5174",
+}
+
+// allowedCORSOrigins returns origins from ALLOWED_ORIGINS (comma-separated) or defaults.
+// Empty or whitespace-only entries are skipped; if nothing remains, defaults are used.
+func allowedCORSOrigins() []string {
+	raw := strings.TrimSpace(os.Getenv("ALLOWED_ORIGINS"))
+	if raw == "" {
+		return defaultCORSOrigins
+	}
+	parts := strings.Split(raw, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	if len(out) == 0 {
+		return defaultCORSOrigins
+	}
+	return out
+}
+
+func allowedOriginSet() map[string]struct{} {
+	allowed := make(map[string]struct{})
+	for _, origin := range allowedCORSOrigins() {
+		allowed[origin] = struct{}{}
+	}
+	return allowed
+}
+
+func isAllowedOrigin(origin string) bool {
+	origin = strings.TrimSpace(origin)
+	if origin == "" {
+		return false
+	}
+	_, ok := allowedOriginSet()[origin]
+	return ok
+}
+
 // CORSMiddleware is the single authority for CORS. It must not branch on path or route.
 // The four response headers are applied to every request before any other logic.
 // Preflight OPTIONS requests are answered here only (204); they never reach inner handlers.
+// With credentials, Allow-Origin must echo the request Origin when it is in the allowlist.
 func CORSMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Requête reçue : %s %s", r.Method, r.URL.Path)
 
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+		if origin := strings.TrimSpace(r.Header.Get("Origin")); origin != "" {
+			if isAllowedOrigin(origin) {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+				w.Header().Add("Vary", "Origin")
+			}
+		}
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")

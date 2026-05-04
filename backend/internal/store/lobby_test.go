@@ -144,6 +144,9 @@ func TestRoleDistribution_Fairness(t *testing.T) {
 		t.Fatalf("GetLobby: %v", err)
 	}
 	lobbyForGame.Phase = models.GamePhaseChairSelection
+	for i := range lobbyForGame.Players {
+		lobbyForGame.Players[i].ChairID = i
+	}
 	lobbyForGame.TimeRemaining = 1
 	if err := lobbyStore.SaveLobby(ctx, lobbyForGame); err != nil {
 		t.Fatalf("SaveLobby: %v", err)

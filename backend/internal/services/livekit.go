@@ -107,7 +107,7 @@ func resolveAudioPublishPolicy(phase models.GamePhase, playerAlive bool) (bool, 
 	switch phase {
 	case models.GamePhaseNight:
 		return true, "Council Token"
-	case models.GamePhaseDay, models.GamePhaseAccusation:
+	case models.GamePhaseDay, models.GamePhaseAccusation, models.GamePhasePleadings, models.GamePhaseCouncilVote:
 		return true, "Council Token"
 	default:
 		return false, "Silent Token"

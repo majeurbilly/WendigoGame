@@ -26,6 +26,8 @@ type createLobbyBody struct {
 	HostName string `json:"host_name,omitempty"`
 }
 
+// handleCreateLobby persists the lobby synchronously: HTTP 201 is sent only after Redis SET ... NX
+// returns success (see store.createLobbyWithHost). No detached goroutine writes the lobby.
 func (serverConfig Config) handleCreateLobby(responseWriter http.ResponseWriter, request *http.Request) {
 	if serverConfig.Store == nil {
 		http.Error(responseWriter, "invalid server configuration", http.StatusInternalServerError)

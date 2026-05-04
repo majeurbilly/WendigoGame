@@ -54,50 +54,84 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 				}
 			}
 
-			lobby.TimeRemaining--
-			if lobby.TimeRemaining <= 0 {
+			shouldDecrementTime := true
+			if lobby.Phase == models.GamePhasePleadings && !lobby.PleadingTimerStarted {
+				shouldDecrementTime = false
+			}
+			if shouldDecrementTime {
+				lobby.TimeRemaining--
+			}
+
+			dayChairRecall := false
+			if lobby.Phase == models.GamePhaseDay && lobby.SocialPhaseTotalTime >= 3 {
+				threshold := lobby.SocialPhaseTotalTime / 3
+				if lobby.TimeRemaining == threshold && !lobby.ChairPromptTriggered {
+					lobby.ChairPromptTriggered = true
+					lobby.Phase = models.GamePhaseChairSelection
+					lobby.TimeRemaining = models.ChairSelectionPhaseSeconds
+					for i := range lobby.Players {
+						if lobby.Players[i].IsAlive {
+							lobby.Players[i].ChairID = models.UnseatedChair
+						}
+					}
+					dayChairRecall = true
+				}
+			}
+
+			waitingForPleadingStart := lobby.Phase == models.GamePhasePleadings && !lobby.PleadingTimerStarted
+			if lobby.TimeRemaining <= 0 && !dayChairRecall && !waitingForPleadingStart {
 				previousPhase := lobby.Phase
 
-				if previousPhase == models.GamePhaseDay && lobby.DefendantID == "" {
-					lobby.DefendantID = pickDefendantAtEndOfDay(&lobby)
-				}
-
-				next, seconds := lobby.GetNextPhase()
-				lobby.Phase = next
-				lobby.TimeRemaining = seconds
-
-				if previousPhase == models.GamePhaseChairSelection && next == models.GamePhaseDay {
-					allHaveRoles := true
-					for playerIndex := range lobby.Players {
-						if strings.TrimSpace(lobby.Players[playerIndex].Role) == "" {
-							allHaveRoles = false
-							break
-						}
-					}
-					if !allHaveRoles {
-						requiredRoles := models.GetRequiredRoles(len(lobby.Players))
-						if len(requiredRoles) != len(lobby.Players) {
-							return fmt.Errorf("role distribution mismatch: roles=%d players=%d", len(requiredRoles), len(lobby.Players))
-						}
-						if err := shuffleRoles(requiredRoles); err != nil {
-							return fmt.Errorf("shuffle roles: %w", err)
-						}
-						for playerIndex := range lobby.Players {
-							lobby.Players[playerIndex].Role = requiredRoles[playerIndex].Name
-						}
-					}
-				}
-
-				if previousPhase == models.GamePhaseAccusation && next == models.GamePhaseNight {
-					if lobby.DefendantID != "" {
-						for playerIndex := range lobby.Players {
-							if lobby.Players[playerIndex].ID.String() == lobby.DefendantID {
-								lobby.Players[playerIndex].IsAlive = false
-								break
+				if previousPhase == models.GamePhaseChairSelection {
+					advanced := false
+					if !chairSelectionPhaseComplete(&lobby) {
+						if lobby.ChairPromptTriggered {
+							if err := advanceFromChairSelection(&lobby); err != nil {
+								return err
 							}
+							advanced = true
+						} else {
+							lobby.TimeRemaining = models.ChairSelectionPhaseSeconds
 						}
+					} else {
+						if err := advanceFromChairSelection(&lobby); err != nil {
+							return err
+						}
+						advanced = true
 					}
+					if advanced {
+						lobby.Votes = make(map[string]string)
+						lobby.NightActions = make(map[string]string)
+						lobby.WendigoIntentions = make(map[string]string)
+					}
+				} else if previousPhase == models.GamePhaseAccusation && len(lobby.CouncilAccusations) > 0 {
+					startPleadingsFromAccusation(&lobby)
+					lobby.Votes = make(map[string]string)
+					lobby.NightActions = make(map[string]string)
+					lobby.WendigoIntentions = make(map[string]string)
+				} else if previousPhase == models.GamePhasePleadings {
+					if len(lobby.PleadingsQueue) > 0 {
+						lobby.CurrentSpeakerID = lobby.PleadingsQueue[0]
+						lobby.PleadingsQueue = lobby.PleadingsQueue[1:]
+						lobby.PleadingTimerStarted = false
+						lobby.TimeRemaining = 0
+					} else {
+						next, seconds := models.GetNextPhaseAndTime(models.GamePhasePleadings)
+						lobby.Phase = next
+						lobby.TimeRemaining = seconds
+						clearPleadingsState(&lobby)
+						lobby.CouncilAccusations = make(map[string]string)
+						lobby.DefendantID = ""
+						lobby.Votes = make(map[string]string)
+						lobby.NightActions = make(map[string]string)
+						lobby.WendigoIntentions = make(map[string]string)
+					}
+				} else if previousPhase == models.GamePhaseCouncilVote {
+					applyCouncilVoteElimination(&lobby)
 					lobby.DefendantID = ""
+					next, seconds := models.GetNextPhaseAndTime(models.GamePhaseCouncilVote)
+					lobby.Phase = next
+					lobby.TimeRemaining = seconds
 					if victory, winner := CheckVictoryConditions(&lobby); victory {
 						lobby.Phase = models.PhaseGameOver
 						lobby.WinnerTeam = winner
@@ -105,29 +139,63 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 						shouldPersistOutcome = true
 						finishedLobbySnapshot = lobby
 					}
-				}
+					lobby.Votes = make(map[string]string)
+					lobby.NightActions = make(map[string]string)
+					lobby.WendigoIntentions = make(map[string]string)
+				} else {
+					if previousPhase == models.GamePhaseDay && lobby.DefendantID == "" {
+						lobby.DefendantID = pickDefendantAtEndOfDay(&lobby)
+					}
 
-				if previousPhase == models.GamePhaseNight {
-					deceasedIDs, summary := ResolveNight(&lobby)
-					for i := range deceasedIDs {
-						for playerIndex := range lobby.Players {
-							if lobby.Players[playerIndex].ID.String() == deceasedIDs[i] {
-								lobby.Players[playerIndex].IsAlive = false
+					next, seconds := lobby.GetNextPhase()
+					lobby.Phase = next
+					lobby.TimeRemaining = seconds
+					if lobby.Phase == models.GamePhaseDay {
+						enterDaySocialSnapshot(&lobby)
+					}
+
+					if previousPhase == models.GamePhaseAccusation && next == models.GamePhaseNight {
+						if lobby.DefendantID != "" {
+							for playerIndex := range lobby.Players {
+								if lobby.Players[playerIndex].ID.String() == lobby.DefendantID {
+									lobby.Players[playerIndex].IsAlive = false
+									break
+								}
 							}
 						}
+						lobby.DefendantID = ""
+						if victory, winner := CheckVictoryConditions(&lobby); victory {
+							lobby.Phase = models.PhaseGameOver
+							lobby.WinnerTeam = winner
+							lobby.TimeRemaining = 0
+							shouldPersistOutcome = true
+							finishedLobbySnapshot = lobby
+						}
 					}
-					log.Printf("game tick: %s", summary)
-					if victory, winner := CheckVictoryConditions(&lobby); victory {
-						lobby.Phase = models.PhaseGameOver
-						lobby.WinnerTeam = winner
-						lobby.TimeRemaining = 0
-						shouldPersistOutcome = true
-						finishedLobbySnapshot = lobby
-					}
-				}
 
-				lobby.Votes = make(map[string]string)
-				lobby.NightActions = make(map[string]string)
+					if previousPhase == models.GamePhaseNight {
+						deceasedIDs, summary := ResolveNight(&lobby)
+						for i := range deceasedIDs {
+							for playerIndex := range lobby.Players {
+								if lobby.Players[playerIndex].ID.String() == deceasedIDs[i] {
+									lobby.Players[playerIndex].IsAlive = false
+								}
+							}
+						}
+						log.Printf("game tick: %s", summary)
+						if victory, winner := CheckVictoryConditions(&lobby); victory {
+							lobby.Phase = models.PhaseGameOver
+							lobby.WinnerTeam = winner
+							lobby.TimeRemaining = 0
+							shouldPersistOutcome = true
+							finishedLobbySnapshot = lobby
+						}
+					}
+
+					lobby.Votes = make(map[string]string)
+					lobby.NightActions = make(map[string]string)
+					lobby.WendigoIntentions = make(map[string]string)
+				}
 			}
 
 			payload, err := json.Marshal(&lobby)

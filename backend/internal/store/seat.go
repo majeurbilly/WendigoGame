@@ -59,6 +59,9 @@ func (s *Store) SelectSeat(ctx context.Context, code, playerID string, chairID i
 			if lobby.Players[playerIndex].ChairID != models.UnseatedChair {
 				return ErrAlreadySeated
 			}
+			if !lobby.Players[playerIndex].IsAlive {
+				return ErrWrongPhase
+			}
 
 			for i := range lobby.Players {
 				if i != playerIndex && lobby.Players[i].ChairID == chairID {
@@ -67,6 +70,15 @@ func (s *Store) SelectSeat(ctx context.Context, code, playerID string, chairID i
 			}
 
 			lobby.Players[playerIndex].ChairID = chairID
+
+			if chairSelectionPhaseComplete(&lobby) {
+				if err := advanceFromChairSelection(&lobby); err != nil {
+					return err
+				}
+				lobby.Votes = make(map[string]string)
+				lobby.NightActions = make(map[string]string)
+				lobby.WendigoIntentions = make(map[string]string)
+			}
 
 			payload, err := json.Marshal(&lobby)
 			if err != nil {

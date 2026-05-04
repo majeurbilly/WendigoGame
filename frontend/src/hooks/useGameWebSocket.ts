@@ -4,7 +4,16 @@ import { toast } from 'sonner'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
 
-type ClientMessageType = 'CLAIM_SEAT' | 'VOTE' | 'START_GAME' | string
+type ClientMessageType =
+  | 'CLAIM_SEAT'
+  | 'VOTE'
+  | 'VOTE_DAY'
+  | 'ACCUSE'
+  | 'WENDIGO_INTENT'
+  | 'START_PLEADING'
+  | 'START_GAME'
+  | 'LEAVE_LOBBY'
+  | string
 type ServerMessageType = 'LOBBY_SYNC' | 'GAME_TICK' | 'ERROR' | string
 
 interface BaseSocketMessage<TType extends string, TPayload> {
@@ -20,6 +29,10 @@ interface RawPlayerPayload {
   is_alive?: boolean
   isHost?: boolean
   is_host?: boolean
+  chairId?: number
+  chair_id?: number
+  isExcludedFromCouncil?: boolean
+  is_excluded_from_council?: boolean
 }
 
 interface RawLobbyPayload {
@@ -29,6 +42,20 @@ interface RawLobbyPayload {
   players: RawPlayerPayload[]
   timeRemaining?: number
   time_remaining?: number
+  socialPhaseTotalTime?: number
+  social_phase_total_time?: number
+  chairPromptTriggered?: boolean
+  chair_prompt_triggered?: boolean
+  councilAccusations?: Record<string, string>
+  council_accusations?: Record<string, string>
+  wendigoIntentions?: Record<string, string>
+  wendigo_intentions?: Record<string, string>
+  pleadingsQueue?: string[]
+  pleadings_queue?: string[]
+  currentSpeakerId?: string
+  current_speaker_id?: string
+  pleadingTimerStarted?: boolean
+  pleading_timer_started?: boolean
   winnerTeam?: string
   winner_team?: string
   maxPlayers?: number
@@ -59,7 +86,8 @@ const buildWebSocketUrl = (token: string, lobbyCode: string, displayName: string
   const parsed = new URL(baseUrl)
 
   parsed.protocol = parsed.protocol === 'https:' ? 'wss:' : 'ws:'
-  parsed.pathname = '/ws'
+  const basePath = parsed.pathname.replace(/\/+$/, '')
+  parsed.pathname = `${basePath}/ws`.replace(/\/{2,}/g, '/')
   parsed.search = ''
   parsed.searchParams.set('token', token)
   parsed.searchParams.set('code', lobbyCode)
@@ -84,11 +112,29 @@ const isGameTickMessage = (message: IncomingSocketMessage): message is GameTickM
 const isErrorMessage = (message: IncomingSocketMessage): message is ErrorMessage =>
   message.type === 'ERROR'
 
+const logWs = (message: string, detail?: unknown) => {
+  if (!import.meta.env.DEV) {
+    return
+  }
+  if (detail !== undefined) {
+    console.log(`[useGameWebSocket] ${message}`, detail)
+    return
+  }
+  console.log(`[useGameWebSocket] ${message}`)
+}
+
 const normalizeLobbyPayload = (payload: RawLobbyPayload): LobbyState => ({
   code: payload.code,
   phase: payload.phase,
   mode: payload.mode,
   timeRemaining: payload.timeRemaining ?? payload.time_remaining ?? 0,
+  socialPhaseTotalTime: payload.socialPhaseTotalTime ?? payload.social_phase_total_time,
+  chairPromptTriggered: payload.chairPromptTriggered ?? payload.chair_prompt_triggered,
+  councilAccusations: payload.councilAccusations ?? payload.council_accusations ?? {},
+  wendigoIntentions: payload.wendigoIntentions ?? payload.wendigo_intentions ?? {},
+  pleadingsQueue: payload.pleadingsQueue ?? payload.pleadings_queue ?? [],
+  currentSpeakerId: payload.currentSpeakerId ?? payload.current_speaker_id,
+  pleadingTimerStarted: payload.pleadingTimerStarted ?? payload.pleading_timer_started ?? false,
   winnerTeam: payload.winnerTeam ?? payload.winner_team,
   maxPlayers: payload.maxPlayers ?? payload.max_players,
   minPlayers: payload.minPlayers ?? payload.min_players,
@@ -98,6 +144,8 @@ const normalizeLobbyPayload = (payload: RawLobbyPayload): LobbyState => ({
     role: player.role ?? null,
     isAlive: player.isAlive ?? player.is_alive ?? true,
     isHost: player.isHost ?? player.is_host ?? false,
+    chairId: player.chairId ?? player.chair_id ?? -1,
+    isExcludedFromCouncil: player.isExcludedFromCouncil ?? player.is_excluded_from_council ?? false,
   })),
 })
 
@@ -108,6 +156,8 @@ export const useGameWebSocket = (
   const wsRef = useRef<WebSocket | null>(null)
   const didReceiveLobbySyncRef = useRef(false)
   const isUnmountingRef = useRef(false)
+  const reconnectAttemptsRef = useRef(0)
+  const reconnectTimerRef = useRef<number | null>(null)
   const setLobby = useGameStore((state) => state.setLobby)
   const setConnected = useGameStore((state) => state.setConnected)
   const setLiveKitToken = useGameStore((state) => state.setLiveKitToken)
@@ -136,59 +186,104 @@ export const useGameWebSocket = (
 
     didReceiveLobbySyncRef.current = false
     isUnmountingRef.current = false
+    reconnectAttemptsRef.current = 0
     const displayName = user?.username ?? ''
-    const ws = new WebSocket(buildWebSocketUrl(token, lobbyCode, displayName))
-    wsRef.current = ws
+    const connect = () => {
+      const ws = new WebSocket(buildWebSocketUrl(token, lobbyCode, displayName))
+      wsRef.current = ws
 
-    ws.onopen = () => {
-      setConnected(true)
-    }
-
-    ws.onmessage = (event: MessageEvent<string>) => {
-      try {
-        const message = JSON.parse(event.data) as IncomingSocketMessage
-
-        if (isLobbySyncMessage(message)) {
-          didReceiveLobbySyncRef.current = true
-          setLobby(normalizeLobbyPayload(message.payload))
+      ws.onopen = () => {
+        if (wsRef.current !== ws) {
           return
         }
-
-        if (isGameTickMessage(message)) {
-          didReceiveLobbySyncRef.current = true
-          setLobby(normalizeLobbyPayload(message.payload))
-          const nextToken = message.payload.livekit_token ?? null
-          const currentToken = useGameStore.getState().livekitToken
-          if (nextToken !== currentToken) {
-            setLiveKitToken(nextToken)
-          }
-          return
-        }
-
-        if (isErrorMessage(message)) {
-          notifyInvalidLobby(message.payload.message ?? 'Unable to join this lobby.')
-        }
-      } catch {
-        notifyInvalidLobby('Invalid server response.')
+        logWs('socket open', { lobbyCode })
+        reconnectAttemptsRef.current = 0
+        setConnected(true)
       }
-    }
 
-    ws.onerror = () => {
-      notifyInvalidLobby('WebSocket connection failed.')
-    }
+      ws.onmessage = (event: MessageEvent<string>) => {
+        if (wsRef.current !== ws) {
+          return
+        }
+        try {
+          const message = JSON.parse(event.data) as IncomingSocketMessage
+          logWs('message reçu', { type: message.type })
 
-    ws.onclose = () => {
-      setConnected(false)
-      wsRef.current = null
+          if (isLobbySyncMessage(message)) {
+            didReceiveLobbySyncRef.current = true
+            setLobby(normalizeLobbyPayload(message.payload))
+            return
+          }
 
-      if (!isUnmountingRef.current && !didReceiveLobbySyncRef.current) {
+          if (isGameTickMessage(message)) {
+            didReceiveLobbySyncRef.current = true
+            setLobby(normalizeLobbyPayload(message.payload))
+            const nextToken = message.payload.livekit_token ?? null
+            const currentToken = useGameStore.getState().livekitToken
+            if (nextToken !== currentToken) {
+              setLiveKitToken(nextToken)
+            }
+            return
+          }
+
+          if (isErrorMessage(message)) {
+            const errText = message.payload.message ?? 'Unable to join this lobby.'
+            if (didReceiveLobbySyncRef.current) {
+              toast.error(errText)
+            } else {
+              notifyInvalidLobby(errText)
+            }
+          }
+        } catch {
+          notifyInvalidLobby('Invalid server response.')
+        }
+      }
+
+      ws.onerror = () => {
+        // onclose handles retry/backoff and final user-facing fallback.
+      }
+
+      ws.onclose = () => {
+        if (wsRef.current !== ws) {
+          logWs('close ignoré (socket obsolète, ex. StrictMode / reconnexion)', { lobbyCode })
+          return
+        }
+        wsRef.current = null
+        logWs('socket fermé', { lobbyCode })
+        setConnected(false)
+
+        if (isUnmountingRef.current || didReceiveLobbySyncRef.current) {
+          return
+        }
+
+        const maxReconnectAttempts = 3
+        if (reconnectAttemptsRef.current < maxReconnectAttempts) {
+          reconnectAttemptsRef.current += 1
+          const delayMs = reconnectAttemptsRef.current * 250
+          reconnectTimerRef.current = window.setTimeout(() => {
+            reconnectTimerRef.current = null
+            if (!isUnmountingRef.current && !didReceiveLobbySyncRef.current) {
+              connect()
+            }
+          }, delayMs)
+          return
+        }
+
         notifyInvalidLobby('Lobby not found or no longer available.')
       }
     }
 
+    connect()
+
     return () => {
       isUnmountingRef.current = true
-      ws.close()
+      if (reconnectTimerRef.current !== null) {
+        window.clearTimeout(reconnectTimerRef.current)
+        reconnectTimerRef.current = null
+      }
+      const ws = wsRef.current
+      wsRef.current = null
+      ws?.close()
       resetGame()
     }
   }, [lobbyCode, notifyInvalidLobby, resetGame, setConnected, setLiveKitToken, setLobby])
@@ -198,6 +293,11 @@ export const useGameWebSocket = (
     const ws = wsRef.current
     wsRef.current = null
     if (ws && ws.readyState === WebSocket.OPEN) {
+      try {
+        ws.send(JSON.stringify({ type: 'LEAVE_LOBBY', payload: null }))
+      } catch {
+        /* ignore */
+      }
       ws.close(1000, 'client leave')
     } else if (ws && ws.readyState === WebSocket.CONNECTING) {
       ws.close()

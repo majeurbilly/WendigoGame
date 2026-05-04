@@ -27,6 +27,9 @@ func TestGameLoop_TicksDownAndTransitions(t *testing.T) {
 	code := lobby.Code
 
 	lobby.Phase = models.GamePhaseChairSelection
+	for i := range lobby.Players {
+		lobby.Players[i].ChairID = i
+	}
 	lobby.TimeRemaining = 2
 	if err := st.SaveLobby(ctx, lobby); err != nil {
 		t.Fatalf("SaveLobby: %v", err)
