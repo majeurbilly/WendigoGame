@@ -1,6 +1,8 @@
 package models
 
 import (
+	"maps"
+	"slices"
 	"strings"
 	"time"
 )
@@ -16,16 +18,23 @@ const (
 )
 
 type Lobby struct {
-	Code          string            `json:"code"`
-	Mode          GameMode          `json:"mode"`
-	Players       []Player          `json:"players"`
-	CreatedAt     time.Time         `json:"created_at"`
-	Phase         GamePhase         `json:"phase"`
-	WinnerTeam    string            `json:"winner_team,omitempty"`
-	TimeRemaining int               `json:"time_remaining"`
-	Votes         map[string]string `json:"votes,omitempty"`
-	NightActions  map[string]string `json:"night_actions,omitempty"`
-	DefendantID   string            `json:"defendant_id,omitempty"`
+	Code                 string            `json:"code"`
+	Mode                 GameMode          `json:"mode"`
+	Players              []Player          `json:"players"`
+	CreatedAt            time.Time         `json:"created_at"`
+	Phase                GamePhase         `json:"phase"`
+	WinnerTeam           string            `json:"winner_team,omitempty"`
+	TimeRemaining        int               `json:"time_remaining"`
+	SocialPhaseTotalTime int               `json:"social_phase_total_time,omitempty"`
+	ChairPromptTriggered bool              `json:"chair_prompt_triggered,omitempty"`
+	CouncilAccusations   map[string]string `json:"council_accusations,omitempty"`
+	PleadingsQueue       []string          `json:"pleadings_queue,omitempty"`
+	CurrentSpeakerID     string            `json:"current_speaker_id,omitempty"`
+	PleadingTimerStarted bool              `json:"pleading_timer_started"`
+	Votes                map[string]string `json:"votes,omitempty"`
+	NightActions         map[string]string `json:"night_actions,omitempty"`
+	WendigoIntentions    map[string]string `json:"wendigo_intentions,omitempty"`
+	DefendantID          string            `json:"defendant_id,omitempty"`
 }
 
 // LobbyManager defines the contract required by the game engine.
@@ -89,16 +98,38 @@ func shouldRevealRoleToEveryone(lobby *Lobby) bool {
 
 func (lobby *Lobby) ToGameStateDTO(forPlayerID string) GameStateDTO {
 	gameStateDTO := GameStateDTO{
-		Code:          lobby.Code,
-		Mode:          lobby.Mode,
-		Phase:         lobby.Phase,
-		WinnerTeam:    lobby.WinnerTeam,
-		TimeRemaining: lobby.TimeRemaining,
-		Players:       make([]PlayerDTO, 0, len(lobby.Players)),
-		DefendantID:   lobby.DefendantID,
-		VoteCounts:    voteCountsByTarget(lobby),
-		MyVote:        "",
-		NightInstruction: nightInstructionForPlayer(lobby, forPlayerID),
+		Code:                 lobby.Code,
+		Mode:                 lobby.Mode,
+		Phase:                lobby.Phase,
+		WinnerTeam:           lobby.WinnerTeam,
+		TimeRemaining:        lobby.TimeRemaining,
+		SocialPhaseTotalTime: lobby.SocialPhaseTotalTime,
+		ChairPromptTriggered: lobby.ChairPromptTriggered,
+		Players:              make([]PlayerDTO, 0, len(lobby.Players)),
+		DefendantID:          lobby.DefendantID,
+		VoteCounts:           voteCountsByTarget(lobby),
+		MyVote:               "",
+		NightInstruction:     nightInstructionForPlayer(lobby, forPlayerID),
+	}
+	if len(lobby.CouncilAccusations) > 0 {
+		gameStateDTO.CouncilAccusations = maps.Clone(lobby.CouncilAccusations)
+	}
+	if len(lobby.PleadingsQueue) > 0 {
+		gameStateDTO.PleadingsQueue = slices.Clone(lobby.PleadingsQueue)
+	}
+	gameStateDTO.CurrentSpeakerID = lobby.CurrentSpeakerID
+	gameStateDTO.PleadingTimerStarted = lobby.PleadingTimerStarted
+
+	viewerWendigo := false
+	for i := range lobby.Players {
+		p := lobby.Players[i]
+		if p.ID.String() == forPlayerID && p.IsAlive && isWendigoRole(p.Role) {
+			viewerWendigo = true
+			break
+		}
+	}
+	if viewerWendigo && len(lobby.WendigoIntentions) > 0 {
+		gameStateDTO.WendigoIntentions = maps.Clone(lobby.WendigoIntentions)
 	}
 
 	if lobby.Votes != nil {
@@ -109,12 +140,13 @@ func (lobby *Lobby) ToGameStateDTO(forPlayerID string) GameStateDTO {
 
 	for _, player := range lobby.Players {
 		playerDTO := PlayerDTO{
-			ID:      player.ID.String(),
-			Name:    player.Name,
-			IsHost:  player.IsHost,
-			IsAlive: player.IsAlive,
-			ChairID: player.ChairID,
-			Role:    "",
+			ID:                    player.ID.String(),
+			Name:                  player.Name,
+			IsHost:                player.IsHost,
+			IsAlive:               player.IsAlive,
+			ChairID:               player.ChairID,
+			Role:                  "",
+			IsExcludedFromCouncil: player.IsExcludedFromCouncil,
 		}
 
 		if player.ID.String() == forPlayerID || shouldRevealRoleToEveryone(lobby) {

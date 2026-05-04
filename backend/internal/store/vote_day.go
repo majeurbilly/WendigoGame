@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/redis/go-redis/v9"
@@ -12,8 +13,46 @@ import (
 	"github.com/majeurbilly/wendigogame/internal/models"
 )
 
-// SubmitDayVote records or updates a daytime vote. If a strict majority is reached for one target,
-// the lobby transitions immediately to ACCUSATION with that player as defendant.
+// councilVoteVictimID returns the unique player ID with the most votes, or "" if nobody leads or there is a tie (or zero votes).
+func councilVoteVictimID(lobby *models.Lobby) string {
+	tally := tallyEffectiveVotes(lobby)
+	maxVotes := -1
+	for _, c := range tally {
+		if c > maxVotes {
+			maxVotes = c
+		}
+	}
+	if maxVotes <= 0 {
+		return ""
+	}
+	var leaders []string
+	for id, c := range tally {
+		if c == maxVotes {
+			leaders = append(leaders, id)
+		}
+	}
+	sort.Strings(leaders)
+	if len(leaders) != 1 {
+		return ""
+	}
+	return leaders[0]
+}
+
+// applyCouncilVoteElimination kills the unique council vote leader if any; no-op on ties or empty tally.
+func applyCouncilVoteElimination(lobby *models.Lobby) {
+	victimID := councilVoteVictimID(lobby)
+	if victimID == "" {
+		return
+	}
+	for i := range lobby.Players {
+		if lobby.Players[i].ID.String() == victimID {
+			lobby.Players[i].IsAlive = false
+			return
+		}
+	}
+}
+
+// SubmitDayVote records or updates a vote during COUNCIL_VOTE only (daytime lynch votes happen in that phase).
 func (s *Store) SubmitDayVote(ctx context.Context, code, voterID, targetID string) error {
 	code = strings.ToUpper(strings.TrimSpace(code))
 	if len(code) != 4 {
@@ -41,7 +80,7 @@ func (s *Store) SubmitDayVote(ctx context.Context, code, voterID, targetID strin
 			}
 			ensureLobbyVotes(&lobby)
 
-			if lobby.Phase != models.GamePhaseDay {
+			if lobby.Phase != models.GamePhaseCouncilVote {
 				return ErrWrongPhase
 			}
 
@@ -60,31 +99,6 @@ func (s *Store) SubmitDayVote(ctx context.Context, code, voterID, targetID strin
 			}
 
 			lobby.Votes[voterID] = targetID
-
-			aliveCount := countAlivePlayers(&lobby)
-			if aliveCount == 0 {
-				return ErrVoteInvalid
-			}
-
-			tally := tallyEffectiveVotes(&lobby)
-			majorityTargetID := ""
-			majorityVotes := -1
-			for candidateID, voteCount := range tally {
-				if voteCount*2 <= aliveCount {
-					continue
-				}
-				if voteCount > majorityVotes || (voteCount == majorityVotes && (majorityTargetID == "" || candidateID < majorityTargetID)) {
-					majorityVotes = voteCount
-					majorityTargetID = candidateID
-				}
-			}
-			if majorityTargetID != "" {
-				lobby.DefendantID = majorityTargetID
-				nextPhase, seconds := models.GetNextPhaseAndTime(models.GamePhaseDay)
-				lobby.Phase = nextPhase
-				lobby.TimeRemaining = seconds
-				lobby.Votes = make(map[string]string)
-			}
 
 			payload, err := json.Marshal(&lobby)
 			if err != nil {

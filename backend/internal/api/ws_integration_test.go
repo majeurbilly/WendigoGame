@@ -91,15 +91,25 @@ func TestWSAddsPlayerThenDisconnectKeepsHostInValkey(t *testing.T) {
 		if err != nil {
 			t.Fatalf("GetLobby after disconnect: %v", err)
 		}
-		if len(alone.Players) == 1 {
-			if !alone.Players[0].IsHost || alone.Players[0].Name != "Host" {
-				t.Fatalf("expected host alone: %+v", alone.Players)
+		// Guest stays in Redis when the socket drops without LEAVE_LOBBY (refresh / tab close).
+		if len(alone.Players) == 2 {
+			var hostSeen, gastonSeen bool
+			for _, p := range alone.Players {
+				if p.IsHost && p.Name == "Host" {
+					hostSeen = true
+				}
+				if !p.IsHost && p.Name == "Gaston" {
+					gastonSeen = true
+				}
+			}
+			if !hostSeen || !gastonSeen {
+				t.Fatalf("expected host + Gaston still in lobby: %+v", alone.Players)
 			}
 			return
 		}
 		time.Sleep(5 * time.Millisecond)
 	}
-	t.Fatalf("timeout: lobby should contain only one player (host) after WS disconnect")
+	t.Fatalf("timeout: lobby should still contain host + guest after WS disconnect without LEAVE")
 }
 
 func TestWS_FiveSimultaneousConnections(t *testing.T) {
@@ -178,6 +188,17 @@ func TestWS_FiveSimultaneousConnections(t *testing.T) {
 	// Give the hub time to finish in-flight LOBBY_SYNC broadcasts (CI / load).
 	time.Sleep(50 * time.Millisecond)
 
+	leaveMsg := models.WSMessage{Type: models.MessageTypeLeaveLobby, Payload: nil}
+	for _, c := range conns {
+		if c == nil {
+			t.Fatal("nil WebSocket connection")
+		}
+		if err := c.WriteJSON(&leaveMsg); err != nil {
+			t.Fatalf("LEAVE_LOBBY: %v", err)
+		}
+	}
+	time.Sleep(150 * time.Millisecond)
+
 	for _, c := range conns {
 		if c == nil {
 			t.Fatal("nil WebSocket connection")
@@ -187,7 +208,7 @@ func TestWS_FiveSimultaneousConnections(t *testing.T) {
 		}
 	}
 
-	// Wait for the 5 server goroutines to finish RemovePlayerByID
+	// Wait for RemovePlayerByID after each LEAVE_LOBBY
 	// before ending the test (avoids Unregister after Redis client close).
 	deadlineHost := time.Now().Add(5 * time.Second)
 	for time.Now().Before(deadlineHost) {
@@ -250,11 +271,17 @@ func TestWS_LobbyDestroyedWhenEmpty(t *testing.T) {
 		t.Fatalf("host binding: expected a single player (no duplicate), got %+v", afterHostWS.Players)
 	}
 
+	leaveMsg := models.WSMessage{Type: models.MessageTypeLeaveLobby, Payload: nil}
+	if err := wsConn.WriteJSON(&leaveMsg); err != nil {
+		t.Fatalf("LEAVE_LOBBY: %v", err)
+	}
+	time.Sleep(150 * time.Millisecond)
 	if err := wsConn.Close(); err != nil {
 		t.Fatalf("Close client: %v", err)
 	}
 
-	deadline2 := time.Now().Add(3 * time.Second)
+	// Last player LEAVE_LOBBY persists an empty lobby and deletes the key after emptyLobbyGracePeriod.
+	deadline2 := time.Now().Add(20 * time.Second)
 	for time.Now().Before(deadline2) {
 		n, err := redisClient.Exists(ctx, key).Result()
 		if err != nil {
@@ -267,9 +294,9 @@ func TestWS_LobbyDestroyedWhenEmpty(t *testing.T) {
 			}
 			return
 		}
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
-	t.Fatalf("timeout: Redis key %q should have been deleted (0 player)", key)
+	t.Fatalf("timeout: Redis key %q should have been deleted after grace period (0 players)", key)
 }
 
 func TestWS_ReceivesBroadcastOnJoin(t *testing.T) {

@@ -12,16 +12,15 @@ import (
 	"github.com/majeurbilly/wendigogame/internal/models"
 )
 
-// SubmitNightAction records or updates a night action during NIGHT with role-aware validation.
-func (s *Store) SubmitNightAction(ctx context.Context, code, sourcePlayerID, targetPlayerID, actionType string) error {
+// SubmitWendigoIntent sets or clears a Wendigo's soft kill intent during NIGHT (visible only to Wendigos in DTO).
+func (s *Store) SubmitWendigoIntent(ctx context.Context, code, wendigoID, targetID string) error {
 	code = strings.ToUpper(strings.TrimSpace(code))
 	if len(code) != 4 {
 		return ErrLobbyNotFound
 	}
-	sourcePlayerID = strings.TrimSpace(sourcePlayerID)
-	targetPlayerID = strings.TrimSpace(targetPlayerID)
-	actionType = strings.ToUpper(strings.TrimSpace(actionType))
-	if sourcePlayerID == "" || actionType == "" {
+	wendigoID = strings.TrimSpace(wendigoID)
+	targetID = strings.TrimSpace(targetID)
+	if wendigoID == "" {
 		return ErrNightActionInvalid
 	}
 
@@ -45,38 +44,35 @@ func (s *Store) SubmitNightAction(ctx context.Context, code, sourcePlayerID, tar
 				return ErrWrongPhase
 			}
 
-			sourceAlive := false
-			sourceRole := ""
-			targetAlive := false
+			var wendigoPlayer *models.Player
 			for i := range lobby.Players {
-				if lobby.Players[i].ID.String() == sourcePlayerID && lobby.Players[i].IsAlive {
-					sourceAlive = true
-					sourceRole = strings.ToUpper(strings.TrimSpace(lobby.Players[i].Role))
-				}
-				if targetPlayerID != "" && lobby.Players[i].ID.String() == targetPlayerID && lobby.Players[i].IsAlive {
-					targetAlive = true
+				if lobby.Players[i].ID.String() == wendigoID {
+					wendigoPlayer = &lobby.Players[i]
+					break
 				}
 			}
-			if !sourceAlive || sourceRole == "" {
+			if wendigoPlayer == nil || !wendigoPlayer.IsAlive || !isWendigoRoleName(wendigoPlayer.Role) {
 				return ErrNightActionInvalid
 			}
 
-			switch {
-			case isWendigoRoleName(sourceRole):
-				if actionType != "KILL" || !targetAlive {
+			if targetID == "" {
+				delete(lobby.WendigoIntentions, wendigoID)
+			} else {
+				var targetPlayer *models.Player
+				for i := range lobby.Players {
+					if lobby.Players[i].ID.String() == targetID {
+						targetPlayer = &lobby.Players[i]
+						break
+					}
+				}
+				if targetPlayer == nil || !targetPlayer.IsAlive || isWendigoRoleName(targetPlayer.Role) {
 					return ErrNightActionInvalid
 				}
-			case strings.Contains(sourceRole, "SEER"):
-				if actionType != "INSPECT" || !targetAlive {
+				if targetID == wendigoID {
 					return ErrNightActionInvalid
 				}
-			default:
-				if actionType != "PRAY" {
-					return ErrNightActionInvalid
-				}
+				lobby.WendigoIntentions[wendigoID] = targetID
 			}
-
-			lobby.NightActions[sourcePlayerID] = targetPlayerID
 
 			payload, err := json.Marshal(&lobby)
 			if err != nil {
@@ -99,5 +95,5 @@ func (s *Store) SubmitNightAction(ctx context.Context, code, sourcePlayerID, tar
 		}
 		return err
 	}
-	return fmt.Errorf("submit night action: excessive contention on lobby %s", code)
+	return fmt.Errorf("submit wendigo intent: excessive contention on lobby %s", code)
 }

@@ -42,7 +42,14 @@ var ErrAlreadySeated = errors.New("store: player already has a seat")
 var ErrPlayerNotInLobby = errors.New("store: player not in lobby")
 
 var ErrVoteInvalid = errors.New("store: invalid vote")
+
 var ErrNightActionInvalid = errors.New("store: invalid night action")
+
+// ErrAlreadyAccused means this player has already registered a council accusation this ACCUSATION phase.
+var ErrAlreadyAccused = errors.New("store: council accuser has already accused this phase")
+
+// ErrTargetAlreadyAccused means another accuser has already chosen this target.
+var ErrTargetAlreadyAccused = errors.New("store: council target is already accused by someone else")
 
 func lobbyKey(code string) string {
 	return lobbyKeyPrefix + code
@@ -54,6 +61,12 @@ func ensureLobbyVotes(lobby *models.Lobby) {
 	}
 	if lobby.NightActions == nil {
 		lobby.NightActions = make(map[string]string)
+	}
+	if lobby.CouncilAccusations == nil {
+		lobby.CouncilAccusations = make(map[string]string)
+	}
+	if lobby.WendigoIntentions == nil {
+		lobby.WendigoIntentions = make(map[string]string)
 	}
 }
 
@@ -98,14 +111,16 @@ func (s *Store) createLobbyWithHost(ctx context.Context, mode models.GameMode, h
 		}
 
 		lobby := &models.Lobby{
-			Code:           code,
-			Mode:           mode,
-			Players:        []models.Player{host},
-			CreatedAt:      time.Now().UTC(),
-			Phase:          models.GamePhaseLobby,
-			TimeRemaining:  0,
-			Votes:          make(map[string]string),
-			NightActions:   make(map[string]string),
+			Code:               code,
+			Mode:               mode,
+			Players:            []models.Player{host},
+			CreatedAt:          time.Now().UTC(),
+			Phase:              models.GamePhaseLobby,
+			TimeRemaining:      0,
+			Votes:              make(map[string]string),
+			NightActions:       make(map[string]string),
+			CouncilAccusations: make(map[string]string),
+			WendigoIntentions:  make(map[string]string),
 		}
 
 		payload, err := json.Marshal(lobby)
@@ -113,6 +128,7 @@ func (s *Store) createLobbyWithHost(ctx context.Context, mode models.GameMode, h
 			return nil, fmt.Errorf("marshal lobby: %w", err)
 		}
 
+		// Synchronous write: callers (e.g. POST /lobbies) must not respond until this returns OK.
 		status, err := s.redisClient.SetArgs(ctx, lobbyKey(code), payload, redis.SetArgs{
 			TTL:  lobbyTTL,
 			Mode: string(redis.NX),
@@ -151,6 +167,7 @@ func (s *Store) AppendPlayer(ctx context.Context, code string, player models.Pla
 	if len(code) != 4 {
 		return nil, ErrLobbyNotFound
 	}
+	cancelDelayedLobbyDeletion(code)
 	key := lobbyKey(code)
 	for range maxLobbyTxRetries {
 		var updated *models.Lobby
@@ -220,11 +237,20 @@ func (s *Store) RemovePlayerByID(ctx context.Context, code, playerID string) err
 				}
 			}
 			if len(remainingPlayers) == 0 {
+				lobby.Players = remainingPlayers
+				payload, err := json.Marshal(&lobby)
+				if err != nil {
+					return fmt.Errorf("marshal lobby: %w", err)
+				}
 				_, err = tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
-					pipe.Del(ctx, key)
+					pipe.Set(ctx, key, payload, lobbyTTL)
 					return nil
 				})
-				return err
+				if err != nil {
+					return err
+				}
+				scheduleDelayedLobbyDeletion(s, code)
+				return nil
 			}
 			lobby.Players = remainingPlayers
 			payload, err := json.Marshal(&lobby)

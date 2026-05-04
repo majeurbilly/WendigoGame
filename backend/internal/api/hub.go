@@ -24,11 +24,21 @@ type websocketSession struct {
 	playerID  string
 }
 
+// liveKitCachedToken avoids regenerating JWTs on every GAME_TICK (each mint has a new iat),
+// which forced clients to reconnect LiveKit every second.
+type liveKitCachedToken struct {
+	token   string
+	phase   models.GamePhase
+	isAlive bool
+}
+
 type Hub struct {
 	hubMutex               sync.RWMutex
 	broadcastMu            sync.Mutex // Serializes WriteJSON (gorilla/websocket is not concurrent-safe for writes).
+	liveKitCacheMu         sync.Mutex // liveKitCache only; never take hubMutex while holding broadcastMu (see Unregister vs BroadcastState).
 	connectionsByLobbyCode map[string]map[*websocket.Conn]struct{}
 	sessionByConnection    map[*websocket.Conn]websocketSession
+	liveKitCache           map[string]liveKitCachedToken // key: lobbyCode|playerID
 	lobbyStore             *store.Store
 	liveKitService         *services.LiveKitService
 }
@@ -41,9 +51,24 @@ func NewHub(lobbyStore *store.Store, optionalLiveKitService ...*services.LiveKit
 	return &Hub{
 		connectionsByLobbyCode: make(map[string]map[*websocket.Conn]struct{}),
 		sessionByConnection:    make(map[*websocket.Conn]websocketSession),
+		liveKitCache:           make(map[string]liveKitCachedToken),
 		lobbyStore:             lobbyStore,
 		liveKitService:         liveKitService,
 	}
+}
+
+func liveKitCacheKey(lobbyCode, playerID string) string {
+	return strings.ToUpper(strings.TrimSpace(lobbyCode)) + "|" + strings.TrimSpace(playerID)
+}
+
+func (h *Hub) evictLiveKitCache(lobbyCode, playerID string) {
+	if h == nil {
+		return
+	}
+	k := liveKitCacheKey(lobbyCode, playerID)
+	h.liveKitCacheMu.Lock()
+	delete(h.liveKitCache, k)
+	h.liveKitCacheMu.Unlock()
 }
 
 func isWebSocketWriteClosed(err error) bool {
@@ -140,25 +165,9 @@ func (h *Hub) Unregister(websocketConn *websocket.Conn) {
 	}
 	h.hubMutex.Unlock()
 
-	if h.lobbyStore == nil {
-		return
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := h.lobbyStore.RemovePlayerByID(ctx, session.lobbyCode, session.playerID); err != nil {
-		log.Printf("hub: RemovePlayerByID(%s, %s): %v", session.lobbyCode, session.playerID, err)
-	}
-	lobby, err := h.lobbyStore.GetLobby(ctx, session.lobbyCode)
-	if err != nil {
-		return
-	}
-	if len(lobby.Players) > 0 {
-		syncCtx, cancelSync := context.WithTimeout(context.Background(), 5*time.Second)
-		if syncErr := h.SyncLobbyConnections(syncCtx, h.lobbyStore, session.lobbyCode); syncErr != nil {
-			log.Printf("hub: SyncLobbyConnections after unregister (%s): %v", session.lobbyCode, syncErr)
-		}
-		cancelSync()
-	}
+	h.evictLiveKitCache(session.lobbyCode, session.playerID)
+	// Do not RemovePlayerByID here: a tab refresh closes the socket but the player should stay
+	// in the lobby (roles preserved). Explicit leave uses LEAVE_LOBBY before disconnect.
 }
 
 var websocketUpgrader = websocket.Upgrader{
@@ -169,14 +178,7 @@ var websocketUpgrader = websocket.Upgrader{
 		if origin == "" {
 			return true
 		}
-		allowed := map[string]struct{}{
-			"http://localhost:5173":  {},
-			"http://127.0.0.1:5173":    {},
-			"http://localhost:4173":  {},
-			"http://127.0.0.1:4173":    {},
-		}
-		_, ok := allowed[origin]
-		return ok
+		return isAllowedOrigin(origin)
 	},
 }
 
@@ -191,6 +193,35 @@ func normalizeLobbyCode(raw string) (normalizedLobbyCode string, isValid bool) {
 		}
 	}
 	return raw, true
+}
+
+// getLobbyWithShortRetry handles read-your-writes skew: POST /lobbies commits on the primary while
+// the next GET /ws may hit a lagging replica, or the browser opens /ws in the same millisecond window.
+// Short polling (5 × 100ms) before rejecting the handshake absorbs that micro-latency.
+func getLobbyWithShortRetry(ctx context.Context, st *store.Store, lobbyCode string) (*models.Lobby, error) {
+	const maxAttempts = 5
+	const retryInterval = 100 * time.Millisecond
+	var lastErr error
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		if attempt > 0 {
+			t := time.NewTimer(retryInterval)
+			select {
+			case <-ctx.Done():
+				t.Stop()
+				return nil, ctx.Err()
+			case <-t.C:
+			}
+		}
+		lobby, err := st.GetLobby(ctx, lobbyCode)
+		if err == nil {
+			return lobby, nil
+		}
+		if !errors.Is(err, store.ErrLobbyNotFound) {
+			return nil, err
+		}
+		lastErr = err
+	}
+	return nil, lastErr
 }
 
 func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, request *http.Request) {
@@ -219,10 +250,10 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 	playerName := strings.TrimSpace(request.URL.Query().Get("name"))
 
 	var (
-		authUserID      uuid.UUID
-		useJWTAuth      bool
-		playerIDClaim   string
-		err             error
+		authUserID    uuid.UUID
+		useJWTAuth    bool
+		playerIDClaim string
+		err           error
 	)
 
 	if token != "" {
@@ -257,10 +288,10 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 		return
 	}
 
-	existingLobby, err := serverConfig.Store.GetLobby(ctx, lobbyCode)
+	existingLobby, err := getLobbyWithShortRetry(ctx, serverConfig.Store, lobbyCode)
 	if err != nil {
-		if err == store.ErrLobbyNotFound {
-			log.Printf("Erreur WS: Lobby %s introuvable dans le store", lobbyCode)
+		if errors.Is(err, store.ErrLobbyNotFound) {
+			log.Printf("WS Error: Lobby %s not found in store after polling (connection rejected)", lobbyCode)
 			http.Error(responseWriter, "lobby not found", http.StatusNotFound)
 			return
 		}
@@ -331,11 +362,18 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 	}
 
 	serverConfig.Hub.Register(lobbyCode, websocketConn, playerID)
-	syncCtx, cancelSync := context.WithTimeout(context.Background(), 5*time.Second)
-	if syncErr := serverConfig.Hub.SyncLobbyConnections(syncCtx, serverConfig.Store, lobbyCode); syncErr != nil {
-		log.Printf("hub: SyncLobbyConnections after WS connect (%s): %v", lobbyCode, syncErr)
+	for attempt := 0; attempt < 3; attempt++ {
+		if attempt > 0 {
+			time.Sleep(40 * time.Millisecond)
+		}
+		syncCtx, cancelSync := context.WithTimeout(context.Background(), 5*time.Second)
+		syncErr := serverConfig.Hub.SyncLobbyConnections(syncCtx, serverConfig.Store, lobbyCode)
+		cancelSync()
+		if syncErr == nil {
+			break
+		}
+		log.Printf("hub: SyncLobbyConnections after WS connect (%s) attempt %d: %v", lobbyCode, attempt+1, syncErr)
 	}
-	cancelSync()
 
 	defer func() {
 		serverConfig.Hub.Unregister(websocketConn)
@@ -343,11 +381,23 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 	}()
 
 	const pongWait = 60 * time.Second
+	const pingPeriod = 50 * time.Second // must stay < pongWait so Pong arrives before read deadline
+
 	_ = websocketConn.SetReadDeadline(time.Now().Add(pongWait))
 	websocketConn.SetPongHandler(func(string) error {
 		_ = websocketConn.SetReadDeadline(time.Now().Add(pongWait))
 		return nil
 	})
+
+	go func() {
+		ticker := time.NewTicker(pingPeriod)
+		defer ticker.Stop()
+		for range ticker.C {
+			if err := websocketConn.WriteControl(websocket.PingMessage, nil, time.Now().Add(5*time.Second)); err != nil {
+				return
+			}
+		}
+	}()
 
 	for {
 		_, payloadBytes, err := websocketConn.ReadMessage()
@@ -357,6 +407,7 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 			}
 			break
 		}
+		_ = websocketConn.SetReadDeadline(time.Now().Add(pongWait))
 		if len(payloadBytes) == 0 {
 			continue
 		}
@@ -374,6 +425,9 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 			TargetID string `json:"target_id"`
 			Action   string `json:"action"`
 		}
+		var claimSeatBody struct {
+			ChairID int `json:"chair_id"`
+		}
 		switch inbound.Type {
 		case models.MessageTypeVoteDay:
 			if err := json.Unmarshal(inbound.Payload, &voteBody); err != nil {
@@ -385,6 +439,44 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 			voteCancel()
 			if voteErr != nil {
 				log.Printf("websocket: SubmitDayVote(%s, %s): %v", lobbyCode, playerID, voteErr)
+				errMsg := "unable to record vote"
+				switch {
+				case errors.Is(voteErr, store.ErrWrongPhase):
+					errMsg = "votes are only allowed during the council vote phase"
+				case errors.Is(voteErr, store.ErrVoteInvalid):
+					errMsg = "invalid vote"
+				case errors.Is(voteErr, store.ErrLobbyNotFound):
+					errMsg = "lobby not found"
+				}
+				_ = websocketConn.WriteJSON(models.WSMessage{
+					Type:    models.MessageTypeError,
+					Payload: map[string]string{"message": errMsg},
+				})
+				continue
+			}
+		case models.MessageTypeWendigoIntent:
+			if err := json.Unmarshal(inbound.Payload, &voteBody); err != nil {
+				log.Printf("websocket: invalid WENDIGO_INTENT payload: %v", err)
+				continue
+			}
+			intentCtx, intentCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			intentErr := serverConfig.Store.SubmitWendigoIntent(intentCtx, lobbyCode, playerID, voteBody.TargetID)
+			intentCancel()
+			if intentErr != nil {
+				log.Printf("websocket: SubmitWendigoIntent(%s, %s): %v", lobbyCode, playerID, intentErr)
+				errMsg := "unable to update intent"
+				switch {
+				case errors.Is(intentErr, store.ErrWrongPhase):
+					errMsg = "intents are only allowed during the night phase"
+				case errors.Is(intentErr, store.ErrNightActionInvalid):
+					errMsg = "invalid wendigo intent"
+				case errors.Is(intentErr, store.ErrLobbyNotFound):
+					errMsg = "lobby not found"
+				}
+				_ = websocketConn.WriteJSON(models.WSMessage{
+					Type:    models.MessageTypeError,
+					Payload: map[string]string{"message": errMsg},
+				})
 				continue
 			}
 		case models.MessageTypeSubmitNightAction:
@@ -434,6 +526,86 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 			}
 			syncLobbyCancel()
 			continue
+		case models.MessageTypeAccuse:
+			if err := json.Unmarshal(inbound.Payload, &voteBody); err != nil {
+				log.Printf("websocket: invalid ACCUSE payload: %v", err)
+				continue
+			}
+			accuseCtx, accuseCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			accuseErr := serverConfig.Store.SubmitCouncilAccusation(accuseCtx, lobbyCode, playerID, voteBody.TargetID)
+			accuseCancel()
+			if accuseErr != nil {
+				log.Printf("websocket: SubmitCouncilAccusation(%s, %s): %v", lobbyCode, playerID, accuseErr)
+				errMsg := "unable to record accusation"
+				switch {
+				case errors.Is(accuseErr, store.ErrWrongPhase):
+					errMsg = "accusations are only allowed during the accusation phase"
+				case errors.Is(accuseErr, store.ErrVoteInvalid):
+					errMsg = "invalid accusation target"
+				case errors.Is(accuseErr, store.ErrAlreadyAccused):
+					errMsg = "you have already accused someone this round"
+				case errors.Is(accuseErr, store.ErrTargetAlreadyAccused):
+					errMsg = "this player is already accused by someone else"
+				case errors.Is(accuseErr, store.ErrLobbyNotFound):
+					errMsg = "lobby not found"
+				}
+				_ = websocketConn.WriteJSON(models.WSMessage{
+					Type:    models.MessageTypeError,
+					Payload: map[string]string{"message": errMsg},
+				})
+				continue
+			}
+		case models.MessageTypeStartPleading:
+			pleadingCtx, pleadingCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			pleadingErr := serverConfig.Store.StartPleading(pleadingCtx, lobbyCode, playerID)
+			pleadingCancel()
+			if pleadingErr != nil {
+				log.Printf("websocket: StartPleading(%s, %s): %v", lobbyCode, playerID, pleadingErr)
+				errMsg := "unable to start pleading"
+				switch {
+				case errors.Is(pleadingErr, store.ErrWrongPhase):
+					errMsg = "you cannot start pleading right now"
+				case errors.Is(pleadingErr, store.ErrUnauthorized):
+					errMsg = "only the current speaker can start their pleading timer"
+				case errors.Is(pleadingErr, store.ErrLobbyNotFound):
+					errMsg = "lobby not found"
+				}
+				_ = websocketConn.WriteJSON(models.WSMessage{
+					Type:    models.MessageTypeError,
+					Payload: map[string]string{"message": errMsg},
+				})
+				continue
+			}
+		case models.MessageTypeClaimSeat:
+			if err := json.Unmarshal(inbound.Payload, &claimSeatBody); err != nil {
+				log.Printf("websocket: invalid CLAIM_SEAT payload: %v", err)
+				continue
+			}
+			seatCtx, seatCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			seatErr := serverConfig.Store.SelectSeat(seatCtx, lobbyCode, playerID, claimSeatBody.ChairID)
+			seatCancel()
+			if seatErr != nil {
+				log.Printf("websocket: SelectSeat(%s, %s): %v", lobbyCode, playerID, seatErr)
+				continue
+			}
+		case models.MessageTypeLeaveLobby:
+			if serverConfig.Store == nil {
+				return
+			}
+			leaveCtx, leaveCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			leaveErr := serverConfig.Store.RemovePlayerByID(leaveCtx, lobbyCode, playerID)
+			leaveCancel()
+			if leaveErr != nil {
+				log.Printf("websocket: LEAVE_LOBBY RemovePlayerByID(%s, %s): %v", lobbyCode, playerID, leaveErr)
+			}
+			if serverConfig.Hub != nil {
+				syncLeaveCtx, leaveSyncCancel := context.WithTimeout(context.Background(), 5*time.Second)
+				if syncErr := serverConfig.Hub.SyncLobbyConnections(syncLeaveCtx, serverConfig.Store, lobbyCode); syncErr != nil {
+					log.Printf("websocket: SyncLobbyConnections after LEAVE_LOBBY (%s): %v", lobbyCode, syncErr)
+				}
+				leaveSyncCancel()
+			}
+			return
 		default:
 			continue
 		}
@@ -528,11 +700,49 @@ func (h *Hub) generateLiveKitToken(lobby *models.Lobby, playerID string) string 
 	if h == nil || h.liveKitService == nil || lobby == nil {
 		return ""
 	}
+	playerID = strings.TrimSpace(playerID)
+	if playerID == "" {
+		log.Printf("hub: LiveKit skip: empty playerID after trim (lobby=%s phase=%s)", lobby.Code, lobby.Phase)
+		return ""
+	}
+
+	var currentPlayer *models.Player
+	for i := range lobby.Players {
+		if lobby.Players[i].ID.String() == playerID {
+			currentPlayer = &lobby.Players[i]
+			break
+		}
+	}
+	if currentPlayer == nil {
+		log.Printf("hub: LiveKit skip: player %s not in lobby %s (players=%d phase=%s)", playerID, lobby.Code, len(lobby.Players), lobby.Phase)
+		return ""
+	}
+
+	cacheKey := liveKitCacheKey(lobby.Code, playerID)
+	h.liveKitCacheMu.Lock()
+	if cached, ok := h.liveKitCache[cacheKey]; ok {
+		if cached.phase == lobby.Phase && cached.isAlive == currentPlayer.IsAlive {
+			tok := cached.token
+			h.liveKitCacheMu.Unlock()
+			return tok
+		}
+	}
+	h.liveKitCacheMu.Unlock()
 
 	token, err := h.liveKitService.GenerateToken(lobby, playerID)
 	if err != nil {
-		log.Printf("hub: LiveKit token generation failed for lobby %s player %s: %v", lobby.Code, playerID, err)
+		log.Printf("hub: LiveKit token generation failed for lobby %s player %s phase=%s: %v", lobby.Code, playerID, lobby.Phase, err)
 		return ""
 	}
+
+	h.liveKitCacheMu.Lock()
+	h.liveKitCache[cacheKey] = liveKitCachedToken{
+		token:   token,
+		phase:   lobby.Phase,
+		isAlive: currentPlayer.IsAlive,
+	}
+	h.liveKitCacheMu.Unlock()
+
+	log.Printf("hub: LiveKit mint lobby=%s player=%s phase=%s alive=%v token_len=%d", lobby.Code, playerID, lobby.Phase, currentPlayer.IsAlive, len(token))
 	return token
 }

@@ -8,6 +8,8 @@ export interface Player {
   isAlive: boolean
   role: string | null
   isHost: boolean
+  chairId: number
+  isExcludedFromCouncil?: boolean
 }
 
 export type GameMode = 'local' | 'online' | string
@@ -17,6 +19,13 @@ export interface LobbyState {
   phase: LobbyPhase
   mode?: GameMode
   timeRemaining: number
+  socialPhaseTotalTime?: number
+  chairPromptTriggered?: boolean
+  councilAccusations?: Record<string, string>
+  wendigoIntentions?: Record<string, string>
+  pleadingsQueue?: string[]
+  currentSpeakerId?: string
+  pleadingTimerStarted?: boolean
   players: Player[]
   winnerTeam?: 'VILLAGERS' | 'WENDIGOS' | string
   maxPlayers?: number
