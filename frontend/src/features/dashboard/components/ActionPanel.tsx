@@ -116,6 +116,7 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
 
   const phase = lobby.phase.toUpperCase()
   const role = (currentPlayer.role ?? '').toUpperCase()
+  const canPrayAtNight = currentPlayer.role !== 'WENDIGO'
   const findTargetName = (targetId: string): string =>
     aliveOpponents.find((player) => player.id === targetId)?.name ?? 'Unknown target'
 
@@ -261,30 +262,34 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
             Confirmer le meurtre
           </Button>
           <div className="rounded-md border border-slate-700 bg-slate-950/40 p-3">
-            <p className="mb-2 text-xs text-slate-400">
-              Camouflage optionnel : priez comme n'importe quel villageois pour protéger une cible.
-            </p>
-            <select
-              value={prayerTarget}
-              onChange={(event) => setPrayerTarget(event.target.value)}
-              className="h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
-            >
-              {alivePrayerTargets.map((player) => (
-                <option key={player.id} value={player.id}>
-                  {player.name}
-                  {player.id === currentPlayer.id ? ' (vous)' : ''}
-                </option>
-              ))}
-            </select>
-            <Button
-              type="button"
-              variant="secondary"
-              className="mt-2 w-full"
-              disabled={prayerTarget.length === 0}
-              onClick={() => submitPrayer(prayerTarget)}
-            >
-              Prier pour ce joueur
-            </Button>
+            {canPrayAtNight ? (
+              <>
+                <p className="mb-2 text-xs text-slate-400">
+                  Camouflage optionnel : priez comme n'importe quel villageois pour protéger une cible.
+                </p>
+                <select
+                  value={prayerTarget}
+                  onChange={(event) => setPrayerTarget(event.target.value)}
+                  className="h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                >
+                  {alivePrayerTargets.map((player) => (
+                    <option key={player.id} value={player.id}>
+                      {player.name}
+                      {player.id === currentPlayer.id ? ' (vous)' : ''}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="mt-2 w-full"
+                  disabled={prayerTarget.length === 0}
+                  onClick={() => submitPrayer(prayerTarget)}
+                >
+                  Prier pour ce joueur
+                </Button>
+              </>
+            ) : null}
             {hasPrayerTallies ? (
               <div className="mt-3 rounded-md border border-slate-800 bg-slate-950/60 p-3">
                 <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">Echo des prieres</p>

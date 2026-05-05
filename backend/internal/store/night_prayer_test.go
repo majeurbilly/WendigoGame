@@ -80,3 +80,40 @@ func TestSubmitPrayer_RejectsInvalidTarget(t *testing.T) {
 		t.Fatalf("error: got %v want ErrVoteInvalid", err)
 	}
 }
+
+func TestSubmitPrayer_RejectsWendigo(t *testing.T) {
+	miniredisServer := miniredis.RunT(t)
+	redisClient := redis.NewClient(&redis.Options{Addr: miniredisServer.Addr()})
+	t.Cleanup(func() { _ = redisClient.Close() })
+
+	st := store.NewForTesting(redisClient)
+	ctx := context.Background()
+
+	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Host")
+	if err != nil {
+		t.Fatalf("CreateLobby: %v", err)
+	}
+	guest := models.Player{ID: uuid.New(), Name: "Guest", IsHost: false, IsAlive: true, ChairID: 1}
+	if _, err := st.AppendPlayer(ctx, lobby.Code, guest); err != nil {
+		t.Fatalf("AppendPlayer: %v", err)
+	}
+	lobby, err = st.GetLobby(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobby: %v", err)
+	}
+	lobby.Phase = models.GamePhaseNight
+	lobby.Players[0].Role = "WENDIGO"
+	if err := st.SaveLobby(ctx, lobby); err != nil {
+		t.Fatalf("SaveLobby: %v", err)
+	}
+
+	wendigoID := lobby.Players[0].ID.String()
+	guestID := lobby.Players[1].ID.String()
+	err = st.SubmitPrayer(ctx, lobby.Code, wendigoID, guestID)
+	if err == nil {
+		t.Fatalf("error: got nil want non-nil")
+	}
+	if err.Error() != "les rôles avec action nocturne ne peuvent pas prier" {
+		t.Fatalf("error: got %q want %q", err.Error(), "les rôles avec action nocturne ne peuvent pas prier")
+	}
+}

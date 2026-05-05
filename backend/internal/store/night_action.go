@@ -105,8 +105,13 @@ func (s *Store) SubmitNightAction(ctx context.Context, code, sourcePlayerID, tar
 	return fmt.Errorf("submit night action: excessive contention on lobby %s", code)
 }
 
+func hasNightActionRole(role string) bool {
+	normalized := strings.ToUpper(strings.TrimSpace(role))
+	return isWendigoRoleName(normalized) || strings.Contains(normalized, "SEER")
+}
+
 // SubmitPrayer records or updates a prayer vote during NIGHT.
-// Any alive player may pray for any alive player, including themselves.
+// Any alive player without a night action may pray for any alive player, including themselves.
 func (s *Store) SubmitPrayer(ctx context.Context, code, voterID, targetID string) error {
 	code = strings.ToUpper(strings.TrimSpace(code))
 	if len(code) != 4 {
@@ -138,11 +143,13 @@ func (s *Store) SubmitPrayer(ctx context.Context, code, voterID, targetID string
 			}
 
 			voterAlive := false
+			voterRole := ""
 			targetAlive := false
 			for i := range lobby.Players {
 				pid := lobby.Players[i].ID.String()
 				if pid == voterID && lobby.Players[i].IsAlive {
 					voterAlive = true
+					voterRole = lobby.Players[i].Role
 				}
 				if pid == targetID && lobby.Players[i].IsAlive {
 					targetAlive = true
@@ -150,6 +157,9 @@ func (s *Store) SubmitPrayer(ctx context.Context, code, voterID, targetID string
 			}
 			if !voterAlive || !targetAlive {
 				return ErrVoteInvalid
+			}
+			if hasNightActionRole(voterRole) {
+				return errors.New("les rôles avec action nocturne ne peuvent pas prier")
 			}
 
 			lobby.Prayers[voterID] = targetID
