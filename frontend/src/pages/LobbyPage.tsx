@@ -55,7 +55,7 @@ export default function LobbyPage() {
       if (nextPhase === 'NIGHT') {
         playNightFall()
         playHeartbeat()
-      } else if (nextPhase === 'DAY' || nextPhase === 'ACCUSATION') {
+      } else if (nextPhase === 'DAY' || nextPhase === 'COUNCIL_START' || nextPhase === 'ACCUSATION') {
         stopHeartbeat()
         playDayBreak()
       } else if (nextPhase === 'ENDED' || nextPhase === 'GAME_OVER') {

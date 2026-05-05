@@ -428,6 +428,7 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 		var claimSeatBody struct {
 			ChairID int `json:"chair_id"`
 		}
+		var phaseSettingsBody models.PhaseSettings
 		switch inbound.Type {
 		case models.MessageTypeVoteDay:
 			if err := json.Unmarshal(inbound.Payload, &voteBody); err != nil {
@@ -445,6 +446,8 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 					errMsg = "votes are only allowed during the council vote phase"
 				case errors.Is(voteErr, store.ErrVoteInvalid):
 					errMsg = "invalid vote"
+				case errors.Is(voteErr, store.ErrExcludedFromCouncil):
+					errMsg = "excluded from council: cannot vote"
 				case errors.Is(voteErr, store.ErrLobbyNotFound):
 					errMsg = "lobby not found"
 				}
@@ -489,6 +492,56 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 			nightCancel()
 			if nightErr != nil {
 				log.Printf("websocket: SubmitNightAction(%s, %s): %v", lobbyCode, playerID, nightErr)
+				continue
+			}
+		case models.MessageTypeSubmitPrayer:
+			if err := json.Unmarshal(inbound.Payload, &voteBody); err != nil {
+				log.Printf("websocket: invalid SUBMIT_PRAYER payload: %v", err)
+				continue
+			}
+			prayerCtx, prayerCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			prayerErr := serverConfig.Store.SubmitPrayer(prayerCtx, lobbyCode, playerID, voteBody.TargetID)
+			prayerCancel()
+			if prayerErr != nil {
+				log.Printf("websocket: SubmitPrayer(%s, %s): %v", lobbyCode, playerID, prayerErr)
+				errMsg := "unable to submit prayer"
+				switch {
+				case errors.Is(prayerErr, store.ErrWrongPhase):
+					errMsg = "prayers are only allowed during the night phase"
+				case errors.Is(prayerErr, store.ErrVoteInvalid):
+					errMsg = "invalid prayer target"
+				case errors.Is(prayerErr, store.ErrLobbyNotFound):
+					errMsg = "lobby not found"
+				}
+				_ = websocketConn.WriteJSON(models.WSMessage{
+					Type:    models.MessageTypeError,
+					Payload: map[string]string{"message": errMsg},
+				})
+				continue
+			}
+		case models.MessageTypeUpdatePhaseSettings:
+			if err := json.Unmarshal(inbound.Payload, &phaseSettingsBody); err != nil {
+				log.Printf("websocket: invalid UPDATE_PHASE_SETTINGS payload: %v", err)
+				continue
+			}
+			settingsCtx, settingsCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			settingsErr := serverConfig.Store.UpdatePhaseSettings(settingsCtx, lobbyCode, playerID, phaseSettingsBody)
+			settingsCancel()
+			if settingsErr != nil {
+				log.Printf("websocket: UpdatePhaseSettings(%s, %s): %v", lobbyCode, playerID, settingsErr)
+				errMsg := "unable to update settings"
+				switch {
+				case errors.Is(settingsErr, store.ErrUnauthorized):
+					errMsg = "only the host can change phase settings"
+				case errors.Is(settingsErr, store.ErrGameAlreadyStarted):
+					errMsg = "settings can only be changed before the game starts"
+				case errors.Is(settingsErr, store.ErrLobbyNotFound):
+					errMsg = "lobby not found"
+				}
+				_ = websocketConn.WriteJSON(models.WSMessage{
+					Type:    models.MessageTypeError,
+					Payload: map[string]string{"message": errMsg},
+				})
 				continue
 			}
 		case models.MessageTypeStartGame:
@@ -545,7 +598,7 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 				case errors.Is(accuseErr, store.ErrAlreadyAccused):
 					errMsg = "you have already accused someone this round"
 				case errors.Is(accuseErr, store.ErrTargetAlreadyAccused):
-					errMsg = "this player is already accused by someone else"
+					errMsg = "target already accused"
 				case errors.Is(accuseErr, store.ErrLobbyNotFound):
 					errMsg = "lobby not found"
 				}

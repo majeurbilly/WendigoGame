@@ -77,6 +77,7 @@ func (s *Store) SelectSeat(ctx context.Context, code, playerID string, chairID i
 				}
 				lobby.Votes = make(map[string]string)
 				lobby.NightActions = make(map[string]string)
+				lobby.Prayers = make(map[string]string)
 				lobby.WendigoIntentions = make(map[string]string)
 			}
 

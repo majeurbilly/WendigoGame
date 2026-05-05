@@ -109,7 +109,61 @@ func TestStartPleading_OK(t *testing.T) {
 	if !got.PleadingTimerStarted {
 		t.Fatal("expected PleadingTimerStarted")
 	}
-	if got.TimeRemaining != models.PleadingSpeechSeconds {
-		t.Fatalf("time: got %d", got.TimeRemaining)
+	wantSpeech := models.DefaultPhaseSettings().PleadingSpeechSeconds
+	if got.TimeRemaining != wantSpeech {
+		t.Fatalf("time: got %d, want %d", got.TimeRemaining, wantSpeech)
+	}
+}
+
+func TestProcessGameTick_PleadingsQueueOmitsExcludedDefendant(t *testing.T) {
+	miniredisServer := miniredis.RunT(t)
+	redisClient := redis.NewClient(&redis.Options{Addr: miniredisServer.Addr()})
+	t.Cleanup(func() { _ = redisClient.Close() })
+
+	st := store.NewForTesting(redisClient)
+	ctx := context.Background()
+
+	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Z")
+	if err != nil {
+		t.Fatalf("CreateLobby: %v", err)
+	}
+	a := models.Player{ID: uuid.New(), Name: "A", IsHost: false, IsAlive: true, ChairID: 1}
+	if _, err := st.AppendPlayer(ctx, lobby.Code, a); err != nil {
+		t.Fatalf("AppendPlayer: %v", err)
+	}
+	lobby, err = st.GetLobby(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobby: %v", err)
+	}
+	zID := lobby.Players[0].ID.String()
+	aID := lobby.Players[1].ID.String()
+	for i := range lobby.Players {
+		if lobby.Players[i].ID.String() == aID {
+			lobby.Players[i].IsExcludedFromCouncil = true
+		}
+	}
+	lobby.Phase = models.GamePhaseAccusation
+	lobby.CouncilAccusations = map[string]string{zID: aID}
+	lobby.TimeRemaining = 0
+	if err := st.SaveLobby(ctx, lobby); err != nil {
+		t.Fatalf("SaveLobby: %v", err)
+	}
+
+	if _, err := st.ProcessGameTick(ctx, lobby.Code); err != nil {
+		t.Fatalf("ProcessGameTick: %v", err)
+	}
+
+	got, err := st.GetLobby(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobby: %v", err)
+	}
+	if got.Phase != models.GamePhasePleadings {
+		t.Fatalf("phase: got %q, want PLEADINGS", got.Phase)
+	}
+	if got.CurrentSpeakerID != zID {
+		t.Fatalf("first speaker: got %q, want %q (excluded accused has no slot)", got.CurrentSpeakerID, zID)
+	}
+	if len(got.PleadingsQueue) != 0 {
+		t.Fatalf("queue should be empty (only accuser, no slot for excluded accused): got %v", got.PleadingsQueue)
 	}
 }

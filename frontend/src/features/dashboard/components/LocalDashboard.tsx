@@ -1,4 +1,5 @@
 import ActionPanel from '@/features/dashboard/components/ActionPanel'
+import GameHeader from '@/features/dashboard/components/GameHeader'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { isGameOverPhase } from '@/lib/gamePhase'
 import { useAuthStore } from '@/store/useAuthStore'
@@ -39,6 +40,7 @@ export default function LocalDashboard({ sendMessage }: LocalDashboardProps) {
         'CHAIR_SELECTION',
         'NIGHT',
         'DAY',
+        'COUNCIL_START',
         'ACCUSATION',
         'PLEADINGS',
         'COUNCIL_VOTE',
@@ -48,7 +50,8 @@ export default function LocalDashboard({ sendMessage }: LocalDashboardProps) {
   if (!lobby || !currentPlayer) return null
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-8 py-20 duration-700 animate-in fade-in">
+    <div className="mx-auto flex w-full max-w-3xl flex-col items-center space-y-8 px-4 py-12 duration-700 animate-in fade-in">
+      <GameHeader lobby={lobby} />
       <div className="space-y-2 text-center">
         <h1 className="text-3xl font-bold tracking-wider text-slate-100 uppercase">Phase: {lobby.phase}</h1>
         <p className="text-slate-400">La partie a commencé.</p>

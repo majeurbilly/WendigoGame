@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 type NightAction = 'PRAY' | 'KILL' | 'INSPECT'
 type SocketActionType =
   | 'SUBMIT_NIGHT_ACTION'
+  | 'SUBMIT_PRAYER'
   | 'VOTE_DAY'
   | 'WENDIGO_INTENT'
   | 'CLAIM_SEAT'
@@ -35,9 +36,13 @@ interface AccusePayload {
 interface WendigoIntentPayload {
   target_id: string
 }
+interface SubmitPrayerPayload {
+  target_id: string
+}
 
 type ActionPayloadByType = {
   SUBMIT_NIGHT_ACTION: SubmitNightActionPayload
+  SUBMIT_PRAYER: SubmitPrayerPayload
   VOTE_DAY: VoteDayPayload
   WENDIGO_INTENT: WendigoIntentPayload
   CLAIM_SEAT: ClaimSeatPayload
@@ -56,6 +61,7 @@ interface ActionPanelProps {
 
 const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) => {
   const [selectedTarget, setSelectedTarget] = useState<string>('')
+  const [prayerTarget, setPrayerTarget] = useState<string>('')
   const [lockedActionMessage, setLockedActionMessage] = useState<string | null>(null)
   const { playLock } = useGameAudio()
 
@@ -73,16 +79,36 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
     () => lobby.players.filter((player) => player.isAlive && player.id !== currentPlayer.id),
     [currentPlayer.id, lobby.players]
   )
+  const alivePrayerTargets = useMemo(() => lobby.players.filter((player) => player.isAlive), [lobby.players])
 
   const councilAccusations = lobby.councilAccusations ?? {}
   const accusedTargets = useMemo(() => new Set(Object.values(councilAccusations)), [councilAccusations])
   const hasAlreadyAccused = Object.prototype.hasOwnProperty.call(councilAccusations, currentPlayer.id)
   const isExcludedFromCouncil = currentPlayer.isExcludedFromCouncil === true
+  const prayerTallies = lobby.prayerTallies ?? {}
+  const livingPlayersCount = alivePrayerTargets.length
+  const prayerThreshold = Math.ceil(livingPlayersCount / 2)
+  const hasPrayerTallies = Object.keys(prayerTallies).length > 0
 
   useEffect(() => {
     setLockedActionMessage(null)
     setSelectedTarget('')
+    setPrayerTarget('')
   }, [lobby.phase, lobby.currentSpeakerId])
+
+  useEffect(() => {
+    if (alivePrayerTargets.length === 0) {
+      setPrayerTarget('')
+      return
+    }
+    const defaultTarget = alivePrayerTargets.find((player) => player.id === currentPlayer.id)?.id ?? alivePrayerTargets[0].id
+    setPrayerTarget((prev) => {
+      if (prev !== '' && alivePrayerTargets.some((player) => player.id === prev)) {
+        return prev
+      }
+      return defaultTarget
+    })
+  }, [alivePrayerTargets, currentPlayer.id])
 
   if (!currentPlayer.isAlive) {
     return null
@@ -118,6 +144,17 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
     }
 
     setLockedActionMessage(`Inspecting ${targetName}`)
+    playLock()
+  }
+
+  const submitPrayer = (targetId: string) => {
+    const sent = sendMessage('SUBMIT_PRAYER', { target_id: targetId })
+    if (!sent) {
+      toast.error('Connection is not ready. Please try again.')
+      return
+    }
+    toast.success(`Prière envoyée pour ${findAlivePlayerName(targetId)}.`)
+    setLockedActionMessage(`Prière en cours : ${findAlivePlayerName(targetId)}`)
     playLock()
   }
 
@@ -223,6 +260,48 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
           >
             Confirmer le meurtre
           </Button>
+          <div className="rounded-md border border-slate-700 bg-slate-950/40 p-3">
+            <p className="mb-2 text-xs text-slate-400">
+              Camouflage optionnel : priez comme n'importe quel villageois pour protéger une cible.
+            </p>
+            <select
+              value={prayerTarget}
+              onChange={(event) => setPrayerTarget(event.target.value)}
+              className="h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+            >
+              {alivePrayerTargets.map((player) => (
+                <option key={player.id} value={player.id}>
+                  {player.name}
+                  {player.id === currentPlayer.id ? ' (vous)' : ''}
+                </option>
+              ))}
+            </select>
+            <Button
+              type="button"
+              variant="secondary"
+              className="mt-2 w-full"
+              disabled={prayerTarget.length === 0}
+              onClick={() => submitPrayer(prayerTarget)}
+            >
+              Prier pour ce joueur
+            </Button>
+            {hasPrayerTallies ? (
+              <div className="mt-3 rounded-md border border-slate-800 bg-slate-950/60 p-3">
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">Echo des prieres</p>
+                <div className="space-y-1 text-xs text-slate-400">
+                  {Object.entries(prayerTallies).map(([targetID, count]) => {
+                    const name = findAlivePlayerName(targetID)
+                    const reachedThreshold = count >= prayerThreshold
+                    return (
+                      <p key={targetID} className={reachedThreshold ? 'text-emerald-300' : 'text-slate-400'}>
+                        {name} : {count} priere(s)
+                      </p>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : null}
+          </div>
         </div>
       )
     }
@@ -230,11 +309,44 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
     return (
       <div className="space-y-3">
         <p className="text-sm text-slate-300">
-          La nuit tombe. Fermez les yeux ou patientez — le village reprendra demain matin.
+          La nuit tombe. Choisissez une cible vivante (vous inclus) et envoyez votre prière d'immunité.
         </p>
-        <Button type="button" className="w-full" onClick={() => submitNightAction('PRAY', '')}>
-          Prier
+        <select
+          value={prayerTarget}
+          onChange={(event) => setPrayerTarget(event.target.value)}
+          className="h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+        >
+          {alivePrayerTargets.map((player) => (
+            <option key={player.id} value={player.id}>
+              {player.name}
+              {player.id === currentPlayer.id ? ' (vous)' : ''}
+            </option>
+          ))}
+        </select>
+        <Button
+          type="button"
+          className="w-full"
+          disabled={prayerTarget.length === 0}
+          onClick={() => submitPrayer(prayerTarget)}
+        >
+          Prier pour ce joueur
         </Button>
+        {hasPrayerTallies ? (
+          <div className="rounded-md border border-slate-800 bg-slate-950/60 p-3">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">Echo des prieres</p>
+            <div className="space-y-1 text-xs text-slate-400">
+              {Object.entries(prayerTallies).map(([targetID, count]) => {
+                const name = findAlivePlayerName(targetID)
+                const reachedThreshold = count >= prayerThreshold
+                return (
+                  <p key={targetID} className={reachedThreshold ? 'text-emerald-300' : 'text-slate-400'}>
+                    {name} : {count} priere(s)
+                  </p>
+                )
+              })}
+            </div>
+          </div>
+        ) : null}
       </div>
     )
   }
@@ -255,21 +367,35 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
 
   if (phase === 'DAY') {
     return (
-      <div className="space-y-2 rounded-lg border border-slate-700 bg-slate-950/40 p-4 text-center text-slate-200">
-        <p className="text-sm font-medium text-slate-100">Phase sociale</p>
-        <p className="text-xs text-slate-400">
-          {`Discutez autour du feu. Le rappel des chaises partira automatiquement quand le chrono du jour atteindra le tiers du temps restant (règle « haute tension »). L'élimination au village se joue plus tard, lors du vote du conseil, pas ici.`}
+      <div className="rounded-lg border border-slate-700 bg-slate-950/40 p-6 text-center text-slate-200">
+        <p className="text-sm leading-relaxed text-slate-300">
+          Phase sociale en cours. Discutez et gardez un œil sur le chrono pour la course aux chaises.
         </p>
-        {lobby.socialPhaseTotalTime != null && lobby.socialPhaseTotalTime > 0 ? (
-          <p className="text-[11px] text-slate-500">
-            Chrono du jour : {lobby.timeRemaining}s / {lobby.socialPhaseTotalTime}s
-          </p>
-        ) : null}
+      </div>
+    )
+  }
+
+  if (phase === 'COUNCIL_START') {
+    return (
+      <div className="flex min-h-[180px] flex-col items-center justify-center rounded-lg border border-violet-900/40 bg-violet-950/20 p-8 text-center">
+        <p className="max-w-md font-serif text-xl font-semibold leading-snug tracking-wide text-violet-100 md:text-2xl">
+          Bienvenue au conseil du village. Avez-vous des soupçons sur quelqu'un ?
+        </p>
       </div>
     )
   }
 
   if (phase === 'COUNCIL_VOTE') {
+    if (isExcludedFromCouncil) {
+      return (
+        <div className="rounded-lg border border-rose-900/50 bg-rose-950/25 p-6 text-center">
+          <p className="text-sm font-semibold leading-relaxed text-rose-200">
+            Sanction : Vous êtes exclu du conseil. Vous êtes privé du droit de vote et de parole.
+          </p>
+        </div>
+      )
+    }
+
     return (
       <div className="space-y-3">
         <p className="text-sm text-amber-100/90">

@@ -9,6 +9,7 @@ const phaseClassByLabel: Record<string, string> = {
   LOBBY: 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/30',
   WAITING: 'bg-amber-500/20 text-amber-300 ring-1 ring-amber-400/30',
   DAY: 'bg-sky-500/20 text-sky-300 ring-1 ring-sky-400/30',
+  COUNCIL_START: 'bg-violet-500/20 text-violet-200 ring-1 ring-violet-400/35',
   NIGHT: 'bg-indigo-500/20 text-indigo-300 ring-1 ring-indigo-400/30',
   ENDED: 'bg-rose-500/20 text-rose-300 ring-1 ring-rose-400/30',
   GAME_OVER: 'bg-rose-500/20 text-rose-300 ring-1 ring-rose-400/30',
@@ -36,11 +37,29 @@ const formatTimer = (seconds: number): string => {
   return `${String(minutesPart).padStart(2, '0')}:${String(secondsPart).padStart(2, '0')}`
 }
 
+const phaseProgressTotal = (lobby: LobbyState, phaseLabel: string): number => {
+  if (phaseLabel === 'DAY' && (lobby.socialPhaseTotalTime ?? 0) > 0) {
+    return lobby.socialPhaseTotalTime as number
+  }
+  const t = lobby.phaseTotalSeconds ?? 0
+  return t > 0 ? t : 0
+}
+
 const GameHeader = ({ lobby }: GameHeaderProps) => {
   const localTime = useLocalTimer(lobby.timeRemaining)
   const phaseLabel = lobby.phase.toUpperCase()
   const phaseClasses =
     phaseClassByLabel[phaseLabel] ?? 'bg-slate-700/40 text-slate-200 ring-1 ring-slate-500/50'
+  const isInitialChairSelectionWait =
+    phaseLabel === 'CHAIR_SELECTION' && lobby.chairPromptTriggered !== true
+  const total = isInitialChairSelectionWait ? 0 : phaseProgressTotal(lobby, phaseLabel)
+  const progress = total > 0 ? Math.min(1, Math.max(0, localTime / total)) : 0
+  const showChronoBar =
+    !isInitialChairSelectionWait &&
+    total > 0 &&
+    phaseLabel !== 'LOBBY' &&
+    phaseLabel !== 'GAME_OVER' &&
+    phaseLabel !== 'ENDED'
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg shadow-black/30 md:flex-row md:items-center md:justify-between">
@@ -56,14 +75,35 @@ const GameHeader = ({ lobby }: GameHeaderProps) => {
         <h2 className="text-3xl font-bold tracking-widest text-slate-100">{lobby.code}</h2>
       </div>
 
-      <div className="flex items-center gap-3">
-        <span className={`rounded-full px-3 py-1 text-xs font-semibold tracking-wider ${phaseClasses}`}>
-          {phaseLabel}
-        </span>
-        <div className="rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-center">
-          <p className="text-xs uppercase tracking-wider text-slate-400">Time remaining</p>
-          <p className="font-mono text-xl font-semibold text-slate-100">{formatTimer(localTime)}</p>
+      <div className="flex w-full min-w-0 flex-col items-stretch gap-3 md:w-auto md:items-end">
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <span className={`rounded-full px-3 py-1 text-xs font-semibold tracking-wider ${phaseClasses}`}>
+            {phaseLabel}
+          </span>
+          <div className="rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-center">
+            {isInitialChairSelectionWait ? (
+              <>
+                <p className="text-xs uppercase tracking-wider text-slate-500">Statut</p>
+                <p className="text-sm font-medium text-slate-400">En attente des joueurs...</p>
+              </>
+            ) : (
+              <>
+                <p className="text-xs uppercase tracking-wider text-slate-400">Temps restant</p>
+                <p className="font-mono text-xl font-semibold text-slate-100">{formatTimer(localTime)}</p>
+              </>
+            )}
+          </div>
         </div>
+        {showChronoBar ? (
+          <div className="w-full min-w-[200px] max-w-md md:max-w-xs">
+            <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-sky-500 to-indigo-500 transition-[width] duration-1000 ease-linear"
+                style={{ width: `${progress * 100}%` }}
+              />
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   )

@@ -195,3 +195,39 @@ func TestRoleDistribution_Fairness(t *testing.T) {
 		t.Fatalf("werewolf count: got %d, want %d", werewolfCount, expectedWerewolves)
 	}
 }
+
+func TestUpdatePhaseSettings_HostOnlyClamped(t *testing.T) {
+	miniredisServer := miniredis.RunT(t)
+	redisClient := redis.NewClient(&redis.Options{Addr: miniredisServer.Addr()})
+	t.Cleanup(func() { _ = redisClient.Close() })
+
+	st := store.NewForTesting(redisClient)
+	ctx := context.Background()
+
+	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Host")
+	if err != nil {
+		t.Fatalf("CreateLobby: %v", err)
+	}
+	hostID := lobby.Players[0].ID.String()
+	custom := models.PhaseSettings{
+		ChairSelectionSeconds:             25,
+		DaySocialSeconds:                  180,
+		CouncilAccusationPostChairSeconds: 20,
+		CouncilAccusationAfterDaySeconds:  60,
+		PleadingSpeechSeconds:             30,
+		CouncilVoteSeconds:                30,
+		NightSeconds:                        45,
+		PostNightDaySeconds:                 12,
+	}
+	if err := st.UpdatePhaseSettings(ctx, lobby.Code, hostID, custom); err != nil {
+		t.Fatalf("UpdatePhaseSettings: %v", err)
+	}
+	got, err := st.GetLobby(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobby: %v", err)
+	}
+	want := custom.Clamped()
+	if got.PhaseSettings != want {
+		t.Fatalf("phase settings: got %+v want %+v", got.PhaseSettings, want)
+	}
+}

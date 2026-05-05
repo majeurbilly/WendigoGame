@@ -63,8 +63,9 @@ func TestProcessGameTick_DayChairRecallAtOneThirdRemaining(t *testing.T) {
 	if !got.ChairPromptTriggered {
 		t.Fatal("expected ChairPromptTriggered true after recall")
 	}
-	if got.TimeRemaining != models.ChairSelectionPhaseSeconds {
-		t.Fatalf("time_remaining: got %d, want %d", got.TimeRemaining, models.ChairSelectionPhaseSeconds)
+	wantChair := models.DefaultPhaseSettings().ChairSelectionSeconds
+	if got.TimeRemaining != wantChair {
+		t.Fatalf("time_remaining: got %d, want %d", got.TimeRemaining, wantChair)
 	}
 	for i := range got.Players {
 		if !got.Players[i].IsAlive {
@@ -114,11 +115,12 @@ func TestAdvanceFromChairSelection_CouncilPathSanctionsUnseated(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetLobby after tick: %v", err)
 	}
-	if got.Phase != models.GamePhaseAccusation {
-		t.Fatalf("phase: got %q, want %q", got.Phase, models.GamePhaseAccusation)
+	if got.Phase != models.GamePhaseCouncilStart {
+		t.Fatalf("phase: got %q, want %q", got.Phase, models.GamePhaseCouncilStart)
 	}
-	if got.TimeRemaining != models.PostChairCouncilAccusationSeconds {
-		t.Fatalf("accusation timer: got %d, want %d", got.TimeRemaining, models.PostChairCouncilAccusationSeconds)
+	wantCouncilStart := models.DefaultPhaseSettings().CouncilStartSeconds
+	if got.TimeRemaining != wantCouncilStart {
+		t.Fatalf("council start timer: got %d, want %d", got.TimeRemaining, wantCouncilStart)
 	}
 	if !got.Players[1].IsExcludedFromCouncil {
 		t.Fatal("expected guest excluded from council (unseated)")

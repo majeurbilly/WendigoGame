@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react'
-import type { LobbyState } from '@/api/game'
+import { defaultPhaseSettings, type LobbyState, type PhaseSettings } from '@/api/game'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
@@ -12,6 +12,7 @@ type ClientMessageType =
   | 'WENDIGO_INTENT'
   | 'START_PLEADING'
   | 'START_GAME'
+  | 'UPDATE_PHASE_SETTINGS'
   | 'LEAVE_LOBBY'
   | string
 type ServerMessageType = 'LOBBY_SYNC' | 'GAME_TICK' | 'ERROR' | string
@@ -35,6 +36,18 @@ interface RawPlayerPayload {
   is_excluded_from_council?: boolean
 }
 
+interface RawPhaseSettingsPayload {
+  chair_selection_seconds?: number
+  day_social_seconds?: number
+  council_start_seconds?: number
+  council_accusation_post_chair_seconds?: number
+  council_accusation_after_day_seconds?: number
+  pleading_speech_seconds?: number
+  council_vote_seconds?: number
+  night_seconds?: number
+  post_night_day_seconds?: number
+}
+
 interface RawLobbyPayload {
   code: string
   phase: string
@@ -42,6 +55,10 @@ interface RawLobbyPayload {
   players: RawPlayerPayload[]
   timeRemaining?: number
   time_remaining?: number
+  phaseTotalSeconds?: number
+  phase_total_seconds?: number
+  phaseSettings?: PhaseSettings
+  phase_settings?: RawPhaseSettingsPayload
   socialPhaseTotalTime?: number
   social_phase_total_time?: number
   chairPromptTriggered?: boolean
@@ -50,6 +67,8 @@ interface RawLobbyPayload {
   council_accusations?: Record<string, string>
   wendigoIntentions?: Record<string, string>
   wendigo_intentions?: Record<string, string>
+  prayerTallies?: Record<string, number>
+  prayer_tallies?: Record<string, number>
   pleadingsQueue?: string[]
   pleadings_queue?: string[]
   currentSpeakerId?: string
@@ -112,6 +131,34 @@ const isGameTickMessage = (message: IncomingSocketMessage): message is GameTickM
 const isErrorMessage = (message: IncomingSocketMessage): message is ErrorMessage =>
   message.type === 'ERROR'
 
+const normalizePhaseSettingsPayload = (raw?: RawPhaseSettingsPayload): PhaseSettings => {
+  const d = defaultPhaseSettings()
+  if (!raw) {
+    return d
+  }
+  const n = (v: unknown, fallback: number) => {
+    const x = Number(v)
+    return Number.isFinite(x) && x > 0 ? x : fallback
+  }
+  return {
+    chairSelectionSeconds: n(raw.chair_selection_seconds, d.chairSelectionSeconds),
+    daySocialSeconds: n(raw.day_social_seconds, d.daySocialSeconds),
+    councilStartSeconds: n(raw.council_start_seconds, d.councilStartSeconds),
+    councilAccusationPostChairSeconds: n(
+      raw.council_accusation_post_chair_seconds,
+      d.councilAccusationPostChairSeconds
+    ),
+    councilAccusationAfterDaySeconds: n(
+      raw.council_accusation_after_day_seconds,
+      d.councilAccusationAfterDaySeconds
+    ),
+    pleadingSpeechSeconds: n(raw.pleading_speech_seconds, d.pleadingSpeechSeconds),
+    councilVoteSeconds: n(raw.council_vote_seconds, d.councilVoteSeconds),
+    nightSeconds: n(raw.night_seconds, d.nightSeconds),
+    postNightDaySeconds: n(raw.post_night_day_seconds, d.postNightDaySeconds),
+  }
+}
+
 const logWs = (message: string, detail?: unknown) => {
   if (!import.meta.env.DEV) {
     return
@@ -128,10 +175,13 @@ const normalizeLobbyPayload = (payload: RawLobbyPayload): LobbyState => ({
   phase: payload.phase,
   mode: payload.mode,
   timeRemaining: payload.timeRemaining ?? payload.time_remaining ?? 0,
+  phaseTotalSeconds: payload.phaseTotalSeconds ?? payload.phase_total_seconds,
+  phaseSettings: payload.phaseSettings ?? normalizePhaseSettingsPayload(payload.phase_settings),
   socialPhaseTotalTime: payload.socialPhaseTotalTime ?? payload.social_phase_total_time,
   chairPromptTriggered: payload.chairPromptTriggered ?? payload.chair_prompt_triggered,
   councilAccusations: payload.councilAccusations ?? payload.council_accusations ?? {},
   wendigoIntentions: payload.wendigoIntentions ?? payload.wendigo_intentions ?? {},
+  prayerTallies: payload.prayerTallies ?? payload.prayer_tallies ?? {},
   pleadingsQueue: payload.pleadingsQueue ?? payload.pleadings_queue ?? [],
   currentSpeakerId: payload.currentSpeakerId ?? payload.current_speaker_id,
   pleadingTimerStarted: payload.pleadingTimerStarted ?? payload.pleading_timer_started ?? false,

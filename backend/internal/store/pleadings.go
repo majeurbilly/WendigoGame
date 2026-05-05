@@ -23,8 +23,8 @@ func clearPleadingsState(lobby *models.Lobby) {
 }
 
 // buildPleadingsQueueFromCouncil returns a deterministic order: for each accuser ID sorted lexicographically,
-// append accuser then target (so each pair speaks in turn).
-func buildPleadingsQueueFromCouncil(acc map[string]string) []string {
+// append the accuser, then the target only if the target is not excluded from council (no speech for unseated accused).
+func buildPleadingsQueueFromCouncil(acc map[string]string, players []models.Player) []string {
 	if len(acc) == 0 {
 		return nil
 	}
@@ -35,25 +35,38 @@ func buildPleadingsQueueFromCouncil(acc map[string]string) []string {
 	sort.Strings(accusers)
 	out := make([]string, 0, len(accusers)*2)
 	for _, accuserID := range accusers {
-		out = append(out, accuserID, acc[accuserID])
+		out = append(out, accuserID)
+		targetID := acc[accuserID]
+		if !isPlayerExcludedFromCouncil(players, targetID) {
+			out = append(out, targetID)
+		}
 	}
 	return out
 }
 
+func isPlayerExcludedFromCouncil(players []models.Player, playerID string) bool {
+	for i := range players {
+		if players[i].ID.String() == playerID {
+			return players[i].IsExcludedFromCouncil
+		}
+	}
+	return false
+}
+
 // startPleadingsFromAccusation moves the lobby from ACCUSATION into PLEADINGS with the first speaker ready (timer not started).
 func startPleadingsFromAccusation(lobby *models.Lobby) {
-	q := buildPleadingsQueueFromCouncil(lobby.CouncilAccusations)
+	q := buildPleadingsQueueFromCouncil(lobby.CouncilAccusations, lobby.Players)
 	lobby.PleadingsQueue = q
 	lobby.Phase = models.GamePhasePleadings
 	lobby.PleadingTimerStarted = false
 	if len(lobby.PleadingsQueue) == 0 {
 		lobby.CurrentSpeakerID = ""
-		lobby.TimeRemaining = 0
+		models.SetPhaseCountdown(lobby, 0)
 		return
 	}
 	lobby.CurrentSpeakerID = lobby.PleadingsQueue[0]
 	lobby.PleadingsQueue = lobby.PleadingsQueue[1:]
-	lobby.TimeRemaining = 0
+	models.SetPhaseCountdown(lobby, 0)
 }
 
 // StartPleading arms the speaking timer for the current speaker (START_PLEADING WebSocket).
@@ -97,7 +110,7 @@ func (s *Store) StartPleading(ctx context.Context, code, playerID string) error 
 			}
 
 			lobby.PleadingTimerStarted = true
-			lobby.TimeRemaining = models.PleadingSpeechSeconds
+			models.SetPhaseCountdown(&lobby, models.EffectivePhaseSettings(&lobby).PleadingSpeechSeconds)
 
 			payload, err := json.Marshal(&lobby)
 			if err != nil {

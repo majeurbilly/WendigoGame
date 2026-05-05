@@ -87,10 +87,16 @@ func (s *Store) SubmitDayVote(ctx context.Context, code, voterID, targetID strin
 			voterAlive := false
 			targetAlive := false
 			for i := range lobby.Players {
-				if lobby.Players[i].ID.String() == voterID && lobby.Players[i].IsAlive {
-					voterAlive = true
+				p := lobby.Players[i]
+				if p.ID.String() == voterID {
+					if p.IsAlive && p.IsExcludedFromCouncil {
+						return ErrExcludedFromCouncil
+					}
+					if p.IsAlive {
+						voterAlive = true
+					}
 				}
-				if lobby.Players[i].ID.String() == targetID && lobby.Players[i].IsAlive {
+				if p.ID.String() == targetID && p.IsAlive {
 					targetAlive = true
 				}
 			}
@@ -113,7 +119,7 @@ func (s *Store) SubmitDayVote(ctx context.Context, code, voterID, targetID strin
 		if err == nil {
 			return nil
 		}
-		if errors.Is(err, ErrLobbyNotFound) || errors.Is(err, ErrWrongPhase) || errors.Is(err, ErrVoteInvalid) {
+		if errors.Is(err, ErrLobbyNotFound) || errors.Is(err, ErrWrongPhase) || errors.Is(err, ErrVoteInvalid) || errors.Is(err, ErrExcludedFromCouncil) {
 			return err
 		}
 		if err == redis.TxFailedErr {
@@ -146,9 +152,24 @@ func tallyEffectiveVotes(lobby *models.Lobby) map[string]int {
 		if !alive[voterID] || !alive[targetID] {
 			continue
 		}
+		if isVoterExcludedFromCouncil(lobby, voterID) {
+			continue
+		}
 		tally[targetID]++
 	}
 	return tally
+}
+
+func isVoterExcludedFromCouncil(lobby *models.Lobby, voterID string) bool {
+	if lobby == nil {
+		return false
+	}
+	for i := range lobby.Players {
+		if lobby.Players[i].ID.String() == voterID {
+			return lobby.Players[i].IsExcludedFromCouncil
+		}
+	}
+	return false
 }
 
 // pickDefendantAtEndOfDay returns the player ID with the most effective votes; ties break by lexicographic ID order.

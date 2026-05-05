@@ -16,6 +16,8 @@ type GameStateDTO struct {
 	Phase                GamePhase         `json:"phase"`
 	WinnerTeam           string            `json:"winner_team,omitempty"`
 	TimeRemaining        int               `json:"time_remaining"`
+	PhaseTotalSeconds    int               `json:"phase_total_seconds,omitempty"`
+	PhaseSettings        PhaseSettings     `json:"phase_settings"`
 	SocialPhaseTotalTime int               `json:"social_phase_total_time,omitempty"`
 	ChairPromptTriggered bool              `json:"chair_prompt_triggered,omitempty"`
 	CouncilAccusations   map[string]string `json:"council_accusations,omitempty"`

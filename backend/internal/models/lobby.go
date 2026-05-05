@@ -25,6 +25,8 @@ type Lobby struct {
 	Phase                GamePhase         `json:"phase"`
 	WinnerTeam           string            `json:"winner_team,omitempty"`
 	TimeRemaining        int               `json:"time_remaining"`
+	PhaseTotalSeconds    int               `json:"phase_total_seconds,omitempty"`
+	PhaseSettings        PhaseSettings     `json:"phase_settings"`
 	SocialPhaseTotalTime int               `json:"social_phase_total_time,omitempty"`
 	ChairPromptTriggered bool              `json:"chair_prompt_triggered,omitempty"`
 	CouncilAccusations   map[string]string `json:"council_accusations,omitempty"`
@@ -33,6 +35,7 @@ type Lobby struct {
 	PleadingTimerStarted bool              `json:"pleading_timer_started"`
 	Votes                map[string]string `json:"votes,omitempty"`
 	NightActions         map[string]string `json:"night_actions,omitempty"`
+	Prayers              map[string]string `json:"prayers,omitempty"`
 	WendigoIntentions    map[string]string `json:"wendigo_intentions,omitempty"`
 	DefendantID          string            `json:"defendant_id,omitempty"`
 }
@@ -64,7 +67,19 @@ func (lobby *Lobby) GetTimeRemaining() int {
 }
 
 func (lobby *Lobby) GetNextPhase() (GamePhase, int) {
-	return GetNextPhaseAndTime(lobby.Phase)
+	return GetNextPhaseAndTime(lobby.Phase, EffectivePhaseSettings(lobby))
+}
+
+// SetPhaseCountdown sets the visible countdown and the total length of the current timed segment (for UI progress).
+func SetPhaseCountdown(lobby *Lobby, seconds int) {
+	if lobby == nil {
+		return
+	}
+	lobby.TimeRemaining = seconds
+	if seconds < 0 {
+		lobby.TimeRemaining = 0
+	}
+	lobby.PhaseTotalSeconds = lobby.TimeRemaining
 }
 
 // SafeForFullLobbySync is true when broadcasting the raw Lobby JSON to every client is safe
@@ -103,6 +118,8 @@ func (lobby *Lobby) ToGameStateDTO(forPlayerID string) GameStateDTO {
 		Phase:                lobby.Phase,
 		WinnerTeam:           lobby.WinnerTeam,
 		TimeRemaining:        lobby.TimeRemaining,
+		PhaseTotalSeconds:    lobby.PhaseTotalSeconds,
+		PhaseSettings:        EffectivePhaseSettings(lobby),
 		SocialPhaseTotalTime: lobby.SocialPhaseTotalTime,
 		ChairPromptTriggered: lobby.ChairPromptTriggered,
 		Players:              make([]PlayerDTO, 0, len(lobby.Players)),

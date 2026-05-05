@@ -41,6 +41,7 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 				return fmt.Errorf("unmarshal lobby: %w", err)
 			}
 			ensureLobbyVotes(&lobby)
+			ps := models.EffectivePhaseSettings(&lobby)
 			if lobby.Phase == "" {
 				lobby.Phase = models.GamePhaseLobby
 			}
@@ -50,7 +51,7 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 			if lobby.Phase == models.GamePhaseNight {
 				alivePlayers := countAlivePlayers(&lobby)
 				if alivePlayers > 0 && len(lobby.NightActions) >= alivePlayers {
-					lobby.TimeRemaining = 0
+					models.SetPhaseCountdown(&lobby, 0)
 				}
 			}
 
@@ -68,7 +69,7 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 				if lobby.TimeRemaining == threshold && !lobby.ChairPromptTriggered {
 					lobby.ChairPromptTriggered = true
 					lobby.Phase = models.GamePhaseChairSelection
-					lobby.TimeRemaining = models.ChairSelectionPhaseSeconds
+					models.SetPhaseCountdown(&lobby, ps.ChairSelectionSeconds)
 					for i := range lobby.Players {
 						if lobby.Players[i].IsAlive {
 							lobby.Players[i].ChairID = models.UnseatedChair
@@ -91,7 +92,7 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 							}
 							advanced = true
 						} else {
-							lobby.TimeRemaining = models.ChairSelectionPhaseSeconds
+							models.SetPhaseCountdown(&lobby, ps.ChairSelectionSeconds)
 						}
 					} else {
 						if err := advanceFromChairSelection(&lobby); err != nil {
@@ -102,45 +103,53 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 					if advanced {
 						lobby.Votes = make(map[string]string)
 						lobby.NightActions = make(map[string]string)
+						lobby.Prayers = make(map[string]string)
 						lobby.WendigoIntentions = make(map[string]string)
 					}
 				} else if previousPhase == models.GamePhaseAccusation && len(lobby.CouncilAccusations) > 0 {
 					startPleadingsFromAccusation(&lobby)
 					lobby.Votes = make(map[string]string)
 					lobby.NightActions = make(map[string]string)
+					lobby.Prayers = make(map[string]string)
 					lobby.WendigoIntentions = make(map[string]string)
+				} else if previousPhase == models.GamePhaseAccusation && len(lobby.CouncilAccusations) == 0 {
+					lobby.Phase = models.GamePhaseCouncilVote
+					models.SetPhaseCountdown(&lobby, ps.CouncilVoteSeconds)
+					lobby.Votes = make(map[string]string)
 				} else if previousPhase == models.GamePhasePleadings {
 					if len(lobby.PleadingsQueue) > 0 {
 						lobby.CurrentSpeakerID = lobby.PleadingsQueue[0]
 						lobby.PleadingsQueue = lobby.PleadingsQueue[1:]
 						lobby.PleadingTimerStarted = false
-						lobby.TimeRemaining = 0
+						models.SetPhaseCountdown(&lobby, 0)
 					} else {
-						next, seconds := models.GetNextPhaseAndTime(models.GamePhasePleadings)
+						next, seconds := models.GetNextPhaseAndTime(models.GamePhasePleadings, ps)
 						lobby.Phase = next
-						lobby.TimeRemaining = seconds
+						models.SetPhaseCountdown(&lobby, seconds)
 						clearPleadingsState(&lobby)
 						lobby.CouncilAccusations = make(map[string]string)
 						lobby.DefendantID = ""
 						lobby.Votes = make(map[string]string)
 						lobby.NightActions = make(map[string]string)
+						lobby.Prayers = make(map[string]string)
 						lobby.WendigoIntentions = make(map[string]string)
 					}
 				} else if previousPhase == models.GamePhaseCouncilVote {
 					applyCouncilVoteElimination(&lobby)
 					lobby.DefendantID = ""
-					next, seconds := models.GetNextPhaseAndTime(models.GamePhaseCouncilVote)
+					next, seconds := models.GetNextPhaseAndTime(models.GamePhaseCouncilVote, ps)
 					lobby.Phase = next
-					lobby.TimeRemaining = seconds
+					models.SetPhaseCountdown(&lobby, seconds)
 					if victory, winner := CheckVictoryConditions(&lobby); victory {
 						lobby.Phase = models.PhaseGameOver
 						lobby.WinnerTeam = winner
-						lobby.TimeRemaining = 0
+						models.SetPhaseCountdown(&lobby, 0)
 						shouldPersistOutcome = true
 						finishedLobbySnapshot = lobby
 					}
 					lobby.Votes = make(map[string]string)
 					lobby.NightActions = make(map[string]string)
+					lobby.Prayers = make(map[string]string)
 					lobby.WendigoIntentions = make(map[string]string)
 				} else {
 					if previousPhase == models.GamePhaseDay && lobby.DefendantID == "" {
@@ -149,7 +158,7 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 
 					next, seconds := lobby.GetNextPhase()
 					lobby.Phase = next
-					lobby.TimeRemaining = seconds
+					models.SetPhaseCountdown(&lobby, seconds)
 					if lobby.Phase == models.GamePhaseDay {
 						enterDaySocialSnapshot(&lobby)
 					}
@@ -167,7 +176,7 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 						if victory, winner := CheckVictoryConditions(&lobby); victory {
 							lobby.Phase = models.PhaseGameOver
 							lobby.WinnerTeam = winner
-							lobby.TimeRemaining = 0
+							models.SetPhaseCountdown(&lobby, 0)
 							shouldPersistOutcome = true
 							finishedLobbySnapshot = lobby
 						}
@@ -186,7 +195,7 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 						if victory, winner := CheckVictoryConditions(&lobby); victory {
 							lobby.Phase = models.PhaseGameOver
 							lobby.WinnerTeam = winner
-							lobby.TimeRemaining = 0
+							models.SetPhaseCountdown(&lobby, 0)
 							shouldPersistOutcome = true
 							finishedLobbySnapshot = lobby
 						}
@@ -194,6 +203,7 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 
 					lobby.Votes = make(map[string]string)
 					lobby.NightActions = make(map[string]string)
+					lobby.Prayers = make(map[string]string)
 					lobby.WendigoIntentions = make(map[string]string)
 				}
 			}
