@@ -37,6 +37,7 @@ type Lobby struct {
 	PleadingsQueue       []string          `json:"pleadings_queue,omitempty"`
 	CurrentSpeakerID     string            `json:"current_speaker_id,omitempty"`
 	PleadingTimerStarted bool              `json:"pleading_timer_started"`
+	PleadingsCompleted   bool              `json:"pleadings_completed,omitempty"`
 	Votes                map[string]string `json:"votes,omitempty"`
 	NightActions         map[string]string `json:"night_actions,omitempty"`
 	Prayers              map[string]string `json:"prayers,omitempty"`

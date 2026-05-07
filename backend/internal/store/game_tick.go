@@ -59,13 +59,7 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 				}
 			}
 
-			shouldDecrementTime := true
-			if lobby.Phase == models.GamePhasePleadings && !lobby.PleadingTimerStarted {
-				shouldDecrementTime = false
-			}
-			if shouldDecrementTime {
-				lobby.TimeRemaining--
-			}
+			lobby.TimeRemaining--
 
 			dayChairRecall := false
 			if lobby.Phase == models.GamePhaseDay && lobby.SocialPhaseTotalTime >= 3 {
@@ -83,8 +77,7 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 				}
 			}
 
-			waitingForPleadingStart := lobby.Phase == models.GamePhasePleadings && !lobby.PleadingTimerStarted
-			if lobby.TimeRemaining <= 0 && !dayChairRecall && !waitingForPleadingStart {
+			if lobby.TimeRemaining <= 0 && !dayChairRecall {
 				previousPhase := lobby.Phase
 
 				if previousPhase == models.GamePhaseChairSelection {
@@ -114,17 +107,19 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 				} else if previousPhase == models.GamePhaseAccusation {
 					lobby.Phase = models.GamePhaseCouncilSummary
 					models.SetPhaseCountdown(&lobby, ps.CouncilSummarySeconds)
+					lobby.PleadingsCompleted = false
 					lobby.Votes = make(map[string]string)
 					lobby.NightActions = make(map[string]string)
 					lobby.Prayers = make(map[string]string)
 					lobby.WendigoIntentions = make(map[string]string)
 					lobby.WendigoIntents = make(map[string]string)
 				} else if previousPhase == models.GamePhaseCouncilSummary {
-					if len(lobby.CouncilAccusations) > 0 {
+					if len(lobby.CouncilAccusations) > 0 && !lobby.PleadingsCompleted {
 						startPleadingsFromAccusation(&lobby)
 					} else {
 						lobby.Phase = models.GamePhaseCouncilVote
 						models.SetPhaseCountdown(&lobby, ps.CouncilVoteSeconds)
+						lobby.CouncilAccusations = make(map[string]string)
 					}
 					lobby.Votes = make(map[string]string)
 					lobby.NightActions = make(map[string]string)
@@ -136,13 +131,13 @@ func (s *Store) ProcessGameTick(ctx context.Context, code string) (continueLoop 
 						lobby.CurrentSpeakerID = lobby.PleadingsQueue[0]
 						lobby.PleadingsQueue = lobby.PleadingsQueue[1:]
 						lobby.PleadingTimerStarted = false
-						models.SetPhaseCountdown(&lobby, 0)
+						models.SetPhaseCountdown(&lobby, 15)
 					} else {
 						next, seconds := models.GetNextPhaseAndTime(models.GamePhasePleadings, ps)
 						lobby.Phase = next
 						models.SetPhaseCountdown(&lobby, seconds)
+						lobby.PleadingsCompleted = true
 						clearPleadingsState(&lobby)
-						lobby.CouncilAccusations = make(map[string]string)
 						lobby.DefendantID = ""
 						lobby.Votes = make(map[string]string)
 						lobby.NightActions = make(map[string]string)

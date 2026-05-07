@@ -677,7 +677,8 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
         ) : null}
         {!lobby.pleadingTimerStarted ? (
           <p className="text-xs text-slate-400">
-            L’orateur démarre son temps de parole quand il est prêt (45 s une fois lancé).
+            L’orateur démarre son temps de parole quand il est prêt ({lobby.phaseSettings.pleadingSpeechSeconds} s une fois
+            lancé).
           </p>
         ) : (
           <p className="text-xs text-amber-200/85">Temps restant : {lobby.timeRemaining}s</p>

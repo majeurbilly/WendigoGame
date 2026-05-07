@@ -34,6 +34,7 @@ func enterDaySocialSnapshot(lobby *models.Lobby) {
 	lobby.CouncilAccusations = make(map[string]string)
 	lobby.Prayers = make(map[string]string)
 	lobby.WendigoIntentions = make(map[string]string)
+	lobby.PleadingsCompleted = false
 	clearPleadingsState(lobby)
 	for i := range lobby.Players {
 		lobby.Players[i].IsExcludedFromCouncil = false

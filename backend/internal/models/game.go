@@ -35,7 +35,7 @@ func GetNextPhaseAndTime(currentPhase GamePhase, settings PhaseSettings) (GamePh
 	case GamePhaseCouncilSummary:
 		return GamePhaseCouncilVote, s.CouncilVoteSeconds
 	case GamePhasePleadings:
-		return GamePhaseCouncilVote, s.CouncilVoteSeconds
+		return GamePhaseCouncilSummary, s.CouncilSummarySeconds
 	case GamePhaseCouncilVote:
 		return GamePhaseStake, s.StakeSeconds
 	case GamePhaseStake:

@@ -59,6 +59,7 @@ func startPleadingsFromAccusation(lobby *models.Lobby) {
 	lobby.PleadingsQueue = q
 	lobby.Phase = models.GamePhasePleadings
 	lobby.PleadingTimerStarted = false
+	lobby.PleadingsCompleted = false
 	if len(lobby.PleadingsQueue) == 0 {
 		lobby.CurrentSpeakerID = ""
 		models.SetPhaseCountdown(lobby, 0)
@@ -66,7 +67,7 @@ func startPleadingsFromAccusation(lobby *models.Lobby) {
 	}
 	lobby.CurrentSpeakerID = lobby.PleadingsQueue[0]
 	lobby.PleadingsQueue = lobby.PleadingsQueue[1:]
-	models.SetPhaseCountdown(lobby, 0)
+	models.SetPhaseCountdown(lobby, 15)
 }
 
 // StartPleading arms the speaking timer for the current speaker (START_PLEADING WebSocket).
