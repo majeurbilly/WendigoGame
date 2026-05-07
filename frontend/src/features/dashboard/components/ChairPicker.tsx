@@ -13,9 +13,10 @@ interface ChairPickerProps {
   lobby: LobbyState
   currentPlayer: Player
   sendMessage: (type: SocketActionType, payload: ClaimSeatPayload) => boolean
+  disabled?: boolean
 }
 
-const ChairPicker = ({ lobby, currentPlayer, sendMessage }: ChairPickerProps) => {
+const ChairPicker = ({ lobby, currentPlayer, sendMessage, disabled = false }: ChairPickerProps) => {
   const hasSeat = currentPlayer.chairId >= 0 && currentPlayer.chairId !== UNSEATED
   const players = lobby.players
   const numChairs = players.length
@@ -29,7 +30,7 @@ const ChairPicker = ({ lobby, currentPlayer, sendMessage }: ChairPickerProps) =>
       : []
 
   const pickChair = (chairId: number) => {
-    if (hasSeat) return
+    if (disabled || hasSeat) return
     const sent = sendMessage('CLAIM_SEAT', { chair_id: chairId })
     if (!sent) {
       toast.error('Connexion indisponible.')
@@ -48,12 +49,12 @@ const ChairPicker = ({ lobby, currentPlayer, sendMessage }: ChairPickerProps) =>
 
   return (
     <div
-      className={`grid w-full max-w-md gap-3 rounded-xl border border-slate-800 bg-slate-950/60 p-4 ${gridCols}`}
+      className={`grid w-full max-w-md gap-3 rounded-xl border border-slate-800 bg-slate-950/60 p-4 ${gridCols} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
     >
       {seats.map(({ chairId, occupant }) => {
         const isMine = occupant?.id === currentPlayer.id
         const occupied = occupant !== null
-        const clickable = !hasSeat && !occupied
+        const clickable = !disabled && !hasSeat && !occupied
 
         let cellClass =
           'flex h-14 w-full items-center justify-center rounded-lg border-2 text-sm font-medium transition-colors'

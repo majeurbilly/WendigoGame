@@ -6,10 +6,14 @@ const (
 	GamePhaseLobby          GamePhase = "LOBBY"
 	GamePhaseChairSelection GamePhase = "CHAIR_SELECTION"
 	GamePhaseDay            GamePhase = "DAY"
+	GamePhaseMorning        GamePhase = "MORNING"
+	GamePhaseNoCouncil      GamePhase = "NO_COUNCIL"
 	GamePhaseCouncilStart   GamePhase = "COUNCIL_START"
 	GamePhaseAccusation     GamePhase = "ACCUSATION"
+	GamePhaseCouncilSummary GamePhase = "COUNCIL_SUMMARY"
 	GamePhasePleadings      GamePhase = "PLEADINGS"
 	GamePhaseCouncilVote    GamePhase = "COUNCIL_VOTE"
+	GamePhaseStake          GamePhase = "STAKE"
 	GamePhaseNight          GamePhase = "NIGHT"
 	PhaseGameOver           GamePhase = "GAME_OVER"
 )
@@ -27,13 +31,21 @@ func GetNextPhaseAndTime(currentPhase GamePhase, settings PhaseSettings) (GamePh
 	case GamePhaseCouncilStart:
 		return GamePhaseAccusation, s.CouncilAccusationPostChairSeconds
 	case GamePhaseAccusation:
-		return GamePhaseNight, s.NightSeconds
+		return GamePhaseCouncilSummary, s.CouncilSummarySeconds
+	case GamePhaseCouncilSummary:
+		return GamePhaseCouncilVote, s.CouncilVoteSeconds
 	case GamePhasePleadings:
 		return GamePhaseCouncilVote, s.CouncilVoteSeconds
 	case GamePhaseCouncilVote:
+		return GamePhaseStake, s.StakeSeconds
+	case GamePhaseStake:
+		return GamePhaseNight, s.NightSeconds
+	case GamePhaseNoCouncil:
 		return GamePhaseNight, s.NightSeconds
 	case GamePhaseNight:
-		return GamePhaseDay, s.PostNightDaySeconds
+		return GamePhaseMorning, s.MorningSeconds
+	case GamePhaseMorning:
+		return GamePhaseDay, s.DaySocialSeconds
 	case PhaseGameOver:
 		return PhaseGameOver, 0
 	default:

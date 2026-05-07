@@ -23,7 +23,7 @@ export default function LobbyPage() {
   const { playHeartbeat, stopHeartbeat, playNightFall, playDayBreak, playGameOver } = useGameAudio()
 
   const handleInvalidLobby = useCallback(
-    (_message: string) => {
+    () => {
       navigate('/', { replace: true })
     },
     [navigate]
@@ -55,7 +55,14 @@ export default function LobbyPage() {
       if (nextPhase === 'NIGHT') {
         playNightFall()
         playHeartbeat()
-      } else if (nextPhase === 'DAY' || nextPhase === 'COUNCIL_START' || nextPhase === 'ACCUSATION') {
+      } else if (
+        nextPhase === 'DAY' ||
+        nextPhase === 'MORNING' ||
+        nextPhase === 'COUNCIL_START' ||
+        nextPhase === 'ACCUSATION' ||
+        nextPhase === 'COUNCIL_SUMMARY' ||
+        nextPhase === 'STAKE'
+      ) {
         stopHeartbeat()
         playDayBreak()
       } else if (nextPhase === 'ENDED' || nextPhase === 'GAME_OVER') {
@@ -81,7 +88,7 @@ export default function LobbyPage() {
           </div>
         </div>
       ) : isEndedPhase ? (
-        <EndedScreen lobby={lobby!} />
+        <EndedScreen lobby={lobby!} sendMessage={sendMessage} />
       ) : isWaitingInLobby ? (
         <WaitingRoom sendMessage={sendMessage} disconnect={disconnect} onLeave={handleLeaveLobby} />
       ) : (

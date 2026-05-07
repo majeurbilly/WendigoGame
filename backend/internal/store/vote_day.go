@@ -42,8 +42,10 @@ func councilVoteVictimID(lobby *models.Lobby) string {
 func applyCouncilVoteElimination(lobby *models.Lobby) {
 	victimID := councilVoteVictimID(lobby)
 	if victimID == "" {
+		lobby.LastLynchVictimID = ""
 		return
 	}
+	lobby.LastLynchVictimID = victimID
 	for i := range lobby.Players {
 		if lobby.Players[i].ID.String() == victimID {
 			lobby.Players[i].IsAlive = false
@@ -62,6 +64,9 @@ func (s *Store) SubmitDayVote(ctx context.Context, code, voterID, targetID strin
 	targetID = strings.TrimSpace(targetID)
 	if voterID == "" || targetID == "" {
 		return ErrVoteInvalid
+	}
+	if voterID == targetID {
+		return errors.New("vous ne pouvez pas voter pour vous-même")
 	}
 
 	key := lobbyKey(code)

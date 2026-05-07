@@ -25,3 +25,22 @@ func TestCheckVictoryConditions_LastWendigoDies_VillagersWin(t *testing.T) {
 		t.Fatalf("winner: got %q, want %q", winner, store.VictoryTeamVillagers)
 	}
 }
+
+func TestCheckVictoryConditions_WendigosOutnumberVillagers_GameContinues(t *testing.T) {
+	lobby := &models.Lobby{
+		Players: []models.Player{
+			{ID: uuid.New(), Role: "WENDIGO", IsAlive: true},
+			{ID: uuid.New(), Role: "WENDIGO", IsAlive: true},
+			{ID: uuid.New(), Role: "WENDIGO", IsAlive: true},
+			{ID: uuid.New(), Role: "VILLAGER", IsAlive: true},
+		},
+	}
+
+	victory, winner := store.CheckVictoryConditions(lobby)
+	if victory {
+		t.Fatalf("expected game to continue, got victory winner=%q", winner)
+	}
+	if winner != "" {
+		t.Fatalf("expected empty winner when continuing, got %q", winner)
+	}
+}

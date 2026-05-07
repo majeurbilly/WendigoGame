@@ -122,6 +122,9 @@ func (s *Store) SubmitPrayer(ctx context.Context, code, voterID, targetID string
 	if voterID == "" || targetID == "" {
 		return ErrVoteInvalid
 	}
+	if voterID == targetID {
+		return errors.New("vous ne pouvez pas prier pour vous-même")
+	}
 
 	key := lobbyKey(code)
 	for range maxLobbyTxRetries {

@@ -12,7 +12,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func TestSubmitPrayer_AllowsAliveSelfOrOther(t *testing.T) {
+func TestSubmitPrayer_AllowsAliveOtherOnly(t *testing.T) {
 	miniredisServer := miniredis.RunT(t)
 	redisClient := redis.NewClient(&redis.Options{Addr: miniredisServer.Addr()})
 	t.Cleanup(func() { _ = redisClient.Close() })
@@ -39,8 +39,8 @@ func TestSubmitPrayer_AllowsAliveSelfOrOther(t *testing.T) {
 
 	hostID := lobby.Players[0].ID.String()
 	guestID := lobby.Players[1].ID.String()
-	if err := st.SubmitPrayer(ctx, lobby.Code, hostID, hostID); err != nil {
-		t.Fatalf("SubmitPrayer self: %v", err)
+	if err := st.SubmitPrayer(ctx, lobby.Code, hostID, hostID); err == nil {
+		t.Fatal("expected error for self prayer")
 	}
 	if err := st.SubmitPrayer(ctx, lobby.Code, guestID, hostID); err != nil {
 		t.Fatalf("SubmitPrayer other: %v", err)
@@ -50,8 +50,8 @@ func TestSubmitPrayer_AllowsAliveSelfOrOther(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetLobby after prayer: %v", err)
 	}
-	if got.Prayers[hostID] != hostID {
-		t.Fatalf("host prayer: got %q want %q", got.Prayers[hostID], hostID)
+	if _, ok := got.Prayers[hostID]; ok {
+		t.Fatalf("expected no self prayer recorded, got=%v", got.Prayers[hostID])
 	}
 	if got.Prayers[guestID] != hostID {
 		t.Fatalf("guest prayer: got %q want %q", got.Prayers[guestID], hostID)

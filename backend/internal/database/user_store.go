@@ -241,7 +241,7 @@ func isWendigoRole(role string) bool {
 }
 
 func playerWonMatch(role string, winnerTeam string) bool {
-	isWendigoWinner := strings.EqualFold(strings.TrimSpace(winnerTeam), "WENDIGOS")
+	isWendigoWinner := strings.EqualFold(strings.TrimSpace(winnerTeam), "WENDIGO")
 	if isWendigoRole(role) {
 		return isWendigoWinner
 	}

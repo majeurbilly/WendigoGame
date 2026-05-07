@@ -79,9 +79,28 @@ func advanceFromChairSelection(lobby *models.Lobby) error {
 	ps := models.EffectivePhaseSettings(lobby)
 	if lobby.ChairPromptTriggered {
 		lobby.ChairPromptTriggered = false
-		lobby.Phase = models.GamePhaseCouncilStart
-		models.SetPhaseCountdown(lobby, ps.CouncilStartSeconds)
 		applyCouncilChairSanctions(lobby)
+
+		councilParticipants := 0
+		for i := range lobby.Players {
+			if !lobby.Players[i].IsAlive {
+				continue
+			}
+			if lobby.Players[i].IsExcludedFromCouncil {
+				continue
+			}
+			councilParticipants++
+		}
+
+		if councilParticipants > 0 {
+			lobby.Phase = models.GamePhaseCouncilStart
+			models.SetPhaseCountdown(lobby, ps.CouncilStartSeconds)
+		} else {
+			lobby.Phase = models.GamePhaseNoCouncil
+			models.SetPhaseCountdown(lobby, ps.NoCouncilSeconds)
+			lobby.Votes = make(map[string]string)
+			lobby.CouncilAccusations = make(map[string]string)
+		}
 		return nil
 	}
 	lobby.Phase = models.GamePhaseDay

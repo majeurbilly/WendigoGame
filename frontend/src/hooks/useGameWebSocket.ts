@@ -11,6 +11,11 @@ type ClientMessageType =
   | 'ACCUSE'
   | 'WENDIGO_INTENT'
   | 'START_PLEADING'
+  | 'TOGGLE_PAUSE'
+  | 'FORCE_END_GAME'
+  | 'RESTART_GAME'
+  | 'START_SURRENDER_VOTE'
+  | 'SUBMIT_SURRENDER_VOTE'
   | 'START_GAME'
   | 'UPDATE_PHASE_SETTINGS'
   | 'LEAVE_LOBBY'
@@ -39,11 +44,15 @@ interface RawPlayerPayload {
 interface RawPhaseSettingsPayload {
   chair_selection_seconds?: number
   day_social_seconds?: number
+  morning_seconds?: number
+  no_council_seconds?: number
   council_start_seconds?: number
   council_accusation_post_chair_seconds?: number
   council_accusation_after_day_seconds?: number
+  council_summary_seconds?: number
   pleading_speech_seconds?: number
   council_vote_seconds?: number
+  stake_seconds?: number
   night_seconds?: number
   post_night_day_seconds?: number
 }
@@ -63,18 +72,35 @@ interface RawLobbyPayload {
   social_phase_total_time?: number
   chairPromptTriggered?: boolean
   chair_prompt_triggered?: boolean
+  isPaused?: boolean
+  is_paused?: boolean
+  surrenderVoteActive?: boolean
+  surrender_vote_active?: boolean
+  surrenderVotes?: Record<string, boolean>
+  surrender_votes?: Record<string, boolean>
+  surrenderApproved?: boolean
+  surrender_approved?: boolean
   councilAccusations?: Record<string, string>
   council_accusations?: Record<string, string>
   wendigoIntentions?: Record<string, string>
   wendigo_intentions?: Record<string, string>
+  wendigoIntents?: Record<string, string>
+  wendigo_intents?: Record<string, string>
   prayerTallies?: Record<string, number>
   prayer_tallies?: Record<string, number>
   pleadingsQueue?: string[]
   pleadings_queue?: string[]
+  votes?: Record<string, string>
   currentSpeakerId?: string
   current_speaker_id?: string
   pleadingTimerStarted?: boolean
   pleading_timer_started?: boolean
+  lastLynchVictimId?: string
+  last_lynch_victim_id?: string
+  lastNightVictimId?: string
+  last_night_victim_id?: string
+  lastNightSavedByPrayer?: boolean
+  last_night_saved_by_prayer?: boolean
   winnerTeam?: string
   winner_team?: string
   maxPlayers?: number
@@ -143,6 +169,8 @@ const normalizePhaseSettingsPayload = (raw?: RawPhaseSettingsPayload): PhaseSett
   return {
     chairSelectionSeconds: n(raw.chair_selection_seconds, d.chairSelectionSeconds),
     daySocialSeconds: n(raw.day_social_seconds, d.daySocialSeconds),
+    morningSeconds: n(raw.morning_seconds, d.morningSeconds),
+    noCouncilSeconds: n(raw.no_council_seconds, d.noCouncilSeconds),
     councilStartSeconds: n(raw.council_start_seconds, d.councilStartSeconds),
     councilAccusationPostChairSeconds: n(
       raw.council_accusation_post_chair_seconds,
@@ -152,8 +180,10 @@ const normalizePhaseSettingsPayload = (raw?: RawPhaseSettingsPayload): PhaseSett
       raw.council_accusation_after_day_seconds,
       d.councilAccusationAfterDaySeconds
     ),
+    councilSummarySeconds: n(raw.council_summary_seconds, d.councilSummarySeconds),
     pleadingSpeechSeconds: n(raw.pleading_speech_seconds, d.pleadingSpeechSeconds),
     councilVoteSeconds: n(raw.council_vote_seconds, d.councilVoteSeconds),
+    stakeSeconds: n(raw.stake_seconds, d.stakeSeconds),
     nightSeconds: n(raw.night_seconds, d.nightSeconds),
     postNightDaySeconds: n(raw.post_night_day_seconds, d.postNightDaySeconds),
   }
@@ -179,12 +209,21 @@ const normalizeLobbyPayload = (payload: RawLobbyPayload): LobbyState => ({
   phaseSettings: payload.phaseSettings ?? normalizePhaseSettingsPayload(payload.phase_settings),
   socialPhaseTotalTime: payload.socialPhaseTotalTime ?? payload.social_phase_total_time,
   chairPromptTriggered: payload.chairPromptTriggered ?? payload.chair_prompt_triggered,
+  isPaused: payload.isPaused ?? payload.is_paused ?? false,
+  surrenderVoteActive: payload.surrenderVoteActive ?? payload.surrender_vote_active ?? false,
+  surrenderVotes: payload.surrenderVotes ?? payload.surrender_votes ?? {},
+  surrenderApproved: payload.surrenderApproved ?? payload.surrender_approved ?? false,
   councilAccusations: payload.councilAccusations ?? payload.council_accusations ?? {},
   wendigoIntentions: payload.wendigoIntentions ?? payload.wendigo_intentions ?? {},
+  wendigoIntents: payload.wendigoIntents ?? payload.wendigo_intents ?? {},
   prayerTallies: payload.prayerTallies ?? payload.prayer_tallies ?? {},
   pleadingsQueue: payload.pleadingsQueue ?? payload.pleadings_queue ?? [],
+  votes: payload.votes ?? {},
   currentSpeakerId: payload.currentSpeakerId ?? payload.current_speaker_id,
   pleadingTimerStarted: payload.pleadingTimerStarted ?? payload.pleading_timer_started ?? false,
+  lastLynchVictimId: payload.lastLynchVictimId ?? payload.last_lynch_victim_id,
+  lastNightVictimId: payload.lastNightVictimId ?? payload.last_night_victim_id,
+  lastNightSavedByPrayer: payload.lastNightSavedByPrayer ?? payload.last_night_saved_by_prayer ?? false,
   winnerTeam: payload.winnerTeam ?? payload.winner_team,
   maxPlayers: payload.maxPlayers ?? payload.max_players,
   minPlayers: payload.minPlayers ?? payload.min_players,

@@ -15,6 +15,10 @@ type SocketActionType =
   | 'CLAIM_SEAT'
   | 'ACCUSE'
   | 'START_PLEADING'
+  | 'TOGGLE_PAUSE'
+  | 'FORCE_END_GAME'
+  | 'START_SURRENDER_VOTE'
+  | 'SUBMIT_SURRENDER_VOTE'
 
 interface SubmitNightActionPayload {
   action: NightAction
@@ -40,6 +44,10 @@ interface SubmitPrayerPayload {
   target_id: string
 }
 
+interface SubmitSurrenderVotePayload {
+  vote_yes: boolean
+}
+
 type ActionPayloadByType = {
   SUBMIT_NIGHT_ACTION: SubmitNightActionPayload
   SUBMIT_PRAYER: SubmitPrayerPayload
@@ -48,6 +56,10 @@ type ActionPayloadByType = {
   CLAIM_SEAT: ClaimSeatPayload
   ACCUSE: AccusePayload
   START_PLEADING: Record<string, never>
+  TOGGLE_PAUSE: Record<string, never>
+  FORCE_END_GAME: Record<string, never>
+  START_SURRENDER_VOTE: Record<string, never>
+  SUBMIT_SURRENDER_VOTE: SubmitSurrenderVotePayload
 }
 
 interface ActionPanelProps {
@@ -71,15 +83,18 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
   )
 
   const aliveForCouncilVote = useMemo(
-    () => lobby.players.filter((player) => player.isAlive),
-    [lobby.players]
+    () => lobby.players.filter((player) => player.isAlive && player.id !== currentPlayer.id),
+    [currentPlayer.id, lobby.players]
   )
 
   const aliveTargetsForWendigo = useMemo(
     () => lobby.players.filter((player) => player.isAlive && player.id !== currentPlayer.id),
     [currentPlayer.id, lobby.players]
   )
-  const alivePrayerTargets = useMemo(() => lobby.players.filter((player) => player.isAlive), [lobby.players])
+  const alivePrayerTargets = useMemo(
+    () => lobby.players.filter((player) => player.isAlive && player.id !== currentPlayer.id),
+    [currentPlayer.id, lobby.players]
+  )
 
   const councilAccusations = lobby.councilAccusations ?? {}
   const accusedTargets = useMemo(() => new Set(Object.values(councilAccusations)), [councilAccusations])
@@ -96,12 +111,14 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
     setPrayerTarget('')
   }, [lobby.phase, lobby.currentSpeakerId])
 
+  const phase = lobby.phase.toUpperCase()
+
   useEffect(() => {
     if (alivePrayerTargets.length === 0) {
       setPrayerTarget('')
       return
     }
-    const defaultTarget = alivePrayerTargets.find((player) => player.id === currentPlayer.id)?.id ?? alivePrayerTargets[0].id
+    const defaultTarget = alivePrayerTargets[0].id
     setPrayerTarget((prev) => {
       if (prev !== '' && alivePrayerTargets.some((player) => player.id === prev)) {
         return prev
@@ -110,18 +127,22 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
     })
   }, [alivePrayerTargets, currentPlayer.id])
 
-  if (!currentPlayer.isAlive) {
+  // Les phases narratives (ex: STAKE / MORNING) doivent s'afficher même pour les joueurs éliminés.
+  if (!currentPlayer.isAlive && phase !== 'STAKE' && phase !== 'MORNING') {
     return null
   }
 
-  const phase = lobby.phase.toUpperCase()
   const role = (currentPlayer.role ?? '').toUpperCase()
+  const isPaused = lobby.isPaused === true
+  const pausedControlClass = isPaused ? 'cursor-not-allowed opacity-50' : ''
   const canPrayAtNight = currentPlayer.role !== 'WENDIGO'
   const findTargetName = (targetId: string): string =>
     aliveOpponents.find((player) => player.id === targetId)?.name ?? 'Unknown target'
 
   const findAlivePlayerName = (playerId: string): string =>
     lobby.players.find((player) => player.id === playerId)?.name ?? 'Unknown target'
+  const findPlayerName = (playerId: string): string =>
+    lobby.players.find((player) => player.id === playerId)?.name ?? playerId.slice(0, 8)
 
   const submitNightAction = (action: NightAction, targetId: string) => {
     const sent = sendMessage('SUBMIT_NIGHT_ACTION', { action, target_id: targetId })
@@ -220,7 +241,7 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
 
   if (phase === 'NIGHT') {
     if (role === 'WENDIGO') {
-      const intentions = lobby.wendigoIntentions ?? {}
+      const intentions = lobby.wendigoIntents ?? lobby.wendigoIntentions ?? {}
       return (
         <div className="space-y-3">
           <p className="text-sm text-slate-300">
@@ -236,14 +257,39 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
               ))}
             </ul>
           ) : null}
+          {aliveTargetsForWendigo.length > 0 ? (
+            <div className="rounded-md border border-slate-800 bg-slate-950/30 p-3">
+              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">Intentions par cible</p>
+              <ul className="space-y-1 text-xs text-slate-300">
+                {aliveTargetsForWendigo.map((candidate) => {
+                  const aiming = Object.entries(intentions)
+                    .filter(([, targetId]) => targetId === candidate.id)
+                    .map(([wendigoId]) => findAlivePlayerName(wendigoId))
+                  return (
+                    <li key={candidate.id} className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-slate-200">{candidate.name}</span>
+                      {aiming.length > 0 ? (
+                        <span className="rounded-full border border-rose-900/60 bg-rose-950/30 px-2 py-0.5 text-[11px] text-rose-200">
+                          Visé par {aiming.join(', ')}
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-slate-500">—</span>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          ) : null}
           <select
             value={selectedTarget}
+            disabled={isPaused}
             onChange={(event) => {
               const next = event.target.value
               setSelectedTarget(next)
               sendWendigoIntent(next)
             }}
-            className="h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+            className={`h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500 ${pausedControlClass}`}
           >
             <option value="">— Retirer mon intention —</option>
             {aliveTargetsForWendigo.map((player) => (
@@ -255,8 +301,8 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
           <Button
             type="button"
             variant="destructive"
-            className="w-full"
-            disabled={selectedTarget.length === 0}
+            className={`w-full ${pausedControlClass}`}
+            disabled={isPaused || selectedTarget.length === 0}
             onClick={() => submitNightAction('KILL', selectedTarget)}
           >
             Confirmer le meurtre
@@ -269,8 +315,9 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
                 </p>
                 <select
                   value={prayerTarget}
+                  disabled={isPaused}
                   onChange={(event) => setPrayerTarget(event.target.value)}
-                  className="h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                  className={`h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500 ${pausedControlClass}`}
                 >
                   {alivePrayerTargets.map((player) => (
                     <option key={player.id} value={player.id}>
@@ -282,8 +329,8 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
                 <Button
                   type="button"
                   variant="secondary"
-                  className="mt-2 w-full"
-                  disabled={prayerTarget.length === 0}
+                  className={`mt-2 w-full ${pausedControlClass}`}
+                  disabled={isPaused || prayerTarget.length === 0}
                   onClick={() => submitPrayer(prayerTarget)}
                 >
                   Prier pour ce joueur
@@ -318,8 +365,9 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
         </p>
         <select
           value={prayerTarget}
+          disabled={isPaused}
           onChange={(event) => setPrayerTarget(event.target.value)}
-          className="h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+          className={`h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500 ${pausedControlClass}`}
         >
           {alivePrayerTargets.map((player) => (
             <option key={player.id} value={player.id}>
@@ -330,8 +378,8 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
         </select>
         <Button
           type="button"
-          className="w-full"
-          disabled={prayerTarget.length === 0}
+          className={`w-full ${pausedControlClass}`}
+          disabled={isPaused || prayerTarget.length === 0}
           onClick={() => submitPrayer(prayerTarget)}
         >
           Prier pour ce joueur
@@ -362,7 +410,7 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
         <p className="text-sm text-slate-300">
           Choisissez votre place autour du feu. Dès que tout le monde est assis, le jour se lève.
         </p>
-        <ChairPicker lobby={lobby} currentPlayer={currentPlayer} sendMessage={sendMessage} />
+        <ChairPicker lobby={lobby} currentPlayer={currentPlayer} sendMessage={sendMessage} disabled={isPaused} />
         {hasSeat ? (
           <p className="text-center text-xs text-emerald-400/90">Vous êtes assis — en attente des autres.</p>
         ) : null}
@@ -408,8 +456,9 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
         </p>
         <select
           value={selectedTarget}
+          disabled={isPaused}
           onChange={(event) => setSelectedTarget(event.target.value)}
-          className="h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+          className={`h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500 ${pausedControlClass}`}
         >
           <option value="">Choisir une cible</option>
           {aliveForCouncilVote.map((player) => (
@@ -422,12 +471,122 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
         <Button
           type="button"
           variant="destructive"
-          className="w-full"
-          disabled={disableTargetAction}
+          className={`w-full ${pausedControlClass}`}
+          disabled={isPaused || disableTargetAction}
           onClick={() => submitVoteDay(selectedTarget)}
         >
           VOTER AU CONSEIL
         </Button>
+      </div>
+    )
+  }
+
+  if (phase === 'COUNCIL_SUMMARY') {
+    const accusations = Object.entries(councilAccusations)
+    if (accusations.length === 0) {
+      return (
+        <div className="flex min-h-[180px] flex-col items-center justify-center rounded-lg border border-violet-900/40 bg-violet-950/20 p-8 text-center">
+          <p className="max-w-md font-serif text-xl font-semibold leading-snug tracking-wide text-violet-100 md:text-2xl">
+            Aucun habitant n&apos;a porté d&apos;accusation aujourd&apos;hui. Le village va maintenant passer au vote libre.
+          </p>
+        </div>
+      )
+    }
+
+    return (
+      <div className="rounded-lg border border-violet-900/40 bg-violet-950/20 p-6 text-center">
+        <p className="font-serif text-xl font-semibold tracking-wide text-violet-100">Bilan des accusations</p>
+        <ul className="mt-4 space-y-2 text-left text-sm text-violet-100/90">
+          {accusations.map(([accuserId, accusedId]) => (
+            <li key={accuserId} className="rounded-md border border-violet-900/40 bg-slate-950/40 px-3 py-2">
+              <span className="font-semibold text-violet-50">{findPlayerName(accuserId)}</span>
+              <span className="px-2 text-violet-300">-&gt;</span>
+              <span className="font-semibold text-amber-100">{findPlayerName(accusedId)}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+
+  if (phase === 'STAKE') {
+    const victimID = lobby.lastLynchVictimId ?? ''
+    const victimName = victimID !== '' ? findPlayerName(victimID) : ''
+    const votes = lobby.votes ?? {}
+    const voteEntries = Object.entries(votes)
+    return (
+      <div className="rounded-lg border border-orange-900/50 bg-gradient-to-b from-orange-950/30 via-rose-950/20 to-slate-950/40 p-6 text-center">
+        <p className="font-serif text-2xl font-semibold tracking-wide text-orange-200">Le Bûcher</p>
+        {victimID !== '' ? (
+          <p className="mt-3 p-4 text-center text-sm font-semibold leading-relaxed text-orange-300">
+            Le village a décidé de condamner <span className="font-semibold text-orange-100">{victimName}</span>. Il finit
+            sur le bûcher.
+          </p>
+        ) : (
+          <p className="mt-3 p-4 text-center text-sm font-semibold leading-relaxed text-orange-300">
+            Après de longues hésitations, le village n&apos;a brûlé personne ce soir. La nuit tombe sur le campement...
+          </p>
+        )}
+
+        <div className="mt-4 rounded-md border border-slate-800 bg-slate-950/40 p-4 text-left">
+          <p className="mb-2 text-center text-xs font-medium uppercase tracking-wide text-slate-300">
+            Votes du conseil
+          </p>
+          {voteEntries.length === 0 ? (
+            <p className="text-center text-sm text-slate-300">Aucun vote n&apos;a été exprimé.</p>
+          ) : (
+            <ul className="space-y-1 text-sm text-slate-300">
+              {voteEntries.map(([voterId, targetId]) => (
+                <li key={voterId} className="text-center">
+                  <span className="font-semibold text-slate-100">{findPlayerName(voterId)}</span> a voté contre{' '}
+                  <span className="font-semibold text-slate-100">{findPlayerName(targetId)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <p className="mt-2 text-xs text-orange-200/70">En attente de la nuit.</p>
+      </div>
+    )
+  }
+
+  if (phase === 'MORNING') {
+    const victimID = lobby.lastNightVictimId ?? ''
+    const saved = lobby.lastNightSavedByPrayer === true
+    const victimName = victimID !== '' ? findPlayerName(victimID) : ''
+
+    return (
+      <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-6 text-center">
+        <p className="font-serif text-2xl font-semibold tracking-wide text-slate-100">Matin</p>
+        {victimID !== '' ? (
+          <p className="mt-3 p-4 text-center text-sm font-semibold leading-relaxed text-rose-300">
+            Le village se réveille... et découvre le corps de{' '}
+            <span className="font-semibold text-rose-100">{victimName}</span>.
+          </p>
+        ) : saved ? (
+          <p className="mt-3 p-4 text-center text-sm font-semibold leading-relaxed text-cyan-200">
+            Le village se réveille. Les prières ont été entendues, une attaque a été repoussée cette nuit !
+          </p>
+        ) : (
+          <p className="mt-3 p-4 text-center text-sm font-semibold leading-relaxed text-slate-200">
+            Le village se réveille. Étonnamment, la nuit a été calme. Personne n&apos;est mort.
+          </p>
+        )}
+        <p className="mt-2 text-xs text-slate-400">Le jour se lève...</p>
+      </div>
+    )
+  }
+
+  if (phase === 'NO_COUNCIL') {
+    return (
+      <div className="rounded-lg border border-violet-900/40 bg-violet-950/15 p-6 text-center">
+        <p className="font-serif text-2xl font-semibold tracking-wide text-violet-100">Conseil annulé</p>
+        <p className="mt-3 p-4 text-center text-sm font-semibold leading-relaxed text-violet-200/90">
+          Le conseil est désert... Personne n&apos;a daigné se présenter au feu de camp. Les habitants ont préféré rester
+          couchés ou festoyer dans leurs tentes. La nuit tombe sur un village insouciant...
+        </p>
+        <p className="mt-2 text-xs text-violet-200/70">La nuit approche.</p>
       </div>
     )
   }
@@ -470,9 +629,9 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
 
         <select
           value={selectedTarget}
+          disabled={isPaused || hasAlreadyAccused}
           onChange={(event) => setSelectedTarget(event.target.value)}
-          className="h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
-          disabled={hasAlreadyAccused}
+          className={`h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500 ${pausedControlClass}`}
         >
           <option value="">Choisir un joueur à accuser</option>
           {aliveOpponents.map((player) => (
@@ -485,8 +644,8 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
         <Button
           type="button"
           variant="secondary"
-          className="w-full"
-          disabled={disableTargetAction || hasAlreadyAccused || accusedTargets.has(selectedTarget)}
+          className={`w-full ${pausedControlClass}`}
+          disabled={isPaused || disableTargetAction || hasAlreadyAccused || accusedTargets.has(selectedTarget)}
           onClick={() => submitCouncilAccuse(selectedTarget)}
         >
           ACCUSER AU CONSEIL
@@ -524,7 +683,12 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
           <p className="text-xs text-amber-200/85">Temps restant : {lobby.timeRemaining}s</p>
         )}
         {isCurrentSpeaker && !lobby.pleadingTimerStarted ? (
-          <Button type="button" className="w-full" onClick={submitStartPleading}>
+          <Button
+            type="button"
+            className={`w-full ${pausedControlClass}`}
+            disabled={isPaused}
+            onClick={submitStartPleading}
+          >
             PRENDRE LA PAROLE
           </Button>
         ) : null}

@@ -608,6 +608,7 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 
 		currentLobby.Phase = models.GamePhaseNight
 		currentLobby.TimeRemaining = 1
+		currentLobby.PhaseSettings.MorningSeconds = 1
 		currentLobby.DefendantID = ""
 		currentLobby.Votes = make(map[string]string)
 		currentLobby.NightActions = make(map[string]string)
@@ -626,19 +627,19 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 		}
 	}
 
-	waitForDayOrGameOver := func() *models.Lobby {
+	waitForMorningOrGameOver := func() *models.Lobby {
 		deadline := time.Now().Add(4 * time.Second)
 		for time.Now().Before(deadline) {
 			currentLobby, getErr := lobbyStore.GetLobby(ctx, lobby.Code)
 			if getErr != nil {
 				t.Fatalf("GetLobby waitForDay: %v", getErr)
 			}
-			if currentLobby.Phase == models.GamePhaseDay || currentLobby.Phase == models.PhaseGameOver {
+			if currentLobby.Phase == models.GamePhaseMorning || currentLobby.Phase == models.PhaseGameOver {
 				return currentLobby
 			}
 			time.Sleep(20 * time.Millisecond)
 		}
-		t.Fatal("timeout waiting for DAY/GAME_OVER phase")
+		t.Fatal("timeout waiting for MORNING/GAME_OVER phase")
 		return nil
 	}
 
@@ -657,13 +658,20 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 		sendNightAction(guest2Conn, "PRAY", guest1ID)
 		sendNightAction(hostConn, "KILL", guest1ID)
 
-		dayLobby := waitForDayOrGameOver()
-		if dayLobby.Phase != models.GamePhaseDay {
-			t.Fatalf("expected phase DAY for shield case, got %s", dayLobby.Phase)
+		morningLobby := waitForMorningOrGameOver()
+		if morningLobby.Phase != models.GamePhaseMorning {
+			t.Fatalf("expected phase MORNING for shield case, got %s", morningLobby.Phase)
 		}
-		for i := range dayLobby.Players {
-			if !dayLobby.Players[i].IsAlive {
-				t.Fatalf("expected all players alive in shield case, got dead player %s", dayLobby.Players[i].ID)
+		if morningLobby.LastNightVictimID != "" || !morningLobby.LastNightSavedByPrayer {
+			t.Fatalf(
+				"expected prayer save fields (victim empty, saved=true), got victim=%q saved=%v",
+				morningLobby.LastNightVictimID,
+				morningLobby.LastNightSavedByPrayer,
+			)
+		}
+		for i := range morningLobby.Players {
+			if !morningLobby.Players[i].IsAlive {
+				t.Fatalf("expected all players alive in shield case, got dead player %s", morningLobby.Players[i].ID)
 			}
 		}
 	})
@@ -675,10 +683,10 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 		sendNightAction(guest2Conn, "PRAY", guest2ID)
 		sendNightAction(hostConn, "KILL", guest1ID)
 
-		dayLobby := waitForDayOrGameOver()
+		morningLobby := waitForMorningOrGameOver()
 		aliveByID := make(map[string]bool)
-		for i := range dayLobby.Players {
-			aliveByID[dayLobby.Players[i].ID.String()] = dayLobby.Players[i].IsAlive
+		for i := range morningLobby.Players {
+			aliveByID[morningLobby.Players[i].ID.String()] = morningLobby.Players[i].IsAlive
 		}
 
 		if aliveByID[guest1ID] {
@@ -687,11 +695,16 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 		if !aliveByID[guest2ID] || !aliveByID[hostID.String()] {
 			t.Fatalf("unexpected extra death: host=%v guest2=%v", aliveByID[hostID.String()], aliveByID[guest2ID])
 		}
-		if dayLobby.Phase != models.PhaseGameOver {
-			t.Fatalf("expected GAME_OVER after parity, got %s", dayLobby.Phase)
+		if morningLobby.Phase == models.PhaseGameOver {
+			t.Fatalf("expected game to continue (no absolute win), got %s winner=%s", morningLobby.Phase, morningLobby.WinnerTeam)
 		}
-		if dayLobby.WinnerTeam != store.VictoryTeamWendigos {
-			t.Fatalf("winner team: got %q, want %q", dayLobby.WinnerTeam, store.VictoryTeamWendigos)
+		if morningLobby.LastNightVictimID != guest1ID || morningLobby.LastNightSavedByPrayer {
+			t.Fatalf(
+				"expected night victim fields (victim=%q saved=false), got victim=%q saved=%v",
+				guest1ID,
+				morningLobby.LastNightVictimID,
+				morningLobby.LastNightSavedByPrayer,
+			)
 		}
 	})
 }

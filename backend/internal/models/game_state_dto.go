@@ -18,6 +18,10 @@ type GameStateDTO struct {
 	TimeRemaining        int               `json:"time_remaining"`
 	PhaseTotalSeconds    int               `json:"phase_total_seconds,omitempty"`
 	PhaseSettings        PhaseSettings     `json:"phase_settings"`
+	IsPaused             bool              `json:"is_paused"`
+	SurrenderVoteActive  bool              `json:"surrender_vote_active"`
+	SurrenderVotes       map[string]bool   `json:"surrender_votes,omitempty"`
+	SurrenderApproved    bool              `json:"surrender_approved"`
 	SocialPhaseTotalTime int               `json:"social_phase_total_time,omitempty"`
 	ChairPromptTriggered bool              `json:"chair_prompt_triggered,omitempty"`
 	CouncilAccusations   map[string]string `json:"council_accusations,omitempty"`
@@ -25,8 +29,13 @@ type GameStateDTO struct {
 	CurrentSpeakerID     string            `json:"current_speaker_id,omitempty"`
 	PleadingTimerStarted bool              `json:"pleading_timer_started"`
 	WendigoIntentions    map[string]string `json:"wendigo_intentions,omitempty"`
+	WendigoIntents       map[string]string `json:"wendigo_intents,omitempty"`
 	Players              []PlayerDTO       `json:"players"`
 	DefendantID          string            `json:"defendant_id,omitempty"`
+	LastLynchVictimID    string            `json:"last_lynch_victim_id,omitempty"`
+	LastNightVictimID    string            `json:"last_night_victim_id,omitempty"`
+	LastNightSavedByPrayer bool           `json:"last_night_saved_by_prayer,omitempty"`
+	Votes                map[string]string `json:"votes,omitempty"`
 	VoteCounts           map[string]int    `json:"vote_counts,omitempty"`
 	MyVote               string            `json:"my_vote,omitempty"`
 	NightInstruction     string            `json:"night_instruction,omitempty"`

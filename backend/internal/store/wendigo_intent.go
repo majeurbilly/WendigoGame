@@ -57,6 +57,7 @@ func (s *Store) SubmitWendigoIntent(ctx context.Context, code, wendigoID, target
 
 			if targetID == "" {
 				delete(lobby.WendigoIntentions, wendigoID)
+				delete(lobby.WendigoIntents, wendigoID)
 			} else {
 				var targetPlayer *models.Player
 				for i := range lobby.Players {
@@ -72,6 +73,7 @@ func (s *Store) SubmitWendigoIntent(ctx context.Context, code, wendigoID, target
 					return ErrNightActionInvalid
 				}
 				lobby.WendigoIntentions[wendigoID] = targetID
+				lobby.WendigoIntents[wendigoID] = targetID
 			}
 
 			payload, err := json.Marshal(&lobby)

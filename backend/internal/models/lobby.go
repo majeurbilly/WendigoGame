@@ -27,6 +27,10 @@ type Lobby struct {
 	TimeRemaining        int               `json:"time_remaining"`
 	PhaseTotalSeconds    int               `json:"phase_total_seconds,omitempty"`
 	PhaseSettings        PhaseSettings     `json:"phase_settings"`
+	IsPaused             bool              `json:"is_paused"`
+	SurrenderVoteActive  bool              `json:"surrender_vote_active"`
+	SurrenderVotes       map[string]bool   `json:"surrender_votes,omitempty"`
+	SurrenderApproved    bool              `json:"surrender_approved"`
 	SocialPhaseTotalTime int               `json:"social_phase_total_time,omitempty"`
 	ChairPromptTriggered bool              `json:"chair_prompt_triggered,omitempty"`
 	CouncilAccusations   map[string]string `json:"council_accusations,omitempty"`
@@ -37,7 +41,11 @@ type Lobby struct {
 	NightActions         map[string]string `json:"night_actions,omitempty"`
 	Prayers              map[string]string `json:"prayers,omitempty"`
 	WendigoIntentions    map[string]string `json:"wendigo_intentions,omitempty"`
+	WendigoIntents       map[string]string `json:"wendigo_intents,omitempty"`
 	DefendantID          string            `json:"defendant_id,omitempty"`
+	LastLynchVictimID    string            `json:"last_lynch_victim_id,omitempty"`
+	LastNightVictimID    string            `json:"last_night_victim_id,omitempty"`
+	LastNightSavedByPrayer bool           `json:"last_night_saved_by_prayer,omitempty"`
 }
 
 // LobbyManager defines the contract required by the game engine.
@@ -120,10 +128,16 @@ func (lobby *Lobby) ToGameStateDTO(forPlayerID string) GameStateDTO {
 		TimeRemaining:        lobby.TimeRemaining,
 		PhaseTotalSeconds:    lobby.PhaseTotalSeconds,
 		PhaseSettings:        EffectivePhaseSettings(lobby),
+		IsPaused:             lobby.IsPaused,
+		SurrenderVoteActive:  lobby.SurrenderVoteActive,
+		SurrenderApproved:    lobby.SurrenderApproved,
 		SocialPhaseTotalTime: lobby.SocialPhaseTotalTime,
 		ChairPromptTriggered: lobby.ChairPromptTriggered,
 		Players:              make([]PlayerDTO, 0, len(lobby.Players)),
 		DefendantID:          lobby.DefendantID,
+		LastLynchVictimID:    lobby.LastLynchVictimID,
+		LastNightVictimID:    lobby.LastNightVictimID,
+		LastNightSavedByPrayer: lobby.LastNightSavedByPrayer,
 		VoteCounts:           voteCountsByTarget(lobby),
 		MyVote:               "",
 		NightInstruction:     nightInstructionForPlayer(lobby, forPlayerID),
@@ -133,6 +147,9 @@ func (lobby *Lobby) ToGameStateDTO(forPlayerID string) GameStateDTO {
 	}
 	if len(lobby.PleadingsQueue) > 0 {
 		gameStateDTO.PleadingsQueue = slices.Clone(lobby.PleadingsQueue)
+	}
+	if len(lobby.SurrenderVotes) > 0 {
+		gameStateDTO.SurrenderVotes = maps.Clone(lobby.SurrenderVotes)
 	}
 	gameStateDTO.CurrentSpeakerID = lobby.CurrentSpeakerID
 	gameStateDTO.PleadingTimerStarted = lobby.PleadingTimerStarted
@@ -148,11 +165,19 @@ func (lobby *Lobby) ToGameStateDTO(forPlayerID string) GameStateDTO {
 	if viewerWendigo && len(lobby.WendigoIntentions) > 0 {
 		gameStateDTO.WendigoIntentions = maps.Clone(lobby.WendigoIntentions)
 	}
+	if viewerWendigo && len(lobby.WendigoIntents) > 0 {
+		gameStateDTO.WendigoIntents = maps.Clone(lobby.WendigoIntents)
+	}
 
 	if lobby.Votes != nil {
 		if targetID, ok := lobby.Votes[forPlayerID]; ok {
 			gameStateDTO.MyVote = targetID
 		}
+	}
+
+	// Les votes du conseil deviennent publics uniquement pendant STAKE.
+	if lobby.Phase == GamePhaseStake && len(lobby.Votes) > 0 {
+		gameStateDTO.Votes = maps.Clone(lobby.Votes)
 	}
 
 	for _, player := range lobby.Players {

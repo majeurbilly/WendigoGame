@@ -70,3 +70,35 @@ func TestTallyEffectiveVotes_IgnoresVotesFromExcludedVoters(t *testing.T) {
 		t.Fatalf("tally for C: got %v, want 1 vote (excluded voter ignored)", tally)
 	}
 }
+
+func TestSubmitDayVote_RejectsSelfVote(t *testing.T) {
+	miniredisServer := miniredis.RunT(t)
+	redisClient := redis.NewClient(&redis.Options{Addr: miniredisServer.Addr()})
+	t.Cleanup(func() { _ = redisClient.Close() })
+
+	st := NewForTesting(redisClient)
+	ctx := context.Background()
+
+	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Host")
+	if err != nil {
+		t.Fatalf("CreateLobby: %v", err)
+	}
+	lobby.Phase = models.GamePhaseCouncilVote
+	if err := st.SaveLobby(ctx, lobby); err != nil {
+		t.Fatalf("SaveLobby: %v", err)
+	}
+
+	hostID := lobby.Players[0].ID.String()
+	err = st.SubmitDayVote(ctx, lobby.Code, hostID, hostID)
+	if err == nil {
+		t.Fatal("expected error for self vote")
+	}
+
+	got, err := st.GetLobby(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobby: %v", err)
+	}
+	if _, ok := got.Votes[hostID]; ok {
+		t.Fatalf("expected self vote not recorded, got votes=%v", got.Votes)
+	}
+}

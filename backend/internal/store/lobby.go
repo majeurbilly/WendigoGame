@@ -74,6 +74,12 @@ func ensureLobbyVotes(lobby *models.Lobby) {
 	if lobby.WendigoIntentions == nil {
 		lobby.WendigoIntentions = make(map[string]string)
 	}
+	if lobby.WendigoIntents == nil {
+		lobby.WendigoIntents = make(map[string]string)
+	}
+	if lobby.SurrenderVotes == nil {
+		lobby.SurrenderVotes = make(map[string]bool)
+	}
 }
 
 func randomUpperCode(length int) (string, error) {
@@ -129,6 +135,7 @@ func (s *Store) createLobbyWithHost(ctx context.Context, mode models.GameMode, h
 			Prayers:            make(map[string]string),
 			CouncilAccusations: make(map[string]string),
 			WendigoIntentions:  make(map[string]string),
+			SurrenderVotes:     make(map[string]bool),
 		}
 
 		payload, err := json.Marshal(lobby)

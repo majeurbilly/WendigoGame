@@ -2,25 +2,33 @@ import type { LobbyState } from '@/api/game'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
 import { useNavigate } from 'react-router-dom'
 
 interface EndedScreenProps {
   lobby: LobbyState
+  sendMessage: (type: string, payload: unknown) => boolean
 }
 
-const EndedScreen = ({ lobby }: EndedScreenProps) => {
+const EndedScreen = ({ lobby, sendMessage }: EndedScreenProps) => {
   const navigate = useNavigate()
+  const user = useAuthStore((state) => state.user)
+  const currentPlayer = lobby.players.find((player) => player.id === user?.id) ?? null
 
   const winnerTeam = (lobby.winnerTeam ?? '').toUpperCase()
-  const isVillageWin = winnerTeam === 'VILLAGERS'
-  const title = isVillageWin ? 'THE VILLAGE SURVIVED' : 'THE WENDIGOS FEASTED'
+  const isVillageWin = winnerTeam === 'VILLAGER'
+  const title = isVillageWin ? 'VICTOIRE DU VILLAGE' : 'VICTOIRE DES WENDIGOS'
   const titleClasses = isVillageWin ? 'text-sky-200' : 'text-rose-300'
   const glowClasses = isVillageWin ? 'shadow-sky-500/20' : 'shadow-rose-500/20'
 
-  const handleReturnDashboard = () => {
+  const handleQuitLobby = () => {
     useGameStore.getState().resetGame()
     navigate('/')
+  }
+
+  const handleRestart = () => {
+    sendMessage('RESTART_GAME', {})
   }
 
   return (
@@ -75,9 +83,16 @@ const EndedScreen = ({ lobby }: EndedScreenProps) => {
       </Card>
 
       <div className="flex justify-center">
-        <Button type="button" size="lg" onClick={handleReturnDashboard}>
-          Return to Dashboard
-        </Button>
+        <div className="flex flex-col items-center gap-3 sm:flex-row">
+          {currentPlayer?.isHost ? (
+            <Button type="button" size="lg" onClick={handleRestart}>
+              Relancer la partie (Même groupe)
+            </Button>
+          ) : null}
+          <Button type="button" size="lg" variant="secondary" onClick={handleQuitLobby}>
+            Quitter le lobby
+          </Button>
+        </div>
       </div>
     </div>
   )

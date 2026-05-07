@@ -58,8 +58,25 @@ func TestBuildPleadingsQueueFromCouncil_DeterministicOrder(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetLobby: %v", err)
 	}
+	if got.Phase != models.GamePhaseCouncilSummary {
+		t.Fatalf("phase: got %q, want COUNCIL_SUMMARY", got.Phase)
+	}
+	if len(got.CouncilAccusations) != 2 {
+		t.Fatalf("accusations should be retained for summary: got %+v", got.CouncilAccusations)
+	}
+	got.TimeRemaining = 0
+	if err := st.SaveLobby(ctx, got); err != nil {
+		t.Fatalf("SaveLobby summary: %v", err)
+	}
+	if _, err := st.ProcessGameTick(ctx, lobby.Code); err != nil {
+		t.Fatalf("ProcessGameTick summary: %v", err)
+	}
+	got, err = st.GetLobby(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobby after summary: %v", err)
+	}
 	if got.Phase != models.GamePhasePleadings {
-		t.Fatalf("phase: got %q, want PLEADINGS", got.Phase)
+		t.Fatalf("phase after summary: got %q, want PLEADINGS", got.Phase)
 	}
 	wantFirst := aID
 	if mID < aID {
@@ -157,13 +174,77 @@ func TestProcessGameTick_PleadingsQueueOmitsExcludedDefendant(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetLobby: %v", err)
 	}
+	if got.Phase != models.GamePhaseCouncilSummary {
+		t.Fatalf("phase: got %q, want COUNCIL_SUMMARY", got.Phase)
+	}
+	got.TimeRemaining = 0
+	if err := st.SaveLobby(ctx, got); err != nil {
+		t.Fatalf("SaveLobby summary: %v", err)
+	}
+	if _, err := st.ProcessGameTick(ctx, lobby.Code); err != nil {
+		t.Fatalf("ProcessGameTick summary: %v", err)
+	}
+	got, err = st.GetLobby(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobby after summary: %v", err)
+	}
 	if got.Phase != models.GamePhasePleadings {
-		t.Fatalf("phase: got %q, want PLEADINGS", got.Phase)
+		t.Fatalf("phase after summary: got %q, want PLEADINGS", got.Phase)
 	}
 	if got.CurrentSpeakerID != zID {
 		t.Fatalf("first speaker: got %q, want %q (excluded accused has no slot)", got.CurrentSpeakerID, zID)
 	}
 	if len(got.PleadingsQueue) != 0 {
 		t.Fatalf("queue should be empty (only accuser, no slot for excluded accused): got %v", got.PleadingsQueue)
+	}
+}
+
+func TestProcessGameTick_CouncilSummaryWithoutAccusationsGoesToVote(t *testing.T) {
+	miniredisServer := miniredis.RunT(t)
+	redisClient := redis.NewClient(&redis.Options{Addr: miniredisServer.Addr()})
+	t.Cleanup(func() { _ = redisClient.Close() })
+
+	st := store.NewForTesting(redisClient)
+	ctx := context.Background()
+
+	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Host")
+	if err != nil {
+		t.Fatalf("CreateLobby: %v", err)
+	}
+	lobby.Phase = models.GamePhaseAccusation
+	lobby.CouncilAccusations = map[string]string{}
+	lobby.TimeRemaining = 0
+	if err := st.SaveLobby(ctx, lobby); err != nil {
+		t.Fatalf("SaveLobby: %v", err)
+	}
+
+	if _, err := st.ProcessGameTick(ctx, lobby.Code); err != nil {
+		t.Fatalf("ProcessGameTick accusation: %v", err)
+	}
+	got, err := st.GetLobby(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobby summary: %v", err)
+	}
+	if got.Phase != models.GamePhaseCouncilSummary {
+		t.Fatalf("phase: got %q, want COUNCIL_SUMMARY", got.Phase)
+	}
+
+	got.TimeRemaining = 0
+	if err := st.SaveLobby(ctx, got); err != nil {
+		t.Fatalf("SaveLobby summary: %v", err)
+	}
+	if _, err := st.ProcessGameTick(ctx, lobby.Code); err != nil {
+		t.Fatalf("ProcessGameTick summary: %v", err)
+	}
+	got, err = st.GetLobby(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobby vote: %v", err)
+	}
+	if got.Phase != models.GamePhaseCouncilVote {
+		t.Fatalf("phase after summary: got %q, want COUNCIL_VOTE", got.Phase)
+	}
+	wantVoteSeconds := models.DefaultPhaseSettings().CouncilVoteSeconds
+	if got.TimeRemaining != wantVoteSeconds {
+		t.Fatalf("time remaining: got %d, want %d", got.TimeRemaining, wantVoteSeconds)
 	}
 }

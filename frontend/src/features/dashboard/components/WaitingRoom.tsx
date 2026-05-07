@@ -26,11 +26,15 @@ interface WaitingRoomProps {
 const phaseFieldRows: { key: keyof PhaseSettings; label: string }[] = [
   { key: 'chairSelectionSeconds', label: 'Sélection des chaises (s)' },
   { key: 'daySocialSeconds', label: 'Jour social / discussion (s)' },
+  { key: 'morningSeconds', label: 'Matin (s)' },
+  { key: 'noCouncilSeconds', label: 'Conseil annulé (s)' },
   { key: 'councilStartSeconds', label: 'Début du conseil (s)' },
   { key: 'councilAccusationPostChairSeconds', label: 'Accusation après rappel chaises (s)' },
   { key: 'councilAccusationAfterDaySeconds', label: 'Accusation fin de journée (s)' },
+  { key: 'councilSummarySeconds', label: 'Résumé du conseil (s)' },
   { key: 'pleadingSpeechSeconds', label: 'Temps de parole plaidoirie (s)' },
   { key: 'councilVoteSeconds', label: 'Vote du conseil (s)' },
+  { key: 'stakeSeconds', label: 'Le Bûcher (s)' },
   { key: 'nightSeconds', label: 'Phase de nuit (s)' },
   { key: 'postNightDaySeconds', label: 'Segment jour après la nuit (s)' },
 ]
