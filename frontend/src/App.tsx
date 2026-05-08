@@ -1,5 +1,6 @@
 import { type ReactElement, useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import AuthLayout from './components/layouts/AuthLayout'
 import DashboardPage from './pages/DashboardPage'
 import LobbyPage from './pages/LobbyPage'
 import LoginPage from './pages/LoginPage'
@@ -52,8 +53,10 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Route>
       </Routes>
       <Toaster />
     </BrowserRouter>
