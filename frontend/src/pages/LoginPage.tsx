@@ -1,9 +1,14 @@
 import AuthLayout from '@/components/layouts/AuthLayout'
+import LobbyPanorama from '@/components/lobby/LobbyPanorama'
 import LoginForm from '@/features/auth/components/LoginForm'
 
 const LoginPage = () => {
   return (
-    <AuthLayout>
+    <AuthLayout
+      background={
+        <LobbyPanorama fillParent />
+      }
+    >
       <LoginForm />
     </AuthLayout>
   )
