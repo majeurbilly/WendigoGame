@@ -13,7 +13,6 @@ import {
   Navigate,
   Route,
   Routes,
-  useLocation,
   useNavigate,
 } from 'react-router-dom'
 import AuthLayout from './components/layouts/AuthLayout'
@@ -56,10 +55,10 @@ const AppShell = () => {
   const initAuth = useAuthStore((state) => state.initAuth)
 
   const navigate = useNavigate()
-  const location = useLocation()
 
   const [isTransitioning, setIsTransitioning] = useState(false)
-  const timeoutRef = useRef<number | null>(null)
+  const navTimeoutRef = useRef<number | null>(null)
+  const clearTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
     void initAuth()
@@ -67,27 +66,34 @@ const AppShell = () => {
 
   const transitionTo = useCallback(
     (to: string) => {
-      if (timeoutRef.current !== null) {
-        window.clearTimeout(timeoutRef.current)
+      if (navTimeoutRef.current !== null) {
+        window.clearTimeout(navTimeoutRef.current)
+      }
+      if (clearTimeoutRef.current !== null) {
+        window.clearTimeout(clearTimeoutRef.current)
       }
 
       setIsTransitioning(true)
-      timeoutRef.current = window.setTimeout(() => {
+      // 400ms : écran saturé → navigation.
+      navTimeoutRef.current = window.setTimeout(() => {
         navigate(to)
-      }, 500)
+      }, 400)
+
+      // 1000ms : fin de l'animation → dissipation.
+      clearTimeoutRef.current = window.setTimeout(() => {
+        setIsTransitioning(false)
+      }, 1000)
     },
     [navigate]
   )
 
   useEffect(() => {
-    // À chaque navigation effective, dissipe la fumée.
-    setIsTransitioning(false)
-  }, [location.key])
-
-  useEffect(() => {
     return () => {
-      if (timeoutRef.current !== null) {
-        window.clearTimeout(timeoutRef.current)
+      if (navTimeoutRef.current !== null) {
+        window.clearTimeout(navTimeoutRef.current)
+      }
+      if (clearTimeoutRef.current !== null) {
+        window.clearTimeout(clearTimeoutRef.current)
       }
     }
   }, [])

@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import styles from './SmokeTransition.module.css'
 
 export type SmokeTransitionProps = {
   isActive: boolean
@@ -9,13 +10,20 @@ export default function SmokeTransition({ isActive, className }: SmokeTransition
   return (
     <div
       className={cn(
-        'pointer-events-none fixed inset-0 z-50 bg-slate-950',
-        'opacity-0 transition-opacity duration-500',
-        isActive && 'opacity-100',
+        styles.root,
+        isActive && styles.active,
         className
       )}
       aria-hidden
-    />
+    >
+      <img
+        src="/assets/images/smoke-picture.png"
+        id="smoke-invader"
+        alt=""
+        className={styles.smokeImage}
+        draggable={false}
+      />
+    </div>
   )
 }
 
