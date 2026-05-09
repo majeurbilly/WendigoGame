@@ -6,9 +6,12 @@ interface GameState {
   lobby: LobbyState | null
   isConnected: boolean
   livekitToken: string | null
+  /** Verrou UI pendant la vidéo de transition lobby → jeu. */
+  isCinematicPlaying: boolean
   setLobby: (lobby: LobbyState | null) => void
   setConnected: (status: boolean) => void
   setLiveKitToken: (token: string | null) => void
+  setCinematicPlaying: (playing: boolean) => void
   resetGame: () => void
 }
 
@@ -18,14 +21,17 @@ export const useGameStore = create<GameState>()(
       lobby: null,
       isConnected: false,
       livekitToken: null,
+      isCinematicPlaying: false,
       setLobby: (lobby) => set({ lobby }),
       setConnected: (status) => set({ isConnected: status }),
       setLiveKitToken: (token) => set({ livekitToken: token }),
+      setCinematicPlaying: (playing) => set({ isCinematicPlaying: playing }),
       resetGame: () =>
         set({
           lobby: null,
           isConnected: false,
           livekitToken: null,
+          isCinematicPlaying: false,
         }),
     }),
     {

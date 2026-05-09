@@ -18,8 +18,12 @@ export default function LobbyPage() {
   const lobby = useGameStore((state) => state.lobby)
   const isConnected = useGameStore((state) => state.isConnected)
   const livekitToken = useGameStore((state) => state.livekitToken)
+  const isCinematicPlaying = useGameStore((state) => state.isCinematicPlaying)
+  const setCinematicPlaying = useGameStore((state) => state.setCinematicPlaying)
 
   const previousPhaseRef = useRef<string | null>(null)
+  const cinematicPhaseRef = useRef<string | null>(null)
+  const cinematicTimerRef = useRef<number | null>(null)
   const { playHeartbeat, stopHeartbeat, playNightFall, playDayBreak, playGameOver } = useGameAudio()
 
   const handleInvalidLobby = useCallback(
@@ -76,8 +80,44 @@ export default function LobbyPage() {
     }
   }, [lobby?.phase, playDayBreak, playGameOver, playHeartbeat, playNightFall, stopHeartbeat])
 
+  useEffect(() => {
+    return () => {
+      if (cinematicTimerRef.current !== null) {
+        window.clearTimeout(cinematicTimerRef.current)
+        cinematicTimerRef.current = null
+      }
+      setCinematicPlaying(false)
+    }
+  }, [setCinematicPlaying])
+
+  useEffect(() => {
+    const phase = lobby?.phase ? lobby.phase.toUpperCase() : null
+    const prev = cinematicPhaseRef.current
+
+    if (
+      lobby &&
+      prev !== null &&
+      isLobbyWaitingPhase(prev) &&
+      phase &&
+      !isLobbyWaitingPhase(phase) &&
+      !isGameOverPhase(phase)
+    ) {
+      setCinematicPlaying(true)
+      if (cinematicTimerRef.current !== null) {
+        window.clearTimeout(cinematicTimerRef.current)
+      }
+      cinematicTimerRef.current = window.setTimeout(() => {
+        setCinematicPlaying(false)
+        cinematicTimerRef.current = null
+      }, 8000)
+    }
+
+    cinematicPhaseRef.current = phase
+  }, [lobby, lobby?.phase, setCinematicPlaying])
+
   const isEndedPhase = Boolean(lobby && isGameOverPhase(lobby.phase))
   const isWaitingInLobby = Boolean(lobby && isLobbyWaitingPhase(lobby.phase))
+  const showLobbyWaitingLayout = isWaitingInLobby || isCinematicPlaying
 
   return (
     <>
@@ -101,7 +141,7 @@ export default function LobbyPage() {
             </div>
           ) : isEndedPhase ? (
             <EndedScreen lobby={lobby!} sendMessage={sendMessage} />
-          ) : isWaitingInLobby ? (
+          ) : showLobbyWaitingLayout ? (
             <WaitingRoom sendMessage={sendMessage} disconnect={disconnect} onLeave={handleLeaveLobby} />
           ) : (
             <LocalDashboard sendMessage={sendMessage} />
@@ -119,6 +159,18 @@ export default function LobbyPage() {
           ) : null}
         </MainLayout>
       </div>
+
+      {isCinematicPlaying ? (
+        <div className="fixed inset-0 z-[100] bg-black">
+          <video
+            className="h-full w-full object-cover"
+            src="/assets/videos/lobby_video.mp4"
+            autoPlay
+            muted
+            playsInline
+          />
+        </div>
+      ) : null}
     </>
   )
 }
