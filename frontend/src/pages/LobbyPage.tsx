@@ -80,31 +80,45 @@ export default function LobbyPage() {
   const isWaitingInLobby = Boolean(lobby && isLobbyWaitingPhase(lobby.phase))
 
   return (
-    <MainLayout>
-      {!isConnected ? (
-        <div className="flex h-[50vh] items-center justify-center">
-          <div className="animate-pulse rounded-lg border border-slate-800 bg-slate-900/60 px-6 py-4 text-slate-200">
-            Connexion au serveur...
-          </div>
-        </div>
-      ) : isEndedPhase ? (
-        <EndedScreen lobby={lobby!} sendMessage={sendMessage} />
-      ) : isWaitingInLobby ? (
-        <WaitingRoom sendMessage={sendMessage} disconnect={disconnect} onLeave={handleLeaveLobby} />
-      ) : (
-        <LocalDashboard sendMessage={sendMessage} />
-      )}
-      {livekitToken && !isEndedPhase ? (
-        <Suspense
-          fallback={
-            <div className="fixed right-4 bottom-4 z-50 flex animate-pulse items-center justify-center rounded-md border border-slate-800 bg-slate-900/50 p-4 text-sm text-slate-400">
-              Initializing secure audio channel...
+    <>
+      {/* Background Layer dédié au Lobby */}
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: 'url("/assets/images/lobby-picture.png")' }}
+        />
+        {/* Voile sombre pour garder la lisibilité des boutons actuels */}
+        <div className="absolute inset-0 bg-black/40" />
+      </div>
+
+      <div className="relative z-10">
+        <MainLayout transparentBg={true}>
+          {!isConnected ? (
+            <div className="flex h-[50vh] items-center justify-center">
+              <div className="animate-pulse rounded-lg border border-slate-800 bg-slate-900/60 px-6 py-4 text-slate-200">
+                Connexion au serveur...
+              </div>
             </div>
-          }
-        >
-          <GameAudioRoom token={livekitToken} />
-        </Suspense>
-      ) : null}
-    </MainLayout>
+          ) : isEndedPhase ? (
+            <EndedScreen lobby={lobby!} sendMessage={sendMessage} />
+          ) : isWaitingInLobby ? (
+            <WaitingRoom sendMessage={sendMessage} disconnect={disconnect} onLeave={handleLeaveLobby} />
+          ) : (
+            <LocalDashboard sendMessage={sendMessage} />
+          )}
+          {livekitToken && !isEndedPhase ? (
+            <Suspense
+              fallback={
+                <div className="fixed right-4 bottom-4 z-50 flex animate-pulse items-center justify-center rounded-md border border-slate-800 bg-slate-900/50 p-4 text-sm text-slate-400">
+                  Initializing secure audio channel...
+                </div>
+              }
+            >
+              <GameAudioRoom token={livekitToken} />
+            </Suspense>
+          ) : null}
+        </MainLayout>
+      </div>
+    </>
   )
 }
