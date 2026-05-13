@@ -1,13 +1,4 @@
-import {
-  type ReactElement,
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   BrowserRouter,
   Navigate,
@@ -18,6 +9,10 @@ import {
 import AuthLayout from './components/layouts/AuthLayout'
 import LobbyPanorama from './components/lobby/LobbyPanorama'
 import SmokeTransition from './components/ui/SmokeTransition'
+import {
+  SmokeTransitionContext,
+  type SmokeTransitionContextValue,
+} from './contexts/smokeTransitionContext'
 import DashboardPage from './pages/DashboardPage'
 import LobbyPage from './pages/LobbyPage'
 import LoginPage from './pages/LoginPage'
@@ -33,21 +28,6 @@ const ProtectedRoute = ({ children }: { children: ReactElement }) => {
   }
 
   return children
-}
-
-type TransitionContextValue = {
-  isTransitioning: boolean
-  transitionTo: (to: string) => void
-}
-
-const TransitionContext = createContext<TransitionContextValue | null>(null)
-
-export const useSmokeTransition = (): TransitionContextValue => {
-  const value = useContext(TransitionContext)
-  if (!value) {
-    throw new Error('useSmokeTransition must be used within TransitionContext.Provider')
-  }
-  return value
 }
 
 const AppShell = () => {
@@ -87,6 +67,26 @@ const AppShell = () => {
     [navigate]
   )
 
+  const playSmokeOverlay = useCallback((onMidSmoke?: () => void) => {
+    if (navTimeoutRef.current !== null) {
+      window.clearTimeout(navTimeoutRef.current)
+    }
+    if (clearTimeoutRef.current !== null) {
+      window.clearTimeout(clearTimeoutRef.current)
+    }
+
+    setIsTransitioning(true)
+    navTimeoutRef.current = window.setTimeout(() => {
+      onMidSmoke?.()
+      navTimeoutRef.current = null
+    }, 400)
+
+    clearTimeoutRef.current = window.setTimeout(() => {
+      setIsTransitioning(false)
+      clearTimeoutRef.current = null
+    }, 1000)
+  }, [])
+
   useEffect(() => {
     return () => {
       if (navTimeoutRef.current !== null) {
@@ -98,13 +98,13 @@ const AppShell = () => {
     }
   }, [])
 
-  const transitionValue = useMemo<TransitionContextValue>(
-    () => ({ isTransitioning, transitionTo }),
-    [isTransitioning, transitionTo]
+  const transitionValue = useMemo<SmokeTransitionContextValue>(
+    () => ({ isTransitioning, transitionTo, playSmokeOverlay }),
+    [isTransitioning, transitionTo, playSmokeOverlay]
   )
 
   return (
-    <TransitionContext.Provider value={transitionValue}>
+    <SmokeTransitionContext.Provider value={transitionValue}>
       <div className="relative min-h-screen">
         <div className="fixed inset-0 z-[-1] overflow-hidden">
           <LobbyPanorama fillParent />
@@ -143,7 +143,7 @@ const AppShell = () => {
           </Routes>
         )}
       </div>
-    </TransitionContext.Provider>
+    </SmokeTransitionContext.Provider>
   )
 }
 

@@ -1,3 +1,4 @@
+import { useSmokeTransition } from '@/contexts/smokeTransitionContext'
 import MainLayout from '@/components/layouts/MainLayout'
 import EndedScreen from '@/features/dashboard/components/EndedScreen'
 import LocalDashboard from '@/features/dashboard/components/LocalDashboard'
@@ -24,7 +25,23 @@ export default function LobbyPage() {
   const previousPhaseRef = useRef<string | null>(null)
   const cinematicPhaseRef = useRef<string | null>(null)
   const cinematicTimerRef = useRef<number | null>(null)
+  const cinematicEndHandledRef = useRef(false)
+  const { playSmokeOverlay } = useSmokeTransition()
   const { playHeartbeat, stopHeartbeat, playNightFall, playDayBreak, playGameOver } = useGameAudio()
+
+  const endCinematicWithMenuTransition = useCallback(() => {
+    if (cinematicEndHandledRef.current) {
+      return
+    }
+    cinematicEndHandledRef.current = true
+    if (cinematicTimerRef.current !== null) {
+      window.clearTimeout(cinematicTimerRef.current)
+      cinematicTimerRef.current = null
+    }
+    playSmokeOverlay(() => {
+      setCinematicPlaying(false)
+    })
+  }, [playSmokeOverlay, setCinematicPlaying])
 
   const handleInvalidLobby = useCallback(
     () => {
@@ -102,18 +119,18 @@ export default function LobbyPage() {
       !isLobbyWaitingPhase(phase) &&
       !isGameOverPhase(phase)
     ) {
+      cinematicEndHandledRef.current = false
       setCinematicPlaying(true)
       if (cinematicTimerRef.current !== null) {
         window.clearTimeout(cinematicTimerRef.current)
       }
       cinematicTimerRef.current = window.setTimeout(() => {
-        setCinematicPlaying(false)
-        cinematicTimerRef.current = null
+        endCinematicWithMenuTransition()
       }, 8000)
     }
 
     cinematicPhaseRef.current = phase
-  }, [lobby, lobby?.phase, setCinematicPlaying])
+  }, [lobby, lobby?.phase, endCinematicWithMenuTransition, setCinematicPlaying])
 
   const isEndedPhase = Boolean(lobby && isGameOverPhase(lobby.phase))
   const isWaitingInLobby = Boolean(lobby && isLobbyWaitingPhase(lobby.phase))
@@ -168,6 +185,7 @@ export default function LobbyPage() {
             autoPlay
             muted
             playsInline
+            onEnded={endCinematicWithMenuTransition}
           />
         </div>
       ) : null}

@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/api/auth'
 import { createLobbyAPI } from '@/api/game'
 import MinecraftButton from '@/components/ui/MinecraftButton'
-import { useSmokeTransition } from '@/App'
+import { useSmokeTransition } from '@/contexts/smokeTransitionContext'
 import { useAuthStore } from '@/store/useAuthStore'
 
 const DashboardPage = () => {
