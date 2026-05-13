@@ -6,8 +6,9 @@ import WaitingRoom from '@/features/dashboard/components/WaitingRoom'
 import { useGameAudio } from '@/hooks/useGameAudio'
 import { useGameWebSocket } from '@/hooks/useGameWebSocket'
 import { isGameOverPhase, isLobbyWaitingPhase } from '@/lib/gamePhase'
+import { resolveLobbyBackgroundImagePath } from '@/lib/lobbyPhaseBackground'
 import { useGameStore } from '@/store/useGameStore'
-import { Suspense, lazy, useCallback, useEffect, useRef } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 const GameAudioRoom = lazy(() => import('@/features/dashboard/components/GameAudioRoom'))
@@ -27,6 +28,26 @@ export default function LobbyPage() {
   const cinematicTimerRef = useRef<number | null>(null)
   const cinematicEndHandledRef = useRef(false)
   const { playSmokeOverlay } = useSmokeTransition()
+
+  const targetBackgroundPath = useMemo(() => resolveLobbyBackgroundImagePath(lobby), [lobby])
+  const [backgroundImageUrl, setBackgroundImageUrl] = useState(targetBackgroundPath)
+  const previousTargetBackgroundRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    const prev = previousTargetBackgroundRef.current
+    if (prev === null) {
+      previousTargetBackgroundRef.current = targetBackgroundPath
+      setBackgroundImageUrl(targetBackgroundPath)
+      return
+    }
+    if (prev === targetBackgroundPath) {
+      return
+    }
+    previousTargetBackgroundRef.current = targetBackgroundPath
+    playSmokeOverlay(() => {
+      setBackgroundImageUrl(targetBackgroundPath)
+    })
+  }, [targetBackgroundPath, playSmokeOverlay])
   const { playHeartbeat, stopHeartbeat, playNightFall, playDayBreak, playGameOver } = useGameAudio()
 
   const endCinematicWithMenuTransition = useCallback(() => {
@@ -138,11 +159,11 @@ export default function LobbyPage() {
 
   return (
     <>
-      {/* Background Layer dédié au Lobby */}
+      {/* Arrière-plan dynamique (phase + victimes), sous l’UI ; z faible, jamais interactif */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url("/assets/images/lobby-picture.png")' }}
+          style={{ backgroundImage: `url("${backgroundImageUrl}")` }}
         />
         {/* Voile sombre pour garder la lisibilité des boutons actuels */}
         <div className="absolute inset-0 bg-black/40" />
