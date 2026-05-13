@@ -1,14 +1,16 @@
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Slider } from '@/components/ui/slider'
-import { useAudioStore } from '@/store/useAudioStore'
+import { useGameStore } from '@/store/useGameStore'
 import { Volume2, Volume1, VolumeX } from 'lucide-react'
 
+const clamp01 = (value: number): number => Math.min(1, Math.max(0, value))
+
 const VolumeControl = () => {
-  const volume = useAudioStore((state) => state.volume)
-  const isMuted = useAudioStore((state) => state.isMuted)
-  const setVolume = useAudioStore((state) => state.setVolume)
-  const toggleMute = useAudioStore((state) => state.toggleMute)
+  const volume = useGameStore((state) => state.globalVolume)
+  const isMuted = useGameStore((state) => state.isMuted)
+  const setGlobalVolume = useGameStore((state) => state.setGlobalVolume)
+  const toggleGlobalMute = useGameStore((state) => state.toggleGlobalMute)
 
   const isEffectivelySilent = isMuted || volume <= 0.001
   const Icon = isEffectivelySilent ? VolumeX : volume < 0.5 ? Volume1 : Volume2
@@ -32,14 +34,11 @@ const VolumeControl = () => {
             max={1}
             step={0.05}
             onValueChange={(values) => {
-              const nextVolume = values[0] ?? 0
-              if (isMuted) {
-                toggleMute()
-              }
-              setVolume(nextVolume)
+              const nextVolume = clamp01(values[0] ?? 0)
+              setGlobalVolume(nextVolume)
             }}
           />
-          <Button type="button" size="sm" variant="secondary" className="w-full" onClick={toggleMute}>
+          <Button type="button" size="sm" variant="secondary" className="w-full" onClick={toggleGlobalMute}>
             {isMuted ? 'Unmute' : 'Mute'}
           </Button>
         </div>
