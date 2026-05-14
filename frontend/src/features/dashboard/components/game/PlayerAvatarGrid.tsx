@@ -41,12 +41,15 @@ export default function PlayerAvatarGrid({
   const dim =
     size === 'lg' ? 'h-[3.35rem] w-[3.35rem] shrink-0 text-sm' : 'h-[2.85rem] w-[2.85rem] shrink-0 text-xs'
 
-  const badgeSelected =
-    'ring-4 ring-amber-400/90 ring-offset-2 ring-offset-[#14100c] shadow-[0_0_15px_rgba(255,215,0,0.5)] scale-110'
+  /** Pion / rune : relief physique ; sélection = enfoncé + lueur intérieure. */
+  const cellPhysical =
+    'flex shrink-0 items-center justify-center rounded-lg border-t border-x border-[#3d3428] font-black text-amber-50 bg-[#241e18] transition-all duration-200'
 
-  const cellBase =
-    'flex shrink-0 items-center justify-center rounded-full border-2 border-t-[#c9a66b]/85 border-l-[#c9a66b]/85 border-b-[#1a0f08] border-r-[#1a0f08] ' +
-    'bg-gradient-to-b from-[#3d342c] to-[#1e1814] font-black text-amber-50 transition-transform'
+  const cellRaised =
+    'border-b-4 border-b-[#14100c] hover:translate-y-[2px] hover:border-b-2 hover:border-b-[#14100c]'
+
+  const cellSelected =
+    'translate-y-[4px] border-b-0 ring-2 ring-inset ring-amber-500/50 bg-[#36291a] shadow-[inset_0_0_12px_rgba(245,158,11,0.15)] hover:translate-y-[4px]'
 
   const hasActiveSelection = selectedId.length > 0
 
@@ -72,12 +75,18 @@ export default function PlayerAvatarGrid({
       >
         <span
           className={cn(
-            'inline-flex min-w-0 max-w-full origin-left items-center gap-2 rounded-lg px-1 py-0.5 transition-transform duration-200 ease-out',
-            isSelected && badgeSelected,
-            !inactive && !isSelected && 'hover:brightness-110'
+            'inline-flex min-w-0 max-w-full origin-left items-center gap-2 rounded-lg px-1 py-0.5 transition-all duration-200 ease-out',
+            !inactive && !isSelected && 'hover:[&>span:first-child]:brightness-110'
           )}
         >
-          <span className={cn(cellBase, dim, opts.isClear && 'text-amber-200/90')}>
+          <span
+            className={cn(
+              cellPhysical,
+              dim,
+              isSelected ? cellSelected : cellRaised,
+              opts.isClear && 'text-amber-200/90'
+            )}
+          >
             {opts.isClear ? <span className="text-lg leading-none">{clearLabel}</span> : <span>{label}</span>}
           </span>
           {!opts.isClear ? (

@@ -3,12 +3,28 @@ import { cn } from '@/lib/utils'
 interface NarrativeBoxProps {
   text: string
   className?: string
+  /** Titre gravé dans la tablette : pas de cadre extérieur, fusion avec l’îlot. */
+  embedded?: boolean
 }
 
-/** Cartouche narratif type parchemin / sceau doré — fond semi-transparent, village lisible derrière. */
-export default function NarrativeBox({ text, className }: NarrativeBoxProps) {
+/** Cartouche narratif — mode flottant (parchemin) ou intégré tablette (gravure). */
+export default function NarrativeBox({ text, className, embedded = false }: NarrativeBoxProps) {
   const t = text.trim()
   if (!t) return null
+
+  if (embedded) {
+    return (
+      <div
+        className={cn(
+          'pointer-events-none border-b border-[#2d261f] px-2 pb-3 pt-0.5 text-center text-sm font-serif font-medium leading-snug text-[#f5ecd8]/95',
+          'bg-[#141210]/55',
+          className
+        )}
+      >
+        {t}
+      </div>
+    )
+  }
 
   return (
     <div

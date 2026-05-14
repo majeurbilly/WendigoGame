@@ -1,15 +1,12 @@
 import ActionPanel from '@/features/dashboard/components/ActionPanel'
-import NarrativeBox from '@/features/dashboard/components/NarrativeBox'
 import SecretRoleCard from '@/features/dashboard/components/SecretRoleCard'
-import VoxelButton from '@/features/dashboard/components/game/VoxelButton'
 import { isGameOverPhase } from '@/lib/gamePhase'
 import { useLocalTimer } from '@/hooks/useLocalTimer'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
 import type { LobbyState } from '@/api/game'
 import type { ComponentProps } from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { toast } from 'sonner'
+import { useMemo } from 'react'
 import {
   Armchair,
   Flame,
@@ -68,12 +65,6 @@ const PHASE_HINTS: Record<string, string> = {
   STAKE: 'Dernière décision au bûcher.',
 }
 
-const actionDockChrome =
-  'rounded-t-2xl border border-amber-500/45 border-b-0 bg-[#14100c]/88 shadow-[0_-8px_28px_rgba(0,0,0,0.5)]'
-
-const voxelDockButtons =
-  '[&_button]:rounded-md [&_button]:border-[3px] [&_button]:border-t-[#d4b896] [&_button]:border-l-[#d4b896] [&_button]:border-b-[#120a06] [&_button]:border-r-[#120a06] [&_button]:bg-gradient-to-b [&_button]:from-[#4a3f35] [&_button]:via-[#342b24] [&_button]:to-[#1c1612] [&_button]:font-black [&_button]:uppercase [&_button]:tracking-wide [&_button]:text-stone-100 [&_button]:shadow-[inset_0_2px_0_rgba(255,255,255,0.07)]'
-
 function PhaseGlyph({ phase }: { phase: string }) {
   const p = phase.toUpperCase()
   const cls = 'h-3.5 w-3.5 shrink-0 text-amber-200/95'
@@ -102,11 +93,6 @@ interface LocalDashboardProps {
 export default function LocalDashboard({ sendMessage }: LocalDashboardProps) {
   const user = useAuthStore((state) => state.user)
   const lobby = useGameStore((state) => state.lobby)
-  const [narrativeFromPanel, setNarrativeFromPanel] = useState('')
-
-  const reportNarrative = useCallback((text: string) => {
-    setNarrativeFromPanel(text)
-  }, [])
 
   const currentPlayer = useMemo(
     () => lobby?.players.find((player) => player.id === user?.id) ?? null,
@@ -115,8 +101,6 @@ export default function LocalDashboard({ sendMessage }: LocalDashboardProps) {
 
   const phaseUpper = lobby?.phase?.toUpperCase() ?? ''
   const gameOver = lobby ? isGameOverPhase(lobby.phase) : false
-  const surrenderVotes = lobby?.surrenderVotes ?? {}
-  const hasSurrenderVoted = currentPlayer ? Object.prototype.hasOwnProperty.call(surrenderVotes, currentPlayer.id) : false
   const showActionPanel = Boolean(
     lobby &&
       (currentPlayer?.isAlive || phaseUpper === 'STAKE' || phaseUpper === 'MORNING' || phaseUpper === 'NO_COUNCIL') &&
@@ -139,20 +123,7 @@ export default function LocalDashboard({ sendMessage }: LocalDashboardProps) {
   const localTime = useLocalTimer(lobby?.timeRemaining ?? 0)
   const displayedTime = lobby?.isPaused ? (lobby?.timeRemaining ?? 0) : localTime
 
-  useEffect(() => {
-    if (!showActionPanel) setNarrativeFromPanel('')
-  }, [showActionPanel])
-
   if (!lobby || !currentPlayer) return null
-
-  const submitSurrenderVote = (voteYes: boolean) => {
-    const sent = sendMessage('SUBMIT_SURRENDER_VOTE', { vote_yes: voteYes })
-    if (!sent) {
-      toast.error('Connexion indisponible. Réessayez.')
-      return
-    }
-    toast.success('Vote d’abandon enregistré.')
-  }
 
   const phaseLabel = lobby.phase.toUpperCase()
   const isInitialChairSelectionWait =
@@ -167,12 +138,11 @@ export default function LocalDashboard({ sendMessage }: LocalDashboardProps) {
     phaseLabel !== 'ENDED'
 
   const phaseHint = PHASE_HINTS[phaseUpper] ?? ''
-  const mergedNarrative = (narrativeFromPanel.trim() || phaseHint).trim()
 
   return (
     <div className="relative min-h-[100dvh] w-full">
       <header
-        className={`pointer-events-auto fixed left-0 right-0 top-0 z-30 flex flex-col items-stretch gap-2 px-3 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-4 ${mergedNarrative ? 'pr-14 sm:pr-[7.5rem]' : ''}`}
+        className="pointer-events-auto fixed left-0 right-0 top-0 z-30 flex flex-col items-stretch gap-2 px-3 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-4"
       >
         {lobby.isPaused ? (
           <div
@@ -226,40 +196,15 @@ export default function LocalDashboard({ sendMessage }: LocalDashboardProps) {
         className="pointer-events-auto fixed z-30"
         style={{
           left: 'max(0.75rem, env(safe-area-inset-left))',
-          bottom: 'calc(0.5rem + env(safe-area-inset-bottom) + min(42vh, 16rem))',
+          bottom: 'calc(1rem + env(safe-area-inset-bottom) + min(38vh, 14rem))',
         }}
       >
         <SecretRoleCard role={currentPlayer.role} />
       </div>
 
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex max-h-[min(52vh,28rem)] flex-col justify-end">
-        {mergedNarrative ? <NarrativeBox text={mergedNarrative} /> : null}
-
-        <div className={`pointer-events-auto ${actionDockChrome}`}>
-          <div
-            className={`max-h-[min(46vh,22rem)] overflow-y-auto overscroll-contain px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 sm:px-4 ${voxelDockButtons}`}
-          >
-            {lobby.surrenderVoteActive && currentPlayer.isAlive && !hasSurrenderVoted ? (
-              <div className="mb-3 rounded-xl border border-rose-800/55 bg-rose-950/30 px-3 py-3 text-rose-50">
-                <p className="mb-2 text-center text-xs font-semibold text-rose-100/95">Vote d’abandon proposé</p>
-                <p className="mb-3 text-center text-[11px] text-rose-100/80">Arrêter la partie ?</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <VoxelButton type="button" variant="danger" className="h-10 text-xs" onClick={() => submitSurrenderVote(true)}>
-                    Oui
-                  </VoxelButton>
-                  <VoxelButton type="button" variant="muted" className="h-10 text-xs" onClick={() => submitSurrenderVote(false)}>
-                    Non
-                  </VoxelButton>
-                </div>
-              </div>
-            ) : null}
-
-            {showActionPanel ? (
-              <ActionPanel lobby={lobby} currentPlayer={currentPlayer} sendMessage={sendMessage} onNarrativeChange={reportNarrative} />
-            ) : null}
-          </div>
-        </div>
-      </div>
+      {showActionPanel ? (
+        <ActionPanel lobby={lobby} currentPlayer={currentPlayer} sendMessage={sendMessage} phaseHint={phaseHint} />
+      ) : null}
     </div>
   )
 }

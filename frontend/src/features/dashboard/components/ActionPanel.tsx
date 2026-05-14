@@ -1,11 +1,12 @@
 import type { LobbyState, Player } from '@/api/game'
 import ChairPicker from '@/features/dashboard/components/ChairPicker'
+import NarrativeBox from '@/features/dashboard/components/NarrativeBox'
 import PlayerAvatarGrid, { playerInitial } from '@/features/dashboard/components/game/PlayerAvatarGrid'
 import VoxelButton from '@/features/dashboard/components/game/VoxelButton'
 import { useGameAudio } from '@/hooks/useGameAudio'
 import { cn } from '@/lib/utils'
 import { LoaderCircle } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 type NightAction = 'PRAY' | 'KILL' | 'INSPECT'
@@ -71,9 +72,17 @@ interface ActionPanelProps {
     type: TType,
     payload: ActionPayloadByType[TType]
   ) => boolean
-  /** Texte affiché dans le cartouche narratif au-dessus du dock (overlay). */
-  onNarrativeChange?: (text: string) => void
+  /** Indication courte si la narration détaillée de phase n’est pas encore poussée. */
+  phaseHint: string
 }
+
+const tabletShellClass =
+  'pointer-events-auto fixed bottom-4 left-1/2 z-40 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 ' +
+  'rounded-3xl border-t-4 border-b-8 border-x-2 border-[#2d261f] bg-[#1a1612] ' +
+  'shadow-[0_20px_50px_rgba(0,0,0,0.7)]'
+
+const tabletInnerClass =
+  'max-h-[min(52vh,28rem)] overflow-y-auto overscroll-contain px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 sm:px-4'
 
 const MiniAvatar = ({ name, className }: { name: string; className?: string }) => (
   <span
@@ -86,10 +95,11 @@ const MiniAvatar = ({ name, className }: { name: string; className?: string }) =
   </span>
 )
 
-const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: ActionPanelProps) => {
+const ActionPanel = ({ lobby, currentPlayer, sendMessage, phaseHint }: ActionPanelProps) => {
   const [selectedTarget, setSelectedTarget] = useState<string>('')
   const [prayerTarget, setPrayerTarget] = useState<string>('')
   const [lockedActionMessage, setLockedActionMessage] = useState<string | null>(null)
+  const [narrativeText, setNarrativeText] = useState('')
   const { playLock } = useGameAudio()
 
   const aliveOpponents = useMemo(
@@ -257,13 +267,12 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
   )
 
   useEffect(() => {
-    if (!onNarrativeChange) return
     if (panelHidden) {
-      onNarrativeChange('')
+      setNarrativeText('')
       return
     }
     if (lockedActionMessage) {
-      onNarrativeChange('Votre action est enregistrée. Patientez jusqu’à la fin de la phase.')
+      setNarrativeText('Votre action est enregistrée. Patientez jusqu’à la fin de la phase.')
       return
     }
 
@@ -309,12 +318,11 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
     } else if (phase === 'PLEADINGS') {
       msg = `Plaidoiries — à la parole : ${speakerName}.`
     }
-    onNarrativeChange(msg)
+    setNarrativeText(msg)
     return () => {
-      onNarrativeChange('')
+      setNarrativeText('')
     }
   }, [
-    onNarrativeChange,
     panelHidden,
     lockedActionMessage,
     phase,
@@ -329,12 +337,50 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
     speakerName,
   ])
 
+  const surrenderVotes = lobby.surrenderVotes ?? {}
+  const hasSurrenderVoted = Object.prototype.hasOwnProperty.call(surrenderVotes, currentPlayer.id)
+  const showSurrenderUI = lobby.surrenderVoteActive === true && currentPlayer.isAlive && !hasSurrenderVoted
+
+  const submitSurrenderVote = (voteYes: boolean) => {
+    const sent = sendMessage('SUBMIT_SURRENDER_VOTE', { vote_yes: voteYes })
+    if (!sent) {
+      toast.error('Connexion indisponible. Réessayez.')
+      return
+    }
+    toast.success('Vote d’abandon enregistré.')
+  }
+
+  const narrativeDisplay = (narrativeText.trim() || phaseHint.trim()).trim()
+
+  const withTablet = (body: ReactNode) => (
+    <div className={tabletShellClass}>
+      <div className={tabletInnerClass}>
+        <NarrativeBox embedded text={narrativeDisplay} />
+        {showSurrenderUI ? (
+          <div className="mb-3 rounded-xl border border-rose-800/55 bg-rose-950/30 px-3 py-3 text-rose-50">
+            <p className="mb-2 text-center text-xs font-semibold text-rose-100/95">Vote d’abandon proposé</p>
+            <p className="mb-3 text-center text-[11px] text-rose-100/80">Arrêter la partie ?</p>
+            <div className="grid grid-cols-2 gap-2">
+              <VoxelButton type="button" variant="danger" className="h-10 text-xs" onClick={() => submitSurrenderVote(true)}>
+                Oui
+              </VoxelButton>
+              <VoxelButton type="button" variant="muted" className="h-10 text-xs" onClick={() => submitSurrenderVote(false)}>
+                Non
+              </VoxelButton>
+            </div>
+          </div>
+        ) : null}
+        {body}
+      </div>
+    </div>
+  )
+
   if (panelHidden) {
     return null
   }
 
   if (lockedActionMessage) {
-    return (
+    return withTablet(
       <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 rounded-xl border border-amber-500/45 bg-[#14100c]/80 px-4 py-3 text-[#f5ecd8] shadow-inner">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-amber-300" aria-hidden />
@@ -348,7 +394,7 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
   if (phase === 'NIGHT') {
     if (role === 'WENDIGO') {
       const intentions = lobby.wendigoIntents ?? lobby.wendigoIntentions ?? {}
-      return (
+      return withTablet(
         <div className="space-y-3">
           {Object.keys(intentions).length > 0 ? (
             <div className="flex flex-wrap gap-2 rounded-lg border border-rose-900/45 bg-black/35 px-2 py-2">
@@ -406,7 +452,8 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
           <VoxelButton
             type="button"
             variant="danger"
-            className={`w-full ${pausedControlClass}`}
+            tabletMechanism
+            className={pausedControlClass}
             disabled={isPaused || selectedTarget.length === 0}
             onClick={() => submitNightAction('KILL', selectedTarget)}
           >
@@ -426,7 +473,8 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
                 <VoxelButton
                   type="button"
                   variant="muted"
-                  className={`mt-2 w-full ${pausedControlClass}`}
+                  tabletMechanism
+                  className={`mt-2 ${pausedControlClass}`}
                   disabled={isPaused || prayerTarget.length === 0}
                   onClick={() => submitPrayer(prayerTarget)}
                 >
@@ -465,7 +513,7 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
       )
     }
 
-    return (
+    return withTablet(
       <div className="space-y-3">
         <PlayerAvatarGrid
           players={alivePrayerTargets}
@@ -476,7 +524,8 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
         />
         <VoxelButton
           type="button"
-          className={`w-full ${pausedControlClass}`}
+          tabletMechanism
+          className={pausedControlClass}
           disabled={isPaused || prayerTarget.length === 0}
           onClick={() => submitPrayer(prayerTarget)}
         >
@@ -509,7 +558,7 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
   }
 
   if (phase === 'CHAIR_SELECTION') {
-    return (
+    return withTablet(
       <div className="space-y-3">
         <ChairPicker lobby={lobby} currentPlayer={currentPlayer} sendMessage={sendMessage} disabled={isPaused} />
         {hasSeat ? (
@@ -520,7 +569,7 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
   }
 
   if (phase === 'DAY') {
-    return (
+    return withTablet(
       <div className="rounded-lg border border-amber-900/30 bg-black/30 px-3 py-4 text-center text-sm text-[#f5ecd8]/90">
         Discussions libres — préparez-vous pour la suite.
       </div>
@@ -528,7 +577,7 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
   }
 
   if (phase === 'COUNCIL_START') {
-    return (
+    return withTablet(
       <div className="rounded-lg border border-amber-500/35 bg-black/35 px-3 py-5 text-center text-sm font-serif font-medium leading-relaxed text-[#f5ecd8]">
         Le feu du conseil brûle. Les regards se croisent…
       </div>
@@ -537,14 +586,14 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
 
   if (phase === 'COUNCIL_VOTE') {
     if (isExcludedFromCouncil) {
-      return (
+      return withTablet(
         <div className="rounded-lg border border-rose-800/50 bg-rose-950/25 px-3 py-4 text-center text-sm font-semibold text-rose-100">
           Sanction : exclu du conseil — pas de vote ni de parole.
         </div>
       )
     }
 
-    return (
+    return withTablet(
       <div className="space-y-3">
         <PlayerAvatarGrid
           players={aliveForCouncilVote}
@@ -557,7 +606,8 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
         <VoxelButton
           type="button"
           variant="danger"
-          className={`w-full ${pausedControlClass}`}
+          tabletMechanism
+          className={pausedControlClass}
           disabled={isPaused || disableTargetAction}
           onClick={() => submitVoteDay(selectedTarget)}
         >
@@ -570,14 +620,14 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
   if (phase === 'COUNCIL_SUMMARY') {
     const accusations = Object.entries(councilAccusations)
     if (accusations.length === 0) {
-      return (
+      return withTablet(
         <div className="rounded-lg border border-amber-500/35 bg-black/35 px-3 py-5 text-center text-sm font-serif text-[#f5ecd8]">
           Silence au village…
         </div>
       )
     }
 
-    return (
+    return withTablet(
       <div className="rounded-lg border border-amber-900/35 bg-black/35 px-2 py-3">
         <p className="mb-3 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-amber-200/85">Accusations</p>
         <ul className="flex flex-col gap-2">
@@ -601,7 +651,7 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
     const victimName = victimID !== '' ? findPlayerName(victimID) : ''
     const votes = lobby.votes ?? {}
     const voteEntries = Object.entries(votes)
-    return (
+    return withTablet(
       <div className="space-y-3 rounded-lg border border-orange-900/40 bg-black/35 px-2 py-3 text-center">
         <p className="font-serif text-lg font-bold tracking-wide text-orange-200">Le bûcher</p>
         {victimID !== '' ? (
@@ -642,7 +692,7 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
     const saved = lobby.lastNightSavedByPrayer === true
     const victimName = victimID !== '' ? findPlayerName(victimID) : ''
 
-    return (
+    return withTablet(
       <div className="space-y-2 rounded-lg border border-amber-900/35 bg-black/35 px-2 py-4 text-center">
         <p className="font-serif text-lg font-bold text-[#f5ecd8]">Matin</p>
         {victimID !== '' ? (
@@ -663,7 +713,7 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
   }
 
   if (phase === 'NO_COUNCIL') {
-    return (
+    return withTablet(
       <div className="rounded-lg border border-violet-800/40 bg-black/35 px-3 py-5 text-center">
         <p className="font-serif text-lg font-bold text-violet-100">Conseil annulé</p>
         <p className="mt-2 text-sm font-medium text-violet-200/90">Les sièges vides murmurent déjà la nuit…</p>
@@ -675,7 +725,7 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
     const accuserName = (id: string) => lobby.players.find((p) => p.id === id)?.name ?? id.slice(0, 8)
 
     if (isExcludedFromCouncil) {
-      return (
+      return withTablet(
         <div className="space-y-2 text-center">
           <p className="text-sm font-bold text-rose-400">Exclu du conseil (chaise manquée).</p>
           {Object.keys(councilAccusations).length > 0 ? (
@@ -693,7 +743,7 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
       )
     }
 
-    return (
+    return withTablet(
       <div className="space-y-3">
         {Object.keys(councilAccusations).length > 0 ? (
           <div className="flex flex-col gap-2 rounded-lg border border-amber-900/30 bg-black/30 p-2">
@@ -717,7 +767,8 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
         <VoxelButton
           type="button"
           variant="muted"
-          className={`w-full ${pausedControlClass}`}
+          tabletMechanism
+          className={pausedControlClass}
           disabled={isPaused || disableTargetAction || hasAlreadyAccused || accusedTargets.has(selectedTarget)}
           onClick={() => submitCouncilAccuse(selectedTarget)}
         >
@@ -734,7 +785,7 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
     const isCurrentSpeaker = sid !== '' && sid === currentPlayer.id
     const queue = lobby.pleadingsQueue ?? []
 
-    return (
+    return withTablet(
       <div className="space-y-3">
         {queue.length > 0 ? (
           <div className="flex flex-wrap items-center justify-center gap-1">
@@ -754,7 +805,13 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: A
           <p className="text-center text-xs font-mono font-bold text-amber-200/90">Temps : {lobby.timeRemaining}s</p>
         )}
         {isCurrentSpeaker && !lobby.pleadingTimerStarted ? (
-          <VoxelButton type="button" className={`w-full ${pausedControlClass}`} disabled={isPaused} onClick={submitStartPleading}>
+          <VoxelButton
+            type="button"
+            tabletMechanism
+            className={pausedControlClass}
+            disabled={isPaused}
+            onClick={submitStartPleading}
+          >
             Prendre la parole
           </VoxelButton>
         ) : null}
