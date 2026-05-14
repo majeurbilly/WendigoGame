@@ -1,7 +1,9 @@
 import type { LobbyState, Player } from '@/api/game'
 import ChairPicker from '@/features/dashboard/components/ChairPicker'
-import { Button } from '@/components/ui/button'
+import PlayerAvatarGrid, { playerInitial } from '@/features/dashboard/components/game/PlayerAvatarGrid'
+import VoxelButton from '@/features/dashboard/components/game/VoxelButton'
 import { useGameAudio } from '@/hooks/useGameAudio'
+import { cn } from '@/lib/utils'
 import { LoaderCircle } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -69,9 +71,22 @@ interface ActionPanelProps {
     type: TType,
     payload: ActionPayloadByType[TType]
   ) => boolean
+  /** Texte affiché dans le cartouche narratif au-dessus du dock (overlay). */
+  onNarrativeChange?: (text: string) => void
 }
 
-const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) => {
+const MiniAvatar = ({ name, className }: { name: string; className?: string }) => (
+  <span
+    className={cn(
+      'flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-t-[#c9a66b]/80 border-l-[#c9a66b]/80 border-b-[#1a0f08] border-r-[#1a0f08] bg-gradient-to-b from-[#3d342c] to-[#1e1814] text-xs font-black text-amber-50',
+      className
+    )}
+  >
+    {playerInitial(name)}
+  </span>
+)
+
+const ActionPanel = ({ lobby, currentPlayer, sendMessage, onNarrativeChange }: ActionPanelProps) => {
   const [selectedTarget, setSelectedTarget] = useState<string>('')
   const [prayerTarget, setPrayerTarget] = useState<string>('')
   const [lockedActionMessage, setLockedActionMessage] = useState<string | null>(null)
@@ -126,11 +141,6 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
       return defaultTarget
     })
   }, [alivePrayerTargets, currentPlayer.id])
-
-  // Les phases narratives (ex: STAKE / MORNING) doivent s'afficher même pour les joueurs éliminés.
-  if (!currentPlayer.isAlive && phase !== 'STAKE' && phase !== 'MORNING') {
-    return null
-  }
 
   const role = (currentPlayer.role ?? '').toUpperCase()
   const isPaused = lobby.isPaused === true
@@ -227,14 +237,110 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
   const disableTargetAction = requiresTarget && selectedTarget.length === 0
   const hasSeat = currentPlayer.chairId >= 0
 
+  const pleadingSid = lobby.currentSpeakerId ?? ''
+  const speakerName =
+    pleadingSid !== '' ? lobby.players.find((p) => p.id === pleadingSid)?.name ?? pleadingSid.slice(0, 8) : '—'
+  const councilSummaryCount = Object.keys(lobby.councilAccusations ?? {}).length
+  const stakeVictimId = lobby.lastLynchVictimId ?? ''
+  const morningVictimId = lobby.lastNightVictimId ?? ''
+  const morningSaved = lobby.lastNightSavedByPrayer === true
+
+  const panelHidden = !currentPlayer.isAlive && phase !== 'STAKE' && phase !== 'MORNING'
+
+  const stakeVictimName = useMemo(
+    () => (stakeVictimId !== '' ? lobby.players.find((p) => p.id === stakeVictimId)?.name ?? '…' : ''),
+    [lobby.players, stakeVictimId]
+  )
+  const morningVictimName = useMemo(
+    () => (morningVictimId !== '' ? lobby.players.find((p) => p.id === morningVictimId)?.name ?? '…' : ''),
+    [lobby.players, morningVictimId]
+  )
+
+  useEffect(() => {
+    if (!onNarrativeChange) return
+    if (panelHidden) {
+      onNarrativeChange('')
+      return
+    }
+    if (lockedActionMessage) {
+      onNarrativeChange('Votre action est enregistrée. Patientez jusqu’à la fin de la phase.')
+      return
+    }
+
+    let msg = ''
+    if (phase === 'NIGHT') {
+      msg =
+        role === 'WENDIGO'
+          ? 'La meute se coordonne. Touchez une cible pour votre intention, puis confirmez le meurtre.'
+          : 'La nuit tombe. Touchez un habitant pour envoyer votre prière d’immunité.'
+    } else if (phase === 'CHAIR_SELECTION') {
+      msg = 'Choisissez votre place au feu. Quand tous sont assis, le jour se lève.'
+    } else if (phase === 'DAY') {
+      msg = 'Phase sociale : discutez et surveillez le sablier avant la course aux chaises.'
+    } else if (phase === 'COUNCIL_START') {
+      msg = 'Le conseil du village s’ouvre. Qui soupçonnez-vous ?'
+    } else if (phase === 'COUNCIL_VOTE') {
+      msg = isExcludedFromCouncil
+        ? 'Vous êtes exclu du conseil : ni vote ni parole.'
+        : 'Le conseil délibère. Désignez qui éliminer.'
+    } else if (phase === 'COUNCIL_SUMMARY') {
+      msg =
+        councilSummaryCount === 0
+          ? 'Nulle accusation aujourd’hui. Le village passe au vote libre.'
+          : 'Bilan des accusations : le village écoute.'
+    } else if (phase === 'STAKE') {
+      msg =
+        stakeVictimId !== ''
+          ? `Le bûcher attend ${stakeVictimName}.`
+          : 'Personne ne brûle ce soir. La nuit va tomber…'
+    } else if (phase === 'MORNING') {
+      msg =
+        morningVictimId !== ''
+          ? `L’aube révèle un drame autour de ${morningVictimName}…`
+          : morningSaved
+            ? 'Les prières ont repoussé la nuit. Le village respire.'
+            : 'Une nuit étrangement calme. Personne n’a péri.'
+    } else if (phase === 'NO_COUNCIL') {
+      msg = 'Le conseil est désert… Le village glisse vers la nuit.'
+    } else if (phase === 'ACCUSATION') {
+      msg = isExcludedFromCouncil
+        ? 'Exclu du conseil pour votre chaise manquée.'
+        : 'Une voix, une cible. Désignez qui accuser au feu.'
+    } else if (phase === 'PLEADINGS') {
+      msg = `Plaidoiries — à la parole : ${speakerName}.`
+    }
+    onNarrativeChange(msg)
+    return () => {
+      onNarrativeChange('')
+    }
+  }, [
+    onNarrativeChange,
+    panelHidden,
+    lockedActionMessage,
+    phase,
+    role,
+    isExcludedFromCouncil,
+    councilSummaryCount,
+    stakeVictimId,
+    stakeVictimName,
+    morningVictimId,
+    morningVictimName,
+    morningSaved,
+    speakerName,
+  ])
+
+  if (panelHidden) {
+    return null
+  }
+
   if (lockedActionMessage) {
     return (
-      <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 rounded-lg border border-slate-700 bg-slate-950/70 p-4 text-slate-200">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <LoaderCircle className="h-4 w-4 animate-spin text-slate-300" />
-          <span>Action locked: {lockedActionMessage}</span>
+      <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 rounded-xl border border-amber-500/45 bg-[#14100c]/80 px-4 py-3 text-[#f5ecd8] shadow-inner">
+        <div className="flex items-center gap-2 text-sm font-semibold">
+          <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-amber-300" aria-hidden />
+          <span>Action verrouillée : {lockedActionMessage}</span>
         </div>
-        <p className="mt-2 text-xs text-slate-400">Waiting for phase to end...</p>
+        <p className="mt-2 text-xs text-amber-200/75">En attente de la fin de phase…</p>
       </div>
     )
   }
@@ -244,110 +350,111 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
       const intentions = lobby.wendigoIntents ?? lobby.wendigoIntentions ?? {}
       return (
         <div className="space-y-3">
-          <p className="text-sm text-slate-300">
-            La meute se coordonne. Choisissez une intention visible par les autres Wendigos, puis confirmez le meurtre.
-          </p>
           {Object.keys(intentions).length > 0 ? (
-            <ul className="space-y-1 rounded-md border border-rose-900/50 bg-rose-950/20 p-3 text-xs text-rose-100/90">
+            <div className="flex flex-wrap gap-2 rounded-lg border border-rose-900/45 bg-black/35 px-2 py-2">
               {Object.entries(intentions).map(([wendigoId, targetId]) => (
-                <li key={wendigoId}>
-                  <span className="font-medium">{findAlivePlayerName(wendigoId)}</span> pointe vers{' '}
-                  <span className="font-medium text-rose-50">{findAlivePlayerName(targetId)}</span>
-                </li>
+                <div key={wendigoId} className="flex items-center gap-1.5 rounded-full border border-rose-800/40 bg-rose-950/25 px-2 py-1">
+                  <MiniAvatar name={findAlivePlayerName(wendigoId)} />
+                  <span className="text-[10px] text-rose-200/90">→</span>
+                  <MiniAvatar name={findAlivePlayerName(targetId)} />
+                </div>
               ))}
-            </ul>
+            </div>
           ) : null}
           {aliveTargetsForWendigo.length > 0 ? (
-            <div className="rounded-md border border-slate-800 bg-slate-950/30 p-3">
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">Intentions par cible</p>
-              <ul className="space-y-1 text-xs text-slate-300">
+            <div className="rounded-lg border border-amber-900/35 bg-black/35 px-2 py-2">
+              <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-amber-200/80">
+                Intentions
+              </p>
+              <div className="flex flex-col gap-2">
                 {aliveTargetsForWendigo.map((candidate) => {
                   const aiming = Object.entries(intentions)
                     .filter(([, targetId]) => targetId === candidate.id)
                     .map(([wendigoId]) => findAlivePlayerName(wendigoId))
                   return (
-                    <li key={candidate.id} className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-slate-200">{candidate.name}</span>
+                    <div key={candidate.id} className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <MiniAvatar name={candidate.name} />
+                        <span className="max-w-[40%] truncate text-xs font-medium text-[#f5ecd8]">{candidate.name}</span>
+                      </div>
                       {aiming.length > 0 ? (
-                        <span className="rounded-full border border-rose-900/60 bg-rose-950/30 px-2 py-0.5 text-[11px] text-rose-200">
-                          Visé par {aiming.join(', ')}
-                        </span>
+                        <div className="flex flex-wrap justify-end gap-1">
+                          {aiming.map((n, idx) => (
+                            <MiniAvatar key={`${candidate.id}-aim-${idx}`} name={n} className="h-6 w-6 text-[10px]" />
+                          ))}
+                        </div>
                       ) : (
-                        <span className="text-[11px] text-slate-500">—</span>
+                        <span className="text-[10px] text-amber-200/50">—</span>
                       )}
-                    </li>
+                    </div>
                   )
                 })}
-              </ul>
+              </div>
             </div>
           ) : null}
-          <select
-            value={selectedTarget}
+          <PlayerAvatarGrid
+            players={aliveTargetsForWendigo}
+            selectedId={selectedTarget}
+            allowClear
+            clearLabel="∅"
             disabled={isPaused}
-            onChange={(event) => {
-              const next = event.target.value
-              setSelectedTarget(next)
-              sendWendigoIntent(next)
+            onSelect={(id) => {
+              setSelectedTarget(id)
+              void sendWendigoIntent(id)
             }}
-            className={`h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500 ${pausedControlClass}`}
-          >
-            <option value="">— Retirer mon intention —</option>
-            {aliveTargetsForWendigo.map((player) => (
-              <option key={player.id} value={player.id}>
-                {player.name}
-              </option>
-            ))}
-          </select>
-          <Button
+          />
+          <VoxelButton
             type="button"
-            variant="destructive"
+            variant="danger"
             className={`w-full ${pausedControlClass}`}
             disabled={isPaused || selectedTarget.length === 0}
             onClick={() => submitNightAction('KILL', selectedTarget)}
           >
             Confirmer le meurtre
-          </Button>
-          <div className="rounded-md border border-slate-700 bg-slate-950/40 p-3">
+          </VoxelButton>
+          <div className="rounded-lg border border-amber-900/35 bg-black/35 px-2 py-2">
             {canPrayAtNight ? (
               <>
-                <p className="mb-2 text-xs text-slate-400">
-                  Camouflage optionnel : priez comme n'importe quel villageois pour protéger une cible.
-                </p>
-                <select
-                  value={prayerTarget}
+                <p className="mb-2 text-center text-[10px] text-amber-200/80">Camouflage : prière</p>
+                <PlayerAvatarGrid
+                  players={alivePrayerTargets}
+                  selectedId={prayerTarget}
+                  selfId={currentPlayer.id}
                   disabled={isPaused}
-                  onChange={(event) => setPrayerTarget(event.target.value)}
-                  className={`h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500 ${pausedControlClass}`}
-                >
-                  {alivePrayerTargets.map((player) => (
-                    <option key={player.id} value={player.id}>
-                      {player.name}
-                      {player.id === currentPlayer.id ? ' (vous)' : ''}
-                    </option>
-                  ))}
-                </select>
-                <Button
+                  onSelect={(id) => setPrayerTarget(id)}
+                />
+                <VoxelButton
                   type="button"
-                  variant="secondary"
+                  variant="muted"
                   className={`mt-2 w-full ${pausedControlClass}`}
                   disabled={isPaused || prayerTarget.length === 0}
                   onClick={() => submitPrayer(prayerTarget)}
                 >
                   Prier pour ce joueur
-                </Button>
+                </VoxelButton>
               </>
             ) : null}
             {hasPrayerTallies ? (
-              <div className="mt-3 rounded-md border border-slate-800 bg-slate-950/60 p-3">
-                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">Echo des prieres</p>
-                <div className="space-y-1 text-xs text-slate-400">
+              <div className="mt-3 rounded-md border border-amber-900/30 bg-black/40 p-2">
+                <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-wide text-amber-200/75">
+                  Écho des prières
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
                   {Object.entries(prayerTallies).map(([targetID, count]) => {
                     const name = findAlivePlayerName(targetID)
                     const reachedThreshold = count >= prayerThreshold
                     return (
-                      <p key={targetID} className={reachedThreshold ? 'text-emerald-300' : 'text-slate-400'}>
-                        {name} : {count} priere(s)
-                      </p>
+                      <div
+                        key={targetID}
+                        className={`flex items-center gap-1.5 rounded-full border px-2 py-1 ${
+                          reachedThreshold ? 'border-emerald-600/60 bg-emerald-950/30' : 'border-amber-900/40 bg-black/30'
+                        }`}
+                      >
+                        <MiniAvatar name={name} className="h-6 w-6 text-[10px]" />
+                        <span className={`text-xs font-black ${reachedThreshold ? 'text-emerald-200' : 'text-amber-100/90'}`}>
+                          ×{count}
+                        </span>
+                      </div>
                     )
                   })}
                 </div>
@@ -360,41 +467,38 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
 
     return (
       <div className="space-y-3">
-        <p className="text-sm text-slate-300">
-          La nuit tombe. Choisissez une cible vivante (vous inclus) et envoyez votre prière d'immunité.
-        </p>
-        <select
-          value={prayerTarget}
+        <PlayerAvatarGrid
+          players={alivePrayerTargets}
+          selectedId={prayerTarget}
+          selfId={currentPlayer.id}
           disabled={isPaused}
-          onChange={(event) => setPrayerTarget(event.target.value)}
-          className={`h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500 ${pausedControlClass}`}
-        >
-          {alivePrayerTargets.map((player) => (
-            <option key={player.id} value={player.id}>
-              {player.name}
-              {player.id === currentPlayer.id ? ' (vous)' : ''}
-            </option>
-          ))}
-        </select>
-        <Button
+          onSelect={(id) => setPrayerTarget(id)}
+        />
+        <VoxelButton
           type="button"
           className={`w-full ${pausedControlClass}`}
           disabled={isPaused || prayerTarget.length === 0}
           onClick={() => submitPrayer(prayerTarget)}
         >
           Prier pour ce joueur
-        </Button>
+        </VoxelButton>
         {hasPrayerTallies ? (
-          <div className="rounded-md border border-slate-800 bg-slate-950/60 p-3">
-            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">Echo des prieres</p>
-            <div className="space-y-1 text-xs text-slate-400">
+          <div className="rounded-md border border-amber-900/35 bg-black/40 p-2">
+            <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-wide text-amber-200/75">Écho des prières</p>
+            <div className="flex flex-wrap justify-center gap-2">
               {Object.entries(prayerTallies).map(([targetID, count]) => {
                 const name = findAlivePlayerName(targetID)
                 const reachedThreshold = count >= prayerThreshold
                 return (
-                  <p key={targetID} className={reachedThreshold ? 'text-emerald-300' : 'text-slate-400'}>
-                    {name} : {count} priere(s)
-                  </p>
+                  <div
+                    key={targetID}
+                    className={`flex items-center gap-1.5 rounded-full border px-2 py-1 ${
+                      reachedThreshold ? 'border-emerald-600/60 bg-emerald-950/30' : 'border-amber-900/40 bg-black/30'
+                    }`}
+                  >
+                    <MiniAvatar name={name} className="h-6 w-6 text-[10px]" />
+                    <span className={`text-xs font-black ${reachedThreshold ? 'text-emerald-200' : 'text-amber-100/90'}`}>×{count}</span>
+                  </div>
                 )
               })}
             </div>
@@ -406,13 +510,10 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
 
   if (phase === 'CHAIR_SELECTION') {
     return (
-      <div className="space-y-4">
-        <p className="text-sm text-slate-300">
-          Choisissez votre place autour du feu. Dès que tout le monde est assis, le jour se lève.
-        </p>
+      <div className="space-y-3">
         <ChairPicker lobby={lobby} currentPlayer={currentPlayer} sendMessage={sendMessage} disabled={isPaused} />
         {hasSeat ? (
-          <p className="text-center text-xs text-emerald-400/90">Vous êtes assis — en attente des autres.</p>
+          <p className="text-center text-xs font-semibold text-emerald-300/95">Vous êtes assis — en attente des autres.</p>
         ) : null}
       </div>
     )
@@ -420,20 +521,16 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
 
   if (phase === 'DAY') {
     return (
-      <div className="rounded-lg border border-slate-700 bg-slate-950/40 p-6 text-center text-slate-200">
-        <p className="text-sm leading-relaxed text-slate-300">
-          Phase sociale en cours. Discutez et gardez un œil sur le chrono pour la course aux chaises.
-        </p>
+      <div className="rounded-lg border border-amber-900/30 bg-black/30 px-3 py-4 text-center text-sm text-[#f5ecd8]/90">
+        Discussions libres — préparez-vous pour la suite.
       </div>
     )
   }
 
   if (phase === 'COUNCIL_START') {
     return (
-      <div className="flex min-h-[180px] flex-col items-center justify-center rounded-lg border border-violet-900/40 bg-violet-950/20 p-8 text-center">
-        <p className="max-w-md font-serif text-xl font-semibold leading-snug tracking-wide text-violet-100 md:text-2xl">
-          Bienvenue au conseil du village. Avez-vous des soupçons sur quelqu'un ?
-        </p>
+      <div className="rounded-lg border border-amber-500/35 bg-black/35 px-3 py-5 text-center text-sm font-serif font-medium leading-relaxed text-[#f5ecd8]">
+        Le feu du conseil brûle. Les regards se croisent…
       </div>
     )
   }
@@ -441,42 +538,31 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
   if (phase === 'COUNCIL_VOTE') {
     if (isExcludedFromCouncil) {
       return (
-        <div className="rounded-lg border border-rose-900/50 bg-rose-950/25 p-6 text-center">
-          <p className="text-sm font-semibold leading-relaxed text-rose-200">
-            Sanction : Vous êtes exclu du conseil. Vous êtes privé du droit de vote et de parole.
-          </p>
+        <div className="rounded-lg border border-rose-800/50 bg-rose-950/25 px-3 py-4 text-center text-sm font-semibold text-rose-100">
+          Sanction : exclu du conseil — pas de vote ni de parole.
         </div>
       )
     }
 
     return (
       <div className="space-y-3">
-        <p className="text-sm text-amber-100/90">
-          Le Conseil délibère. Choisissez qui éliminer — tout le monde vivant est éligible, y compris vous-même.
-        </p>
-        <select
-          value={selectedTarget}
+        <PlayerAvatarGrid
+          players={aliveForCouncilVote}
+          selectedId={selectedTarget}
+          allowClear
+          clearLabel="?"
           disabled={isPaused}
-          onChange={(event) => setSelectedTarget(event.target.value)}
-          className={`h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500 ${pausedControlClass}`}
-        >
-          <option value="">Choisir une cible</option>
-          {aliveForCouncilVote.map((player) => (
-            <option key={player.id} value={player.id}>
-              {player.name}
-              {player.id === currentPlayer.id ? ' (vous)' : ''}
-            </option>
-          ))}
-        </select>
-        <Button
+          onSelect={(id) => setSelectedTarget(id)}
+        />
+        <VoxelButton
           type="button"
-          variant="destructive"
+          variant="danger"
           className={`w-full ${pausedControlClass}`}
           disabled={isPaused || disableTargetAction}
           onClick={() => submitVoteDay(selectedTarget)}
         >
-          VOTER AU CONSEIL
-        </Button>
+          Voter au conseil
+        </VoxelButton>
       </div>
     )
   }
@@ -485,23 +571,24 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
     const accusations = Object.entries(councilAccusations)
     if (accusations.length === 0) {
       return (
-        <div className="flex min-h-[180px] flex-col items-center justify-center rounded-lg border border-violet-900/40 bg-violet-950/20 p-8 text-center">
-          <p className="max-w-md font-serif text-xl font-semibold leading-snug tracking-wide text-violet-100 md:text-2xl">
-            Aucun habitant n&apos;a porté d&apos;accusation aujourd&apos;hui. Le village va maintenant passer au vote libre.
-          </p>
+        <div className="rounded-lg border border-amber-500/35 bg-black/35 px-3 py-5 text-center text-sm font-serif text-[#f5ecd8]">
+          Silence au village…
         </div>
       )
     }
 
     return (
-      <div className="rounded-lg border border-violet-900/40 bg-violet-950/20 p-6 text-center">
-        <p className="font-serif text-xl font-semibold tracking-wide text-violet-100">Bilan des accusations</p>
-        <ul className="mt-4 space-y-2 text-left text-sm text-violet-100/90">
+      <div className="rounded-lg border border-amber-900/35 bg-black/35 px-2 py-3">
+        <p className="mb-3 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-amber-200/85">Accusations</p>
+        <ul className="flex flex-col gap-2">
           {accusations.map(([accuserId, accusedId]) => (
-            <li key={accuserId} className="rounded-md border border-violet-900/40 bg-slate-950/40 px-3 py-2">
-              <span className="font-semibold text-violet-50">{findPlayerName(accuserId)}</span>
-              <span className="px-2 text-violet-300">-&gt;</span>
-              <span className="font-semibold text-amber-100">{findPlayerName(accusedId)}</span>
+            <li
+              key={accuserId}
+              className="flex items-center justify-center gap-2 rounded-lg border border-amber-900/30 bg-black/25 px-2 py-2"
+            >
+              <MiniAvatar name={findPlayerName(accuserId)} />
+              <span className="text-xs font-black text-amber-400/90">→</span>
+              <MiniAvatar name={findPlayerName(accusedId)} />
             </li>
           ))}
         </ul>
@@ -515,38 +602,37 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
     const votes = lobby.votes ?? {}
     const voteEntries = Object.entries(votes)
     return (
-      <div className="rounded-lg border border-orange-900/50 bg-gradient-to-b from-orange-950/30 via-rose-950/20 to-slate-950/40 p-6 text-center">
-        <p className="font-serif text-2xl font-semibold tracking-wide text-orange-200">Le Bûcher</p>
+      <div className="space-y-3 rounded-lg border border-orange-900/40 bg-black/35 px-2 py-3 text-center">
+        <p className="font-serif text-lg font-bold tracking-wide text-orange-200">Le bûcher</p>
         {victimID !== '' ? (
-          <p className="mt-3 p-4 text-center text-sm font-semibold leading-relaxed text-orange-300">
-            Le village a décidé de condamner <span className="font-semibold text-orange-100">{victimName}</span>. Il finit
-            sur le bûcher.
-          </p>
+          <div className="flex flex-col items-center gap-2 py-2">
+            <MiniAvatar name={victimName} className="h-12 w-12 text-base" />
+            <p className="text-sm font-semibold text-orange-200/95">
+              Le village condamne <span className="text-orange-50">{victimName}</span>.
+            </p>
+          </div>
         ) : (
-          <p className="mt-3 p-4 text-center text-sm font-semibold leading-relaxed text-orange-300">
-            Après de longues hésitations, le village n&apos;a brûlé personne ce soir. La nuit tombe sur le campement...
-          </p>
+          <p className="py-2 text-sm font-semibold text-orange-200/90">Nul ne monte sur le bûcher ce soir.</p>
         )}
 
-        <div className="mt-4 rounded-md border border-slate-800 bg-slate-950/40 p-4 text-left">
-          <p className="mb-2 text-center text-xs font-medium uppercase tracking-wide text-slate-300">
-            Votes du conseil
-          </p>
+        <div className="rounded-md border border-amber-900/30 bg-black/30 p-2 text-left">
+          <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-wide text-amber-200/75">Votes</p>
           {voteEntries.length === 0 ? (
-            <p className="text-center text-sm text-slate-300">Aucun vote n&apos;a été exprimé.</p>
+            <p className="text-center text-xs text-[#f5ecd8]/75">Aucun vote enregistré.</p>
           ) : (
-            <ul className="space-y-1 text-sm text-slate-300">
+            <ul className="flex flex-col gap-1.5 text-xs text-[#f5ecd8]/90">
               {voteEntries.map(([voterId, targetId]) => (
-                <li key={voterId} className="text-center">
-                  <span className="font-semibold text-slate-100">{findPlayerName(voterId)}</span> a voté contre{' '}
-                  <span className="font-semibold text-slate-100">{findPlayerName(targetId)}</span>
+                <li key={voterId} className="flex items-center justify-center gap-2">
+                  <MiniAvatar name={findPlayerName(voterId)} className="h-6 w-6 text-[10px]" />
+                  <span className="text-amber-300/80">→</span>
+                  <MiniAvatar name={findPlayerName(targetId)} className="h-6 w-6 text-[10px]" />
                 </li>
               ))}
             </ul>
           )}
         </div>
 
-        <p className="mt-2 text-xs text-orange-200/70">En attente de la nuit.</p>
+        <p className="text-[10px] text-orange-200/65">En attente de la nuit.</p>
       </div>
     )
   }
@@ -557,36 +643,30 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
     const victimName = victimID !== '' ? findPlayerName(victimID) : ''
 
     return (
-      <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-6 text-center">
-        <p className="font-serif text-2xl font-semibold tracking-wide text-slate-100">Matin</p>
+      <div className="space-y-2 rounded-lg border border-amber-900/35 bg-black/35 px-2 py-4 text-center">
+        <p className="font-serif text-lg font-bold text-[#f5ecd8]">Matin</p>
         {victimID !== '' ? (
-          <p className="mt-3 p-4 text-center text-sm font-semibold leading-relaxed text-rose-300">
-            Le village se réveille... et découvre le corps de{' '}
-            <span className="font-semibold text-rose-100">{victimName}</span>.
-          </p>
+          <div className="flex flex-col items-center gap-2">
+            <MiniAvatar name={victimName} className="h-12 w-12 text-base" />
+            <p className="text-sm font-semibold text-rose-200/95">
+              Le village découvre le sort de <span className="text-rose-50">{victimName}</span>.
+            </p>
+          </div>
         ) : saved ? (
-          <p className="mt-3 p-4 text-center text-sm font-semibold leading-relaxed text-cyan-200">
-            Le village se réveille. Les prières ont été entendues, une attaque a été repoussée cette nuit !
-          </p>
+          <p className="text-sm font-semibold text-cyan-200/95">Les prières ont tenu la nuit.</p>
         ) : (
-          <p className="mt-3 p-4 text-center text-sm font-semibold leading-relaxed text-slate-200">
-            Le village se réveille. Étonnamment, la nuit a été calme. Personne n&apos;est mort.
-          </p>
+          <p className="text-sm font-semibold text-[#f5ecd8]/90">Une nuit sans victime.</p>
         )}
-        <p className="mt-2 text-xs text-slate-400">Le jour se lève...</p>
+        <p className="text-[10px] text-amber-200/60">Le jour se lève…</p>
       </div>
     )
   }
 
   if (phase === 'NO_COUNCIL') {
     return (
-      <div className="rounded-lg border border-violet-900/40 bg-violet-950/15 p-6 text-center">
-        <p className="font-serif text-2xl font-semibold tracking-wide text-violet-100">Conseil annulé</p>
-        <p className="mt-3 p-4 text-center text-sm font-semibold leading-relaxed text-violet-200/90">
-          Le conseil est désert... Personne n&apos;a daigné se présenter au feu de camp. Les habitants ont préféré rester
-          couchés ou festoyer dans leurs tentes. La nuit tombe sur un village insouciant...
-        </p>
-        <p className="mt-2 text-xs text-violet-200/70">La nuit approche.</p>
+      <div className="rounded-lg border border-violet-800/40 bg-black/35 px-3 py-5 text-center">
+        <p className="font-serif text-lg font-bold text-violet-100">Conseil annulé</p>
+        <p className="mt-2 text-sm font-medium text-violet-200/90">Les sièges vides murmurent déjà la nuit…</p>
       </div>
     )
   }
@@ -596,17 +676,18 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
 
     if (isExcludedFromCouncil) {
       return (
-        <div className="space-y-3 text-center">
-          <p className="font-bold text-rose-500">Vous êtes exclu du Conseil pour avoir raté votre chaise.</p>
+        <div className="space-y-2 text-center">
+          <p className="text-sm font-bold text-rose-400">Exclu du conseil (chaise manquée).</p>
           {Object.keys(councilAccusations).length > 0 ? (
-            <ul className="space-y-1 text-left text-xs text-slate-400">
+            <div className="flex flex-col gap-2 rounded-lg border border-amber-900/30 bg-black/30 p-2">
               {Object.entries(councilAccusations).map(([accuserId, accusedId]) => (
-                <li key={accuserId}>
-                  <span className="text-slate-200">{accuserName(accuserId)}</span> accuse{' '}
-                  <span className="text-slate-200">{accuserName(accusedId)}</span>
-                </li>
+                <div key={accuserId} className="flex items-center justify-center gap-2">
+                  <MiniAvatar name={accuserName(accuserId)} className="h-6 w-6 text-[10px]" />
+                  <span className="text-amber-300/80">→</span>
+                  <MiniAvatar name={accuserName(accusedId)} className="h-6 w-6 text-[10px]" />
+                </div>
               ))}
-            </ul>
+            </div>
           ) : null}
         </div>
       )
@@ -615,83 +696,67 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage }: ActionPanelProps) =>
     return (
       <div className="space-y-3">
         {Object.keys(councilAccusations).length > 0 ? (
-          <ul className="space-y-1 rounded-md border border-slate-700 bg-slate-950/50 p-3 text-xs text-slate-300">
+          <div className="flex flex-col gap-2 rounded-lg border border-amber-900/30 bg-black/30 p-2">
             {Object.entries(councilAccusations).map(([accuserId, accusedId]) => (
-              <li key={accuserId}>
-                <span className="font-medium text-slate-100">{accuserName(accuserId)}</span> →{' '}
-                <span className="font-medium text-amber-200/90">{accuserName(accusedId)}</span>
-              </li>
+              <div key={accuserId} className="flex items-center justify-center gap-2">
+                <MiniAvatar name={accuserName(accuserId)} className="h-6 w-6 text-[10px]" />
+                <span className="text-amber-300/80">→</span>
+                <MiniAvatar name={accuserName(accusedId)} className="h-6 w-6 text-[10px]" />
+              </div>
             ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-slate-400">Conseil : désignez une unique cible. Une place, une voix.</p>
-        )}
+          </div>
+        ) : null}
 
-        <select
-          value={selectedTarget}
+        <PlayerAvatarGrid
+          players={aliveOpponents}
+          selectedId={selectedTarget}
+          idsDisabled={accusedTargets}
           disabled={isPaused || hasAlreadyAccused}
-          onChange={(event) => setSelectedTarget(event.target.value)}
-          className={`h-10 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-slate-500 ${pausedControlClass}`}
-        >
-          <option value="">Choisir un joueur à accuser</option>
-          {aliveOpponents.map((player) => (
-            <option key={player.id} value={player.id}>
-              {player.name}
-              {accusedTargets.has(player.id) ? ' (déjà accusé)' : ''}
-            </option>
-          ))}
-        </select>
-        <Button
+          onSelect={(id) => setSelectedTarget(id)}
+        />
+        <VoxelButton
           type="button"
-          variant="secondary"
+          variant="muted"
           className={`w-full ${pausedControlClass}`}
           disabled={isPaused || disableTargetAction || hasAlreadyAccused || accusedTargets.has(selectedTarget)}
           onClick={() => submitCouncilAccuse(selectedTarget)}
         >
-          ACCUSER AU CONSEIL
-        </Button>
+          Accuser au conseil
+        </VoxelButton>
       </div>
     )
   }
 
   if (phase === 'PLEADINGS') {
     const sid = lobby.currentSpeakerId ?? ''
-    const speakerName =
+    const speakerNameP =
       sid !== '' ? lobby.players.find((p) => p.id === sid)?.name ?? sid.slice(0, 8) : '—'
     const isCurrentSpeaker = sid !== '' && sid === currentPlayer.id
     const queue = lobby.pleadingsQueue ?? []
 
     return (
       <div className="space-y-3">
-        <p className="text-sm text-slate-300">
-          Plaidoiries — à la parole :{' '}
-          <span className="font-semibold text-amber-100/95">{speakerName}</span>
-        </p>
         {queue.length > 0 ? (
-          <p className="text-xs text-slate-500">
-            Prochains passages :{' '}
-            {queue
-              .map((id) => lobby.players.find((p) => p.id === id)?.name ?? id.slice(0, 6))
-              .join(' → ')}
-          </p>
+          <div className="flex flex-wrap items-center justify-center gap-1">
+            {queue.map((id) => {
+              const n = lobby.players.find((p) => p.id === id)?.name ?? id.slice(0, 6)
+              return <MiniAvatar key={id} name={n} className="h-7 w-7 text-[11px]" />
+            })}
+          </div>
         ) : null}
         {!lobby.pleadingTimerStarted ? (
-          <p className="text-xs text-slate-400">
-            L’orateur démarre son temps de parole quand il est prêt ({lobby.phaseSettings.pleadingSpeechSeconds} s une fois
-            lancé).
+          <p className="text-center text-[10px] text-amber-200/75">
+            {isCurrentSpeaker
+              ? `Vous parlez bientôt (${lobby.phaseSettings.pleadingSpeechSeconds}s une fois lancé).`
+              : `À l’écoute de ${speakerNameP}.`}
           </p>
         ) : (
-          <p className="text-xs text-amber-200/85">Temps restant : {lobby.timeRemaining}s</p>
+          <p className="text-center text-xs font-mono font-bold text-amber-200/90">Temps : {lobby.timeRemaining}s</p>
         )}
         {isCurrentSpeaker && !lobby.pleadingTimerStarted ? (
-          <Button
-            type="button"
-            className={`w-full ${pausedControlClass}`}
-            disabled={isPaused}
-            onClick={submitStartPleading}
-          >
-            PRENDRE LA PAROLE
-          </Button>
+          <VoxelButton type="button" className={`w-full ${pausedControlClass}`} disabled={isPaused} onClick={submitStartPleading}>
+            Prendre la parole
+          </VoxelButton>
         ) : null}
       </div>
     )

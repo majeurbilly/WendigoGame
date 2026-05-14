@@ -1,5 +1,5 @@
 import { useSmokeTransition } from '@/contexts/smokeTransitionContext'
-import MainLayout from '@/components/layouts/MainLayout'
+import MainLayout, { type GameOverlayHostMenuProps } from '@/components/layouts/MainLayout'
 import EndedScreen from '@/features/dashboard/components/EndedScreen'
 import LocalDashboard from '@/features/dashboard/components/LocalDashboard'
 import WaitingRoom from '@/features/dashboard/components/WaitingRoom'
@@ -7,15 +7,18 @@ import { useGameAudio } from '@/hooks/useGameAudio'
 import { useGameWebSocket } from '@/hooks/useGameWebSocket'
 import { isGameOverPhase, isLobbyWaitingPhase } from '@/lib/gamePhase'
 import { resolveLobbyBackgroundImagePath } from '@/lib/lobbyPhaseBackground'
+import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { toast } from 'sonner'
 
 const GameAudioRoom = lazy(() => import('@/features/dashboard/components/GameAudioRoom'))
 
 export default function LobbyPage() {
   const { code } = useParams<{ code: string }>()
   const navigate = useNavigate()
+  const user = useAuthStore((state) => state.user)
 
   const lobby = useGameStore((state) => state.lobby)
   const isConnected = useGameStore((state) => state.isConnected)
@@ -156,6 +159,27 @@ export default function LobbyPage() {
   const isEndedPhase = Boolean(lobby && isGameOverPhase(lobby.phase))
   const isWaitingInLobby = Boolean(lobby && isLobbyWaitingPhase(lobby.phase))
   const showLobbyWaitingLayout = isWaitingInLobby || isCinematicPlaying
+  const gameOverlayLayout = isConnected && !isEndedPhase && !showLobbyWaitingLayout
+
+  const gameOverlayHostMenu = useMemo((): GameOverlayHostMenuProps | undefined => {
+    if (!gameOverlayLayout || !lobby || !user) return undefined
+    const cp = lobby.players.find((p) => p.id === user.id)
+    if (!cp?.isHost) return undefined
+    if (isGameOverPhase(lobby.phase)) return undefined
+    return {
+      isPaused: lobby.isPaused === true,
+      surrenderDisabled: lobby.surrenderVoteActive === true || lobby.surrenderApproved === true,
+      onTogglePause: () => {
+        if (!sendMessage('TOGGLE_PAUSE', {})) toast.error('Connexion indisponible. Réessayez.')
+      },
+      onStartSurrender: () => {
+        if (!sendMessage('START_SURRENDER_VOTE', {})) toast.error('Connexion indisponible. Réessayez.')
+      },
+      onForceEnd: () => {
+        if (!sendMessage('FORCE_END_GAME', {})) toast.error('Connexion indisponible. Réessayez.')
+      },
+    }
+  }, [gameOverlayLayout, lobby, user, sendMessage])
 
   return (
     <>
@@ -170,7 +194,7 @@ export default function LobbyPage() {
       </div>
 
       <div className="relative z-10">
-        <MainLayout transparentBg={true}>
+        <MainLayout transparentBg gameOverlay={gameOverlayLayout} gameOverlayHostMenu={gameOverlayHostMenu}>
           {!isConnected ? (
             <div className="flex h-[50vh] items-center justify-center">
               <div className="animate-pulse rounded-lg border border-slate-800 bg-slate-900/60 px-6 py-4 text-slate-200">

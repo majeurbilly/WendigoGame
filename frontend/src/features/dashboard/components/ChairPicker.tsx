@@ -1,7 +1,6 @@
 import type { LobbyState, Player } from '@/api/game'
+import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-
-const UNSEATED = -1
 
 type SocketActionType = 'CLAIM_SEAT'
 
@@ -15,6 +14,11 @@ interface ChairPickerProps {
   sendMessage: (type: SocketActionType, payload: ClaimSeatPayload) => boolean
   disabled?: boolean
 }
+
+const UNSEATED = -1
+
+const cellRing =
+  'border-2 border-t-[#d4b896]/90 border-l-[#d4b896]/90 border-b-[#120a06] border-r-[#120a06] bg-gradient-to-b from-[#3d342c] to-[#1e1814] font-black text-amber-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]'
 
 const ChairPicker = ({ lobby, currentPlayer, sendMessage, disabled = false }: ChairPickerProps) => {
   const hasSeat = currentPlayer.chairId >= 0 && currentPlayer.chairId !== UNSEATED
@@ -36,38 +40,26 @@ const ChairPicker = ({ lobby, currentPlayer, sendMessage, disabled = false }: Ch
       toast.error('Connexion indisponible.')
       return
     }
-    toast.success(`Chaise ${chairId + 1} demandée.`)
+    toast.success(`Place ${chairId + 1} demandée.`)
   }
 
   if (numChairs === 0) {
-    return (
-      <p className="text-center text-sm text-slate-500">Aucun joueur — pas de places à afficher.</p>
-    )
+    return <p className="text-center text-xs text-amber-200/70">Aucune place à afficher.</p>
   }
 
   const gridCols = numChairs <= 4 ? 'grid-cols-2' : 'grid-cols-4'
 
   return (
     <div
-      className={`grid w-full max-w-md gap-3 rounded-xl border border-slate-800 bg-slate-950/60 p-4 ${gridCols} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+      className={cn(
+        `grid w-full max-w-md justify-items-center gap-3 rounded-xl border border-amber-900/40 bg-black/35 p-3 ${gridCols}`,
+        disabled && 'cursor-not-allowed opacity-50'
+      )}
     >
       {seats.map(({ chairId, occupant }) => {
         const isMine = occupant?.id === currentPlayer.id
         const occupied = occupant !== null
         const clickable = !disabled && !hasSeat && !occupied
-
-        let cellClass =
-          'flex h-14 w-full items-center justify-center rounded-lg border-2 text-sm font-medium transition-colors'
-        if (occupied) {
-          cellClass += isMine
-            ? ' border-amber-400/70 bg-amber-500/15 text-amber-100'
-            : ' cursor-not-allowed border-slate-700 bg-slate-900/80 text-slate-400 opacity-70'
-        } else if (clickable) {
-          cellClass +=
-            ' cursor-pointer border-rose-500/40 bg-rose-950/25 text-rose-100 hover:bg-rose-900/35 hover:border-rose-400/60'
-        } else {
-          cellClass += ' cursor-not-allowed border-slate-800 bg-slate-900/50 text-slate-500'
-        }
 
         const label = occupied
           ? (occupant?.name?.trim()?.charAt(0)?.toUpperCase() ?? '?')
@@ -79,14 +71,23 @@ const ChairPicker = ({ lobby, currentPlayer, sendMessage, disabled = false }: Ch
             type="button"
             disabled={!clickable}
             onClick={() => pickChair(chairId)}
-            className={cellClass}
             title={
               occupied
                 ? (occupant?.name ?? 'Occupée')
                 : hasSeat
-                  ? 'Vous avez déjà une chaise'
+                  ? 'Vous avez déjà une place'
                   : `Choisir la place ${chairId + 1}`
             }
+            className={cn(
+              'flex h-16 w-16 touch-manipulation items-center justify-center rounded-full text-sm transition-transform sm:h-[4.25rem] sm:w-[4.25rem] sm:text-base',
+              cellRing,
+              occupied &&
+                (isMine
+                  ? 'ring-[3px] ring-amber-400/90 ring-offset-2 ring-offset-[#14100c]'
+                  : 'cursor-not-allowed opacity-55'),
+              clickable && 'active:scale-95 hover:brightness-110',
+              !occupied && !clickable && 'cursor-not-allowed opacity-40'
+            )}
           >
             {label}
           </button>
