@@ -1,15 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import {
   Form,
   FormControl,
@@ -20,10 +11,8 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { getApiErrorMessage, loginAPI, registerAPI } from '@/api/auth'
-import {
-  registerSchema,
-  type RegisterFormValues,
-} from '@/features/auth/schemas'
+import { registerSchema, type RegisterFormValues } from '@/features/auth/schemas'
+import VoxelButton from '@/features/dashboard/components/game/VoxelButton'
 import { useAuthStore } from '@/store/useAuthStore'
 
 const RegisterForm = () => {
@@ -68,78 +57,79 @@ const RegisterForm = () => {
   }
 
   return (
-    <Card className="border-slate-700 bg-slate-900/80 text-slate-100">
-      <CardHeader>
-        <CardTitle>Register</CardTitle>
-        <CardDescription className="text-slate-300">
-          Create your account to join the game.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {form.formState.errors.root?.message ? (
-          <p className="text-sm text-red-400">{form.formState.errors.root.message}</p>
-        ) : null}
+    <div className="text-amber-50/90">
+      {form.formState.errors.root?.message ? (
+        <p className="mb-4 text-center text-sm text-red-400">{form.formState.errors.root.message}</p>
+      ) : null}
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Username</FormLabel>
-                  <FormControl>
-                    <Input placeholder="your-username" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="you@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="At least 6 characters" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={form.formState.isSubmitting}
-            >
-              {form.formState.isSubmitting ? 'Creating account...' : 'Create account'}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-      <CardFooter>
-        <p className="text-sm text-slate-300">
-          Already have an account?{' '}
-          <Link to="/login" className="font-medium text-slate-100 underline">
-            Sign in
-          </Link>
-        </p>
-      </CardFooter>
-    </Card>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-amber-200/80">Pseudo</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="votre-pseudo"
+                    className="border-[#2d261f] bg-[#0f0c09] text-amber-50 placeholder:text-amber-200/30"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage className="text-red-400" />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-amber-200/80">Email</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    className="border-[#2d261f] bg-[#0f0c09] text-amber-50 placeholder:text-amber-200/30"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage className="text-red-400" />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-amber-200/80">Mot de passe</FormLabel>
+                <FormControl>
+                  <Input
+                    type="password"
+                    placeholder="Au moins 6 caractères"
+                    className="border-[#2d261f] bg-[#0f0c09] text-amber-50 placeholder:text-amber-200/30"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage className="text-red-400" />
+              </FormItem>
+            )}
+          />
+          <VoxelButton type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? 'Création…' : 'Créer le compte'}
+          </VoxelButton>
+        </form>
+      </Form>
+
+      <p className="mt-6 text-center text-sm text-amber-200/50">
+        Déjà un compte ?{' '}
+        <Link to="/login" className="font-medium text-amber-300 underline underline-offset-2 hover:text-amber-200">
+          Se connecter
+        </Link>
+      </p>
+    </div>
   )
 }
 

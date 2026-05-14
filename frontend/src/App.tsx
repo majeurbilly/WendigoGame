@@ -18,6 +18,7 @@ import DashboardPage from './pages/DashboardPage'
 import LobbyPage from './pages/LobbyPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import GlobalAudioToggle from './features/dashboard/components/GlobalAudioToggle'
 import { Toaster } from './components/ui/sonner'
 import { isGameOverPhase, isLobbyWaitingPhase } from './lib/gamePhase'
 import { useAuthStore } from './store/useAuthStore'
@@ -194,10 +195,12 @@ const AppShell = () => {
 
         <SmokeTransition isActive={isTransitioning} />
 
+        <GlobalAudioToggle />
+
         {isInitializing ? (
           <div className="flex h-screen items-center justify-center text-slate-200">
             <div className="rounded-xl border border-slate-700/60 bg-black/40 px-6 py-4 backdrop-blur-sm">
-              Loading kingDOM...
+              Chargement…
             </div>
           </div>
         ) : (
