@@ -15,6 +15,8 @@ import {
   type SmokeTransitionContextValue,
 } from './contexts/smokeTransitionContext'
 import DashboardPage from './pages/DashboardPage'
+import ProfilePage from './pages/ProfilePage'
+import SettingsPage from './pages/SettingsPage'
 import LobbyPage from './pages/LobbyPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -123,7 +125,7 @@ const AppShell = () => {
     if (path === '/login' || path === '/register') {
       return true
     }
-    if (path === '/') {
+    if (path === '/' || path === '/profile' || path === '/settings') {
       return true
     }
     if (path.startsWith('/lobby/')) {
@@ -210,6 +212,22 @@ const AppShell = () => {
               element={
                 <ProtectedRoute>
                   <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
                 </ProtectedRoute>
               }
             />

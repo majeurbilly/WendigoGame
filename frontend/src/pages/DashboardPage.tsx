@@ -81,13 +81,8 @@ const DashboardPage = () => {
                 {creatingMode === 'local' ? 'Création…' : 'Create Lobby (Local)'}
               </VoxelButton>
 
-              <VoxelButton
-                type="button"
-                className="w-full"
-                onClick={() => void handleCreateLobby('online')}
-                disabled={busy}
-              >
-                {creatingMode === 'online' ? 'Création…' : 'Create Lobby (Online)'}
+              <VoxelButton type="button" className="w-full" disabled title="Bientôt disponible">
+                Create Lobby (Online)
               </VoxelButton>
 
               <VoxelButton
@@ -106,7 +101,7 @@ const DashboardPage = () => {
                 type="button"
                 variant="muted"
                 className="w-full"
-                onClick={() => toast.message('Profile : bientôt disponible.')}
+                onClick={() => transitionTo('/profile')}
                 disabled={busy}
               >
                 Profile
@@ -116,8 +111,7 @@ const DashboardPage = () => {
                 type="button"
                 variant="muted"
                 className="w-full"
-                onClick={() => toast.message('Settings : bientôt disponible.')}
-                disabled={busy}
+                onClick={() => transitionTo('/settings')}
               >
                 Settings
               </VoxelButton>
