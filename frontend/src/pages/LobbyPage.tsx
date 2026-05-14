@@ -159,7 +159,8 @@ export default function LobbyPage() {
   const isEndedPhase = Boolean(lobby && isGameOverPhase(lobby.phase))
   const isWaitingInLobby = Boolean(lobby && isLobbyWaitingPhase(lobby.phase))
   const showLobbyWaitingLayout = isWaitingInLobby || isCinematicPlaying
-  const gameOverlayLayout = isConnected && !isEndedPhase && !showLobbyWaitingLayout
+  /** Même chrome minimal qu’en partie (pas d’en-tête « dashboard ») — y compris écran de fin. */
+  const gameOverlayLayout = isConnected && !showLobbyWaitingLayout
 
   const gameOverlayHostMenu = useMemo((): GameOverlayHostMenuProps | undefined => {
     if (!gameOverlayLayout || !lobby || !user) return undefined
