@@ -1,4 +1,4 @@
-import type { LobbyState, Player } from '@/api/game'
+import { type LobbyState, type Player } from '@/api/game'
 import ChairPicker from '@/features/dashboard/components/ChairPicker'
 import NarrativeBox from '@/features/dashboard/components/NarrativeBox'
 import PlayerAvatarGrid, { playerInitial } from '@/features/dashboard/components/game/PlayerAvatarGrid'
@@ -76,12 +76,14 @@ interface ActionPanelProps {
   phaseHint: string
 }
 
-const tabletShellClass =
-  'pointer-events-auto fixed bottom-4 left-1/2 z-40 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 ' +
-  'rounded-3xl border-t-4 border-b-8 border-x-2 border-[#2d261f] bg-[#1a1612] ' +
-  'shadow-[0_20px_50px_rgba(0,0,0,0.7)]'
+const tabletStone =
+  'rounded-3xl border-t-4 border-b-8 border-x-2 border-[#2d261f] bg-[#1a1612] shadow-[0_20px_50px_rgba(0,0,0,0.8)]'
 
-const tabletInnerClass =
+/** En jeu : tablette centrée au-dessus du bas d’écran. */
+const tabletShellInGameClass =
+  'pointer-events-auto fixed bottom-4 left-1/2 z-[85] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 ' + tabletStone
+
+const tabletInnerInGameClass =
   'max-h-[min(52vh,28rem)] overflow-y-auto overscroll-contain px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 sm:px-4'
 
 const MiniAvatar = ({ name, className }: { name: string; className?: string }) => (
@@ -95,7 +97,7 @@ const MiniAvatar = ({ name, className }: { name: string; className?: string }) =
   </span>
 )
 
-const ActionPanel = ({ lobby, currentPlayer, sendMessage, phaseHint }: ActionPanelProps) => {
+function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: ActionPanelProps) {
   const [selectedTarget, setSelectedTarget] = useState<string>('')
   const [prayerTarget, setPrayerTarget] = useState<string>('')
   const [lockedActionMessage, setLockedActionMessage] = useState<string | null>(null)
@@ -353,11 +355,11 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, phaseHint }: ActionPan
   const narrativeDisplay = (narrativeText.trim() || phaseHint.trim()).trim()
 
   const withTablet = (body: ReactNode) => (
-    <div className={tabletShellClass}>
-      <div className={tabletInnerClass}>
+    <div className={tabletShellInGameClass}>
+      <div className={tabletInnerInGameClass}>
         <NarrativeBox embedded text={narrativeDisplay} />
         {showSurrenderUI ? (
-          <div className="mb-3 rounded-xl border border-rose-800/55 bg-rose-950/30 px-3 py-3 text-rose-50">
+          <div className="mb-3 rounded-xl border border-rose-900/50 bg-[linear-gradient(165deg,rgba(60,20,28,0.55)_0%,rgba(18,10,10,0.92)_100%)] px-3 py-3 text-rose-50 shadow-inner">
             <p className="mb-2 text-center text-xs font-semibold text-rose-100/95">Vote d’abandon proposé</p>
             <p className="mb-3 text-center text-[11px] text-rose-100/80">Arrêter la partie ?</p>
             <div className="grid grid-cols-2 gap-2">
@@ -600,6 +602,7 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, phaseHint }: ActionPan
           selectedId={selectedTarget}
           allowClear
           clearLabel="?"
+          rowTokens
           disabled={isPaused}
           onSelect={(id) => setSelectedTarget(id)}
         />
@@ -822,4 +825,13 @@ const ActionPanel = ({ lobby, currentPlayer, sendMessage, phaseHint }: ActionPan
   return null
 }
 
-export default ActionPanel
+export default function ActionPanel(props: ActionPanelProps) {
+  return (
+    <ActionPanelInGame
+      lobby={props.lobby}
+      currentPlayer={props.currentPlayer}
+      sendMessage={props.sendMessage}
+      phaseHint={props.phaseHint}
+    />
+  )
+}

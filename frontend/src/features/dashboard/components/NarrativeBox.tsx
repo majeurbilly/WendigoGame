@@ -16,8 +16,10 @@ export default function NarrativeBox({ text, className, embedded = false }: Narr
     return (
       <div
         className={cn(
-          'pointer-events-none border-b border-[#2d261f] px-2 pb-3 pt-0.5 text-center text-sm font-serif font-medium leading-snug text-[#f5ecd8]/95',
-          'bg-[#141210]/55',
+          'pointer-events-none text-center text-sm font-serif font-medium leading-snug text-[#f5ecd8]/95',
+          'rounded-xl border border-[#3d3428]/70 bg-[linear-gradient(165deg,rgba(42,34,24,0.92)_0%,rgba(14,11,8,0.96)_55%,rgba(18,14,10,0.98)_100%)]',
+          'shadow-[inset_0_2px_14px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,200,140,0.06)]',
+          'px-3 py-3',
           className
         )}
       >

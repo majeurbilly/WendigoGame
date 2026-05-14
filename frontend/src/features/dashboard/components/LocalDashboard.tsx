@@ -198,7 +198,12 @@ export default function LocalDashboard({ sendMessage }: LocalDashboardProps) {
       </div>
 
       {showActionPanel ? (
-        <ActionPanel lobby={lobby} currentPlayer={currentPlayer} sendMessage={sendMessage} phaseHint={phaseHint} />
+        <ActionPanel
+          lobby={lobby}
+          currentPlayer={currentPlayer}
+          sendMessage={sendMessage}
+          phaseHint={phaseHint}
+        />
       ) : null}
     </div>
   )

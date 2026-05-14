@@ -125,7 +125,11 @@ const MainLayout = ({ children, transparentBg, gameOverlay, gameOverlayHostMenu 
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl px-4 py-6">{children}</main>
+      <main
+        className={cn('mx-auto w-full px-4 py-6', transparentBg ? 'max-w-7xl' : 'max-w-6xl')}
+      >
+        {children}
+      </main>
     </div>
   )
 }

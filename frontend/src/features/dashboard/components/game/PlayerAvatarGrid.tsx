@@ -24,6 +24,8 @@ interface PlayerAvatarGridProps {
   selfId?: string
   columnsClassName?: string
   size?: 'md' | 'lg'
+  /** Pions larges façon « Tableau du Conseil » (ex. vote du conseil). */
+  rowTokens?: boolean
 }
 
 export default function PlayerAvatarGrid({
@@ -37,9 +39,13 @@ export default function PlayerAvatarGrid({
   selfId,
   columnsClassName = 'grid-cols-1 min-[400px]:grid-cols-2 sm:grid-cols-2 md:grid-cols-3',
   size = 'md',
+  rowTokens = false,
 }: PlayerAvatarGridProps) {
-  const dim =
-    size === 'lg' ? 'h-[3.35rem] w-[3.35rem] shrink-0 text-sm' : 'h-[2.85rem] w-[2.85rem] shrink-0 text-xs'
+  const dim = rowTokens
+    ? 'h-14 w-14 shrink-0 text-xl'
+    : size === 'lg'
+      ? 'h-[3.35rem] w-[3.35rem] shrink-0 text-sm'
+      : 'h-[2.85rem] w-[2.85rem] shrink-0 text-xs'
 
   /** Pion / rune : relief physique ; sélection = enfoncé + lueur intérieure. */
   const cellPhysical =
@@ -58,6 +64,36 @@ export default function PlayerAvatarGrid({
     const isBlocked = opts.blocked === true
     const inactive = disabled || isBlocked
     const dimOthers = hasActiveSelection && !isSelected && !inactive
+
+    if (rowTokens) {
+      const rowShell = cn(
+        'w-full touch-manipulation text-left transition-opacity duration-200 rounded-xl border-b-4 border-[#14100c] bg-[#241e18] p-4 sm:p-5 flex items-center gap-4 sm:gap-6 min-w-0',
+        isSelected && 'ring-2 ring-inset ring-amber-500/55 bg-[#2a2218] shadow-[inset_0_0_16px_rgba(245,158,11,0.12)]',
+        inactive && 'cursor-not-allowed opacity-45',
+        dimOthers && 'opacity-45',
+        !inactive && !dimOthers && 'active:opacity-95 hover:brightness-[1.03]'
+      )
+      const avatarRing =
+        'flex shrink-0 items-center justify-center rounded-full border-2 border-t-[#c9a66b]/70 border-l-[#c9a66b]/70 border-b-[#0a0604] border-r-[#0a0604] bg-gradient-to-b from-[#3d342c] to-[#1e1814] font-black text-amber-50 ring-2 ring-inset ring-amber-500/50'
+
+      return (
+        <button
+          key={id || '__clear'}
+          type="button"
+          disabled={inactive}
+          title={title}
+          onClick={() => onSelect(id)}
+          className={rowShell}
+        >
+          <span className={cn(avatarRing, dim)}>{opts.isClear ? <span className="text-2xl leading-none">{clearLabel}</span> : label}</span>
+          {!opts.isClear ? (
+            <span className="min-w-0 flex-1 truncate text-xl font-bold uppercase tracking-tight text-[#e8dcc4]">{displayName}</span>
+          ) : (
+            <span className="min-w-0 flex-1 text-sm font-bold uppercase tracking-wide text-amber-200/85">Retirer la cible</span>
+          )}
+        </button>
+      )
+    }
 
     return (
       <button
@@ -101,7 +137,10 @@ export default function PlayerAvatarGrid({
 
   return (
     <div
-      className={cn('grid w-full gap-x-3 gap-y-2.5 sm:gap-x-3.5 sm:gap-y-3', columnsClassName)}
+      className={cn(
+        'w-full',
+        rowTokens ? 'flex flex-col gap-3' : cn('grid gap-x-3 gap-y-2.5 sm:gap-x-3.5 sm:gap-y-3', columnsClassName)
+      )}
       role="listbox"
       aria-label="Choisir un joueur"
     >
@@ -120,7 +159,12 @@ export default function PlayerAvatarGrid({
         })
       })}
       {players.length === 0 && !allowClear ? (
-        <div className="col-span-full flex items-center justify-center gap-2 rounded-lg border border-amber-900/40 bg-black/30 py-4 text-xs text-amber-200/80">
+        <div
+          className={cn(
+            'flex items-center justify-center gap-2 rounded-lg border border-amber-900/40 bg-black/30 py-4 text-xs text-amber-200/80',
+            !rowTokens && 'col-span-full'
+          )}
+        >
           <UserRound className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
           Aucun joueur éligible
         </div>

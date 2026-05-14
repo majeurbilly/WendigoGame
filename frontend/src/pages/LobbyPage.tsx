@@ -278,7 +278,9 @@ export default function LobbyPage() {
           ) : isEndedPhase ? (
             <EndedScreen lobby={lobby!} sendMessage={sendMessage} />
           ) : showLobbyWaitingLayout ? (
-            <WaitingRoom sendMessage={sendMessage} disconnect={disconnect} onLeave={handleLeaveLobby} />
+            <div className="fixed bottom-8 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-5xl -translate-x-1/2 flex-col items-center">
+              <WaitingRoom sendMessage={sendMessage} disconnect={disconnect} onLeave={handleLeaveLobby} />
+            </div>
           ) : (
             <LocalDashboard sendMessage={sendMessage} />
           )}
