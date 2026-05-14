@@ -30,7 +30,26 @@ export default function LobbyPage() {
   const cinematicPhaseRef = useRef<string | null>(null)
   const cinematicTimerRef = useRef<number | null>(null)
   const cinematicEndHandledRef = useRef(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const { playSmokeOverlay } = useSmokeTransition()
+
+  useEffect(() => {
+    audioRef.current = new Audio('/assets/musiques/Feu.mp3')
+    if (audioRef.current) {
+      audioRef.current.volume = 0.5
+    }
+    return () => {
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
+      }
+      audioRef.current?.pause()
+      videoRef.current?.pause()
+      audioRef.current = null
+    }
+  }, [])
 
   const targetBackgroundPath = useMemo(() => resolveLobbyBackgroundImagePath(lobby), [lobby])
   const [backgroundImageUrl, setBackgroundImageUrl] = useState(targetBackgroundPath)
@@ -58,14 +77,41 @@ export default function LobbyPage() {
       return
     }
     cinematicEndHandledRef.current = true
+    if (timeoutRef.current !== null) {
+      window.clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
     if (cinematicTimerRef.current !== null) {
       window.clearTimeout(cinematicTimerRef.current)
       cinematicTimerRef.current = null
     }
+    audioRef.current?.pause()
+    videoRef.current?.pause()
     playSmokeOverlay(() => {
       setCinematicPlaying(false)
     })
   }, [playSmokeOverlay, setCinematicPlaying])
+
+  /** Audio 10 s démarre tout de suite ; vidéo 8 s après 2 s — fin alignée (J-cut). */
+  const startMedia = useCallback(() => {
+    if (timeoutRef.current !== null) {
+      window.clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+    }
+    const audio = audioRef.current
+    const video = videoRef.current
+    if (audio) {
+      audio.currentTime = 0
+    }
+    if (video) {
+      video.currentTime = 0
+    }
+    void audio?.play().catch(() => {})
+    timeoutRef.current = window.setTimeout(() => {
+      timeoutRef.current = null
+      void videoRef.current?.play().catch(() => {})
+    }, 2000)
+  }, [])
 
   const handleInvalidLobby = useCallback(
     () => {
@@ -148,13 +194,37 @@ export default function LobbyPage() {
       if (cinematicTimerRef.current !== null) {
         window.clearTimeout(cinematicTimerRef.current)
       }
+      /** 2 s de pré-roll audio + 8 s de vidéo = 10 s (piste Feu alignée sur la fin). */
       cinematicTimerRef.current = window.setTimeout(() => {
         endCinematicWithMenuTransition()
-      }, 8000)
+      }, 10_000)
     }
 
     cinematicPhaseRef.current = phase
   }, [lobby, lobby?.phase, endCinematicWithMenuTransition, setCinematicPlaying])
+
+  useEffect(() => {
+    if (!isCinematicPlaying) {
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
+      }
+      audioRef.current?.pause()
+      videoRef.current?.pause()
+      return
+    }
+
+    startMedia()
+
+    return () => {
+      if (timeoutRef.current !== null) {
+        window.clearTimeout(timeoutRef.current)
+        timeoutRef.current = null
+      }
+      audioRef.current?.pause()
+      videoRef.current?.pause()
+    }
+  }, [isCinematicPlaying, startMedia])
 
   const isEndedPhase = Boolean(lobby && isGameOverPhase(lobby.phase))
   const isWaitingInLobby = Boolean(lobby && isLobbyWaitingPhase(lobby.phase))
@@ -226,9 +296,9 @@ export default function LobbyPage() {
       {isCinematicPlaying ? (
         <div className="fixed inset-0 z-[100] bg-black">
           <video
+            ref={videoRef}
             className="h-full w-full object-cover"
             src="/assets/videos/lobby_video.mp4"
-            autoPlay
             muted
             playsInline
             onEnded={endCinematicWithMenuTransition}
