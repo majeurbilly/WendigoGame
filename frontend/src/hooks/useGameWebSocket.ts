@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { defaultPhaseSettings, type LobbyState, type PhaseSettings } from '@/api/game'
+import {
+  defaultPhaseSettings,
+  isVoiceChatGameMode,
+  type LobbyState,
+  type PhaseSettings,
+} from '@/api/game'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
@@ -300,13 +305,28 @@ export const useGameWebSocket = (
 
           if (isLobbySyncMessage(message)) {
             didReceiveLobbySyncRef.current = true
-            setLobby(normalizeLobbyPayload(message.payload))
+            const nextLobby = normalizeLobbyPayload(message.payload)
+            setLobby(nextLobby)
+            if (!isVoiceChatGameMode(nextLobby.mode)) {
+              const currentToken = useGameStore.getState().livekitToken
+              if (currentToken !== null) {
+                setLiveKitToken(null)
+              }
+            }
             return
           }
 
           if (isGameTickMessage(message)) {
             didReceiveLobbySyncRef.current = true
-            setLobby(normalizeLobbyPayload(message.payload))
+            const nextLobby = normalizeLobbyPayload(message.payload)
+            setLobby(nextLobby)
+            if (!isVoiceChatGameMode(nextLobby.mode)) {
+              const currentToken = useGameStore.getState().livekitToken
+              if (currentToken !== null) {
+                setLiveKitToken(null)
+              }
+              return
+            }
             const nextToken = message.payload.livekit_token ?? null
             const currentToken = useGameStore.getState().livekitToken
             if (nextToken !== currentToken) {

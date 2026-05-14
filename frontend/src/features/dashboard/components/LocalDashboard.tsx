@@ -4,7 +4,7 @@ import { isGameOverPhase } from '@/lib/gamePhase'
 import { useLocalTimer } from '@/hooks/useLocalTimer'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
-import type { LobbyState } from '@/api/game'
+import { isVoiceChatGameMode, type LobbyState } from '@/api/game'
 import type { ComponentProps } from 'react'
 import { useMemo } from 'react'
 import {
@@ -23,18 +23,13 @@ const overlayChrome =
 const hudBadge =
   'rounded-md border border-amber-600/50 bg-[#1c1814]/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#f5ecd8] shadow-[inset_0_1px_0_rgba(255,215,160,0.08)]'
 
-const modeLabel = (mode: string | undefined): string => {
-  const m = (mode ?? 'local').toLowerCase()
-  if (m === 'online') return 'En ligne'
-  return 'Présentiel'
-}
+const modeLabel = (mode: string | undefined): string =>
+  isVoiceChatGameMode(mode) ? 'En ligne' : 'Présentiel'
 
-const modeBadgeClass = (mode: string | undefined): string => {
-  const m = (mode ?? 'local').toLowerCase()
-  return m === 'online'
+const modeBadgeClass = (mode: string | undefined): string =>
+  isVoiceChatGameMode(mode)
     ? 'border-sky-500/45 bg-sky-950/35 text-sky-100'
     : 'border-amber-600/50 bg-[#2a2118]/90 text-amber-100'
-}
 
 const formatTimer = (seconds: number): string => {
   const safeSeconds = Math.max(0, Math.floor(seconds))

@@ -14,6 +14,11 @@ export interface Player {
 
 export type GameMode = 'local' | 'online' | string
 
+/** True uniquement pour le mode en ligne (LiveKit / micro). Présentiel = `local` ou absent. */
+export function isVoiceChatGameMode(mode: GameMode | undefined): boolean {
+  return String(mode ?? 'local').toLowerCase() === 'online'
+}
+
 /** Durées de phase (secondes), alignées sur le backend `PhaseSettings`. */
 export interface PhaseSettings {
   chairSelectionSeconds: number

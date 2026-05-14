@@ -1,5 +1,6 @@
-import { useSmokeTransition } from '@/contexts/smokeTransitionContext'
+import { isVoiceChatGameMode } from '@/api/game'
 import MainLayout, { type GameOverlayHostMenuProps } from '@/components/layouts/MainLayout'
+import { useSmokeTransition } from '@/contexts/smokeTransitionContext'
 import EndedScreen from '@/features/dashboard/components/EndedScreen'
 import LocalDashboard from '@/features/dashboard/components/LocalDashboard'
 import WaitingRoom from '@/features/dashboard/components/WaitingRoom'
@@ -227,6 +228,8 @@ export default function LobbyPage() {
   }, [isCinematicPlaying, startMedia])
 
   const isEndedPhase = Boolean(lobby && isGameOverPhase(lobby.phase))
+  const voiceRoomToken =
+    livekitToken && lobby && isVoiceChatGameMode(lobby.mode) && !isEndedPhase ? livekitToken : null
   const isWaitingInLobby = Boolean(lobby && isLobbyWaitingPhase(lobby.phase))
   const showLobbyWaitingLayout = isWaitingInLobby || isCinematicPlaying
   /** Même chrome minimal qu’en partie (pas d’en-tête « dashboard ») — y compris écran de fin. */
@@ -279,7 +282,7 @@ export default function LobbyPage() {
           ) : (
             <LocalDashboard sendMessage={sendMessage} />
           )}
-          {livekitToken && !isEndedPhase ? (
+          {voiceRoomToken ? (
             <Suspense
               fallback={
                 <div className="fixed right-4 bottom-4 z-50 flex animate-pulse items-center justify-center rounded-md border border-slate-800 bg-slate-900/50 p-4 text-sm text-slate-400">
@@ -287,7 +290,7 @@ export default function LobbyPage() {
                 </div>
               }
             >
-              <GameAudioRoom token={livekitToken} />
+              <GameAudioRoom token={voiceRoomToken} />
             </Suspense>
           ) : null}
         </MainLayout>
