@@ -1,4 +1,6 @@
 import axios, { type AxiosRequestHeaders, type InternalAxiosRequestConfig } from 'axios'
+import { safeTrim } from '@/lib/safeTrim'
+import { useAuthStore } from '@/store/useAuthStore'
 
 const baseURL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
 
@@ -7,8 +9,7 @@ export const apiClient = axios.create({
 })
 
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = localStorage.getItem('token')
-
+  const token = safeTrim(useAuthStore.getState().token)
   if (!token) {
     return config
   }
@@ -19,6 +20,8 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
   return config
 })
+
+// Ticket 5.7 : pas d’intercepteur 401 → logout / Zustand ici (risque de boucles avec OIDC et APIs sans lien profil).
 
 export interface ApiResponse<TData> {
   data: TData

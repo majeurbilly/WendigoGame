@@ -1,4 +1,5 @@
 import { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { AuthProvider, hasAuthParams, useAuth } from 'react-oidc-context'
 import {
   BrowserRouter,
   Navigate,
@@ -7,6 +8,7 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom'
+import { oidcUserManager } from '@/auth/oidcUserManager'
 import AuthLayout from './components/layouts/AuthLayout'
 import LobbyPanorama from './components/lobby/LobbyPanorama'
 import SmokeTransition from './components/ui/SmokeTransition'
@@ -19,7 +21,6 @@ import ProfilePage from './pages/ProfilePage'
 import SettingsPage from './pages/SettingsPage'
 import LobbyPage from './pages/LobbyPage'
 import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
 import GlobalAudioToggle from './features/dashboard/components/GlobalAudioToggle'
 import { Toaster } from './components/ui/sonner'
 import { isGameOverPhase, isLobbyWaitingPhase } from './lib/gamePhase'
@@ -28,10 +29,24 @@ import { useGameStore } from './store/useGameStore'
 
 const WENDIGO_THEME_SRC = '/assets/musiques/wendigo_theme.mp3'
 
-const ProtectedRoute = ({ children }: { children: ReactElement }) => {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+const oidcCallbackPending = (auth: { isLoading: boolean; activeNavigator?: string }) =>
+  auth.isLoading || auth.activeNavigator !== undefined || hasAuthParams()
 
-  if (!isAuthenticated) {
+const ProtectedRoute = ({ children }: { children: ReactElement }) => {
+  const auth = useAuth()
+  const isProcessingOidc = oidcCallbackPending(auth)
+
+  if (isProcessingOidc) {
+    return (
+      <div className="flex h-screen items-center justify-center text-slate-200">
+        <div className="rounded-xl border border-slate-700/60 bg-black/40 px-6 py-4 backdrop-blur-sm">
+          Validation des sceaux du Conseil…
+        </div>
+      </div>
+    )
+  }
+
+  if (!auth.isAuthenticated) {
     return <Navigate to="/login" replace />
   }
 
@@ -39,8 +54,9 @@ const ProtectedRoute = ({ children }: { children: ReactElement }) => {
 }
 
 const AppShell = () => {
+  const auth = useAuth()
   const isInitializing = useAuthStore((state) => state.isInitializing)
-  const initAuth = useAuthStore((state) => state.initAuth)
+  const syncFromOidc = useAuthStore((state) => state.syncFromOidc)
   const location = useLocation()
   const lobby = useGameStore((state) => state.lobby)
   const isCinematicPlaying = useGameStore((state) => state.isCinematicPlaying)
@@ -55,8 +71,13 @@ const AppShell = () => {
   const clearTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
-    void initAuth()
-  }, [initAuth])
+    syncFromOidc({
+      isLoading: auth.isLoading,
+      isAuthenticated: auth.isAuthenticated,
+      accessToken: auth.user?.access_token ?? null,
+      oidcUser: auth.user,
+    })
+  }, [auth.isLoading, auth.isAuthenticated, auth.user, syncFromOidc])
 
   const transitionTo = useCallback(
     (to: string) => {
@@ -122,7 +143,7 @@ const AppShell = () => {
       return false
     }
     const path = location.pathname
-    if (path === '/login' || path === '/register') {
+    if (path === '/login') {
       return true
     }
     if (path === '/' || path === '/profile' || path === '/settings') {
@@ -199,10 +220,10 @@ const AppShell = () => {
 
         <GlobalAudioToggle />
 
-        {isInitializing ? (
+        {oidcCallbackPending(auth) || isInitializing ? (
           <div className="flex h-screen items-center justify-center text-slate-200">
             <div className="rounded-xl border border-slate-700/60 bg-black/40 px-6 py-4 backdrop-blur-sm">
-              Chargement…
+              Validation des sceaux du Conseil…
             </div>
           </div>
         ) : (
@@ -241,7 +262,6 @@ const AppShell = () => {
             />
             <Route element={<AuthLayout />}>
               <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
             </Route>
           </Routes>
         )}
@@ -250,11 +270,17 @@ const AppShell = () => {
   )
 }
 
+const onSigninCallback = () => {
+  window.history.replaceState({}, document.title, window.location.pathname)
+}
+
 function App() {
   return (
     <BrowserRouter>
-      <AppShell />
-      <Toaster />
+      <AuthProvider userManager={oidcUserManager} onSigninCallback={onSigninCallback}>
+        <AppShell />
+        <Toaster />
+      </AuthProvider>
     </BrowserRouter>
   )
 }

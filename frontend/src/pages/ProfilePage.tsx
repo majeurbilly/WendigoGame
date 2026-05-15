@@ -1,7 +1,8 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import VoxelButton from '@/features/dashboard/components/game/VoxelButton'
 import { useSmokeTransition } from '@/contexts/smokeTransitionContext'
+import VoxelButton from '@/features/dashboard/components/game/VoxelButton'
+import { safeTrim } from '@/lib/safeTrim'
 import { useAuthStore } from '@/store/useAuthStore'
 
 const labelClass = 'mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-amber-200/60'
@@ -21,8 +22,8 @@ const ProfilePage = () => {
     if (!user) {
       return
     }
-    setUsername(user.username)
-    setEmail(user.email)
+    setUsername(safeTrim(user.username))
+    setEmail(safeTrim(user.email))
     setNewPassword('')
   }, [user])
 
@@ -31,7 +32,8 @@ const ProfilePage = () => {
     toast.message('Mise à jour du profil : bientôt disponible.')
   }
 
-  const initial = user?.username?.trim()?.charAt(0)?.toUpperCase() ?? '?'
+  const initialChar = safeTrim(user?.username)
+  const initial = initialChar ? initialChar.charAt(0).toUpperCase() : '?'
 
   return (
     <div className="relative z-10 flex min-h-screen items-center justify-center p-4 text-slate-100">

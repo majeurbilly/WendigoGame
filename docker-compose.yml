@@ -1,15 +1,32 @@
+# WendigoGame — stack unique (jeu + Authentik + observabilité).
+# Secrets et surcharges : copier .env.example vers .env (ignoré par git).
+#
+# Docker Hub (rate limit / « too many failed login attempts ») :
+# - `docker login` avec un compte Docker Hub augmente les quotas.
+# - Par défaut, Prometheus + Loki + Grafana ne démarrent PAS (profil `observability`) car
+#   Grafana/Loki ne sont publiés que sur Docker Hub : `docker compose --profile observability up -d`
+# - Postgres / Redis Authentik : images library via ECR Public ; Valkey jeu : GHCR ; Prometheus : Quay.
+
 services:
   db:
-    image: postgres:15-alpine
+    image: public.ecr.aws/docker/library/postgres:15-alpine
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wendigo -d wendigogame"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
     environment:
       POSTGRES_USER: wendigo
-      POSTGRES_PASSWORD: wendigo
+      POSTGRES_PASSWORD: ${WENDIGO_PG_PASSWORD:-wendigo}
       POSTGRES_DB: wendigogame
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - wendigame_network
 
   livekit:
     image: livekit/livekit-server:latest
@@ -19,41 +36,208 @@ services:
       - "7880:7880"
       - "7881:7881/tcp"
       - "7881:7881/udp"
+    networks:
+      - wendigame_network
 
   redis:
-    image: valkey/valkey:8-alpine
+    image: ghcr.io/valkey-io/valkey:8-alpine
+    command: ["valkey-server", "--appendonly", "yes"]
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 3s
+    volumes:
+      - valkey_data:/data
     ports:
       - "6379:6379"
+    networks:
+      - wendigame_network
+
+  authentik-postgresql:
+    image: public.ecr.aws/docker/library/postgres:16-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 10s
+      retries: 6
+      timeout: 5s
+    volumes:
+      - authentik_database:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${AUTHENTIK_PG_PASS:-authentik-dev-pg-pass-change-me}
+      POSTGRES_USER: ${AUTHENTIK_PG_USER:-authentik}
+      POSTGRES_DB: ${AUTHENTIK_PG_DB:-authentik}
+    networks:
+      - wendigame_network
+
+  authentik-redis:
+    image: public.ecr.aws/docker/library/redis:alpine
+    command: --save 60 1 --loglevel warning
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: 10s
+      interval: 10s
+      retries: 5
+      timeout: 3s
+    volumes:
+      - authentik_redis_data:/data
+    networks:
+      - wendigame_network
+
+  authentik-server:
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.5}
+    restart: unless-stopped
+    command: server
+    environment:
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-authentik-dev-secret-key-replace-in-production-min-50-chars-please-ok}
+      AUTHENTIK_REDIS__HOST: authentik-redis
+      AUTHENTIK_POSTGRESQL__HOST: authentik-postgresql
+      AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_PG_PASS:-authentik-dev-pg-pass-change-me}
+      AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD}
+      AUTHENTIK_BOOTSTRAP_EMAIL: ${AUTHENTIK_BOOTSTRAP_EMAIL:-admin@wendigo.dev}
+    volumes:
+      - authentik_media:/media
+    ports:
+      - "${AUTHENTIK_HTTP_PORT:-9000}:9000"
+      - "${AUTHENTIK_HTTPS_PORT:-9443}:9443"
+    depends_on:
+      authentik-postgresql:
+        condition: service_healthy
+      authentik-redis:
+        condition: service_healthy
+    networks:
+      - wendigame_network
+
+  authentik-worker:
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12.5}
+    restart: unless-stopped
+    command: worker
+    environment:
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-authentik-dev-secret-key-replace-in-production-min-50-chars-please-ok}
+      AUTHENTIK_REDIS__HOST: authentik-redis
+      AUTHENTIK_POSTGRESQL__HOST: authentik-postgresql
+      AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_PG_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_PG_PASS:-authentik-dev-pg-pass-change-me}
+      AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD}
+      AUTHENTIK_BOOTSTRAP_EMAIL: ${AUTHENTIK_BOOTSTRAP_EMAIL:-admin@wendigo.dev}
+    volumes:
+      - authentik_media:/media
+    depends_on:
+      authentik-postgresql:
+        condition: service_healthy
+      authentik-redis:
+        condition: service_healthy
+    networks:
+      - wendigame_network
+
+  prometheus:
+    profiles: [observability]
+    image: quay.io/prometheus/prometheus:v3.0.0
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - wendigame_network
+
+  loki:
+    profiles: [observability]
+    image: grafana/loki:3.3.2
+    restart: unless-stopped
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    volumes:
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - wendigame_network
+
+  grafana:
+    profiles: [observability]
+    image: grafana/grafana:11.3.1
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_DEFAULT_THEME: dark
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "${GRAFANA_HTTP_PORT:-3000}:3000"
+    depends_on:
+      - prometheus
+      - loki
+    networks:
+      - wendigame_network
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    image: wendigame-backend:dev
+    restart: unless-stopped
     depends_on:
-      - db
-      - livekit
-      - redis
+      db:
+        condition: service_healthy
+      livekit:
+        condition: service_started
+      redis:
+        condition: service_healthy
     environment:
-      DATABASE_URL: postgres://wendigo:wendigo@db:5432/wendigogame?sslmode=disable
+      DATABASE_URL: postgres://wendigo:${WENDIGO_PG_PASSWORD:-wendigo}@db:5432/wendigogame?sslmode=disable
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: supersecret_wendigogame_key_2026
-      LIVEKIT_API_KEY: devkey
-      LIVEKIT_API_SECRET: secret
+      OIDC_ISSUER_URL: ${OIDC_ISSUER_URL:-http://authentik-server:9000/application/o/wendigo/}
+      OIDC_EXPECTED_ISSUER: ${OIDC_EXPECTED_ISSUER:-http://localhost:9000/application/o/wendigo/}
+      AUTHENTIK_JWKS_URL: ${AUTHENTIK_JWKS_URL:-http://authentik-server:9000/application/o/wendigo/jwks/}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:-devkey}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:-secret}
     ports:
       - "8080:8080"
+    networks:
+      - wendigame_network
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: http://localhost:8080
-        VITE_LIVEKIT_URL: ws://localhost:7880
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+        VITE_LIVEKIT_URL: ${VITE_LIVEKIT_URL:-ws://localhost:7880}
+        VITE_AUTHENTIK_URL: ${VITE_AUTHENTIK_URL:-http://localhost:9000/application/o/wendigo}
+        VITE_AUTHENTIK_CLIENT_ID: ${VITE_AUTHENTIK_CLIENT_ID:-}
     depends_on:
       - backend
     ports:
       - "5173:80"
+    networks:
+      - wendigame_network
+
+networks:
+  wendigame_network:
+    name: wendigame_network
+    driver: bridge
 
 volumes:
   postgres_data:
+  valkey_data:
+  authentik_database:
+  authentik_redis_data:
+  authentik_media:
+  prometheus_data:
+  loki_data:
+  grafana_data:

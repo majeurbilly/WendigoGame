@@ -1,5 +1,8 @@
+import type { User } from 'oidc-client-ts'
 import { create } from 'zustand'
-import { getMeAPI } from '@/api/auth'
+import { oidcUserManager } from '@/auth/oidcUserManager'
+import { internalUserIdFromOidcSub } from '@/lib/internalUserIdFromOidcSub'
+import { safeTrim } from '@/lib/safeTrim'
 
 export interface UserProfile {
   id: string
@@ -14,80 +17,118 @@ export interface UserProfile {
   updated_at?: string
 }
 
-interface AuthState {
-  token: string | null
-  user: UserProfile | null
+/** Snapshot minimal depuis react-oidc-context (évite les cycles de rendu sur l’objet `auth`). */
+export interface OidcAuthSyncInput {
+  isLoading: boolean
   isAuthenticated: boolean
-  isInitializing: boolean
-  setToken: (token: string | null) => void
-  setUser: (user: UserProfile | null) => void
-  logout: () => void
-  initAuth: () => Promise<void>
+  accessToken: string | null
+  oidcUser: User | null | undefined
 }
 
-const initialToken = localStorage.getItem('token')
+function userProfileFromOidcUser(oidcUser: User | null | undefined): UserProfile | null {
+  if (!oidcUser?.profile || typeof oidcUser.profile !== 'object') {
+    return null
+  }
+  const p = oidcUser.profile as Record<string, unknown>
+  const rawSub = safeTrim(p.sub)
+  if (!rawSub) {
+    return null
+  }
+  const id = internalUserIdFromOidcSub(rawSub)
+  if (!id) {
+    return null
+  }
+  const email = safeTrim(p.email)
+  const localPart = email.includes('@') ? safeTrim(email.split('@')[0]) : ''
+  const username =
+    safeTrim(p.preferred_username) ||
+    safeTrim(p.name) ||
+    safeTrim(p.nickname) ||
+    localPart ||
+    id
 
-export const useAuthStore = create<AuthState>((set, get) => ({
-  token: initialToken,
+  return {
+    id,
+    email,
+    username: safeTrim(username) || id,
+  }
+}
+
+interface AuthState {
+  /** Copie du access_token OIDC pour les hooks qui ne lisent pas encore UserManager (ex. WebSocket). */
+  token: string | null
+  user: UserProfile | null
+  isInitializing: boolean
+  setUser: (user: UserProfile | null) => void
+  logout: () => void
+  /** Synchrone : profil issu uniquement du jeton / claims OIDC (Authentik), plus d’appel GET /auth/me. */
+  syncFromOidc: (input: OidcAuthSyncInput) => void
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  token: null,
   user: null,
-  isAuthenticated: false,
   isInitializing: true,
-  setToken: (token) => {
-    if (token) {
-      localStorage.setItem('token', token)
-    } else {
-      localStorage.removeItem('token')
+  setUser: (user) => {
+    if (user == null) {
+      set({ user: null })
+      return
     }
-
+    const id = safeTrim(user.id) || 'unknown'
     set({
-      token,
-      isAuthenticated: Boolean(token),
+      user: {
+        ...user,
+        id,
+        email: safeTrim(user.email),
+        username: safeTrim(user.username) || id,
+      },
     })
   },
-  setUser: (user) => {
-    set({ user })
-  },
   logout: () => {
-    localStorage.removeItem('token')
     set({
       token: null,
       user: null,
-      isAuthenticated: false,
     })
   },
-  initAuth: async () => {
-    const token = localStorage.getItem('token')
-    set({ token })
+  syncFromOidc: ({ isLoading, isAuthenticated, accessToken, oidcUser }) => {
+    if (isLoading) {
+      set({ isInitializing: true })
+      return
+    }
 
-    if (!token) {
+    if (!isAuthenticated || !accessToken) {
       set({
+        token: null,
+        user: null,
         isInitializing: false,
-        isAuthenticated: false,
       })
       return
     }
 
-    try {
-      const me = await getMeAPI()
+    if (!oidcUser?.profile) {
       set({
-        user: {
-          id: me.id,
-          username: me.username,
-          email: me.email,
-          games_played: me.games_played,
-          games_won: me.games_won,
-          games_lost: me.games_lost,
-          wins_as_wendigo: me.wins_as_wendigo,
-          wins_as_villager: me.wins_as_villager,
-          created_at: me.created_at,
-          updated_at: me.updated_at,
-        },
-        isAuthenticated: true,
+        token: accessToken,
+        user: null,
+        isInitializing: true,
+      })
+      return
+    }
+
+    const profile = userProfileFromOidcUser(oidcUser)
+    if (!profile) {
+      void oidcUserManager.removeUser()
+      set({
+        token: null,
+        user: null,
         isInitializing: false,
       })
-    } catch {
-      get().logout()
-      set({ isInitializing: false })
+      return
     }
+
+    set({
+      token: accessToken,
+      user: profile,
+      isInitializing: false,
+    })
   },
 }))

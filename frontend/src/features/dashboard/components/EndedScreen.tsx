@@ -2,6 +2,7 @@ import type { LobbyState, Player } from '@/api/game'
 import NarrativeBox from '@/features/dashboard/components/NarrativeBox'
 import VoxelButton from '@/features/dashboard/components/game/VoxelButton'
 import { playerInitial } from '@/features/dashboard/components/game/PlayerAvatarGrid'
+import { samePlayerId } from '@/lib/samePlayerId'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
@@ -87,7 +88,7 @@ function SummaryTile({ player }: { player: Player }) {
 const EndedScreen = ({ lobby, sendMessage }: EndedScreenProps) => {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
-  const currentPlayer = lobby.players.find((player) => player.id === user?.id) ?? null
+  const currentPlayer = lobby.players.find((player) => samePlayerId(player.id, user?.id)) ?? null
 
   const winnerTeam = (lobby.winnerTeam ?? '').toUpperCase()
   const isVillageWin = winnerTeam === 'VILLAGER'

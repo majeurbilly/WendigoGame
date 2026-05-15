@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { safeTrim } from '@/lib/safeTrim'
 
 interface NarrativeBoxProps {
   text: string
@@ -9,7 +10,7 @@ interface NarrativeBoxProps {
 
 /** Cartouche narratif — mode flottant (parchemin) ou intégré tablette (gravure). */
 export default function NarrativeBox({ text, className, embedded = false }: NarrativeBoxProps) {
-  const t = text.trim()
+  const t = safeTrim(text)
   if (!t) return null
 
   if (embedded) {

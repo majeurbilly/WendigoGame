@@ -14,9 +14,14 @@ tasks:
       - go test -v -race -cover ./...
 
   up:
-    desc: Start the Docker Compose stack in background.
+    desc: Start Docker Compose (jeu + Authentik ; sans Prometheus/Loki/Grafana — profil observability).
     cmds:
       - docker-compose -f ../docker-compose.yml up -d
+
+  up-observability:
+    desc: "Start full stack including Prometheus, Loki, Grafana (Docker Hub pulls)."
+    cmds:
+      - docker-compose -f ../docker-compose.yml --profile observability up -d
 
   down:
     desc: Stop the Docker Compose stack.

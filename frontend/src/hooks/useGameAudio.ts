@@ -3,8 +3,8 @@ import { useGameStore } from '@/store/useGameStore'
 import useSound from 'use-sound'
 
 const warnAudio = (name: string, error: unknown) => {
-  // Keep gameplay resilient when a sound asset is temporarily missing.
-  console.warn(`[audio] ${name} unavailable`, error)
+  void name
+  void error
 }
 
 export const useGameAudio = () => {

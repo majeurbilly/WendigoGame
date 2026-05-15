@@ -1,12 +1,9 @@
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 
 /**
- * Layout pour /login et /register (le panorama est géré globalement dans `App.tsx`).
+ * Layout pour /login (le panorama est géré globalement dans `App.tsx`).
  */
 const AuthLayout = () => {
-  const { pathname } = useLocation()
-  const isRegister = pathname.startsWith('/register')
-
   return (
     <div className="relative min-h-screen overflow-hidden text-slate-100">
       <div className="relative z-10 mx-auto flex min-h-screen w-full items-center justify-center px-4 py-10">
@@ -15,7 +12,7 @@ const AuthLayout = () => {
             WENDIGO
           </h1>
           <p className="mb-6 border-b border-[#2d261f] pb-6 text-center font-medium text-amber-200/60">
-            {isRegister ? 'Créer un compte' : 'Connexion'}
+            Connexion
           </p>
           <Outlet />
         </div>

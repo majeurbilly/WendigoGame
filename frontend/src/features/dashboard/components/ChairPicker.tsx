@@ -1,5 +1,6 @@
 import type { LobbyState, Player } from '@/api/game'
 import { cn } from '@/lib/utils'
+import { safeTrim } from '@/lib/safeTrim'
 import { toast } from 'sonner'
 
 type SocketActionType = 'CLAIM_SEAT'
@@ -61,9 +62,8 @@ const ChairPicker = ({ lobby, currentPlayer, sendMessage, disabled = false }: Ch
         const occupied = occupant !== null
         const clickable = !disabled && !hasSeat && !occupied
 
-        const label = occupied
-          ? (occupant?.name?.trim()?.charAt(0)?.toUpperCase() ?? '?')
-          : String(chairId + 1)
+        const occName = safeTrim(occupant?.name)
+        const label = occupied ? (occName ? occName.charAt(0).toUpperCase() : '?') : String(chairId + 1)
 
         return (
           <button
@@ -73,7 +73,7 @@ const ChairPicker = ({ lobby, currentPlayer, sendMessage, disabled = false }: Ch
             onClick={() => pickChair(chairId)}
             title={
               occupied
-                ? (occupant?.name ?? 'Occupée')
+                ? occName || 'Occupée'
                 : hasSeat
                   ? 'Vous avez déjà une place'
                   : `Choisir la place ${chairId + 1}`

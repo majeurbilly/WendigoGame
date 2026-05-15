@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -12,6 +13,11 @@ import (
 	"github.com/majeurbilly/wendigogame/internal/store"
 	"github.com/redis/go-redis/v9"
 )
+
+func TestMain(m *testing.M) {
+	_ = os.Setenv("WENDIGO_AUTH_TEST_MODE", "1")
+	os.Exit(m.Run())
+}
 
 // testRouter builds a full HTTP handler with simulated Valkey (miniredis) for lightweight integration tests.
 func testRouter(t *testing.T) http.Handler {

@@ -11,9 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-	"github.com/majeurbilly/wendigogame/internal/auth"
 	"github.com/majeurbilly/wendigogame/internal/models"
 	"github.com/majeurbilly/wendigogame/internal/services"
 	"github.com/majeurbilly/wendigogame/internal/store"
@@ -267,38 +265,24 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 	defer cancel()
 
 	token := strings.TrimSpace(request.URL.Query().Get("token"))
+	if token == "" {
+		http.Error(responseWriter, "missing token", http.StatusUnauthorized)
+		return
+	}
+
+	authUserID, err := serverConfig.userUUIDFromAccessToken(ctx, token)
+	if err != nil {
+		log.Printf("Erreur WS: token d'accès invalide pour lobby %s: %v", lobbyCode, err)
+		http.Error(responseWriter, "invalid or expired token", http.StatusUnauthorized)
+		return
+	}
+
 	playerName := strings.TrimSpace(request.URL.Query().Get("name"))
-
-	var (
-		authUserID    uuid.UUID
-		useJWTAuth    bool
-		playerIDClaim string
-		err           error
-	)
-
-	if token != "" {
-		useJWTAuth = true
-		authUserID, err = auth.ValidateToken(token)
-		if err != nil {
-			log.Printf("Erreur WS: token JWT invalide pour lobby %s: %v", lobbyCode, err)
-			http.Error(responseWriter, "invalid or expired token", http.StatusUnauthorized)
-			return
-		}
-		if playerName == "" && serverConfig.UserStore != nil {
-			if u, userErr := serverConfig.UserStore.GetUserByID(ctx, authUserID); userErr == nil && u != nil {
-				playerName = strings.TrimSpace(u.Username)
-			} else if userErr != nil {
-				log.Printf("Erreur WS: impossible de charger le profil utilisateur (lobby %s): %v", lobbyCode, userErr)
-			}
-		}
-	} else {
-		playerIDClaim = strings.TrimSpace(request.URL.Query().Get("player_id"))
-		if playerIDClaim != "" {
-			authUserID, err = uuid.Parse(playerIDClaim)
-			if err != nil {
-				http.Error(responseWriter, "invalid player_id", http.StatusBadRequest)
-				return
-			}
+	if playerName == "" && serverConfig.UserStore != nil {
+		if u, userErr := serverConfig.UserStore.GetUserByID(ctx, authUserID); userErr == nil && u != nil {
+			playerName = strings.TrimSpace(u.Username)
+		} else if userErr != nil {
+			log.Printf("Erreur WS: impossible de charger le profil utilisateur (lobby %s): %v", lobbyCode, userErr)
 		}
 	}
 
@@ -331,15 +315,12 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 		return
 	}
 
-	playerID := ""
+	playerID := authUserID.String()
 	isAlreadyInLobby := false
-	if useJWTAuth || authUserID != uuid.Nil {
-		playerID = authUserID.String()
-		for i := range existingLobby.Players {
-			if existingLobby.Players[i].ID == authUserID {
-				isAlreadyInLobby = true
-				break
-			}
+	for i := range existingLobby.Players {
+		if existingLobby.Players[i].ID == authUserID {
+			isAlreadyInLobby = true
+			break
 		}
 	}
 	if !isAlreadyInLobby {
@@ -357,10 +338,6 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 		}
 
 		if !hostClaimed {
-			if authUserID == uuid.Nil {
-				authUserID = uuid.New()
-				playerID = authUserID.String()
-			}
 			player := models.Player{
 				ID:      authUserID,
 				Name:    playerName,
@@ -376,9 +353,6 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 				return
 			}
 		}
-	}
-	if playerID == "" {
-		playerID = authUserID.String()
 	}
 
 	serverConfig.Hub.Register(lobbyCode, websocketConn, playerID)

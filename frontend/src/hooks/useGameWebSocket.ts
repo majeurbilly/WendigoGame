@@ -5,6 +5,7 @@ import {
   type LobbyState,
   type PhaseSettings,
 } from '@/api/game'
+import { UNKNOWN_PLAYER_LABEL, safeTrim } from '@/lib/safeTrim'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
@@ -34,7 +35,7 @@ interface BaseSocketMessage<TType extends string, TPayload> {
 
 interface RawPlayerPayload {
   id: string
-  name: string
+  name?: string | null
   role?: string | null
   isAlive?: boolean
   is_alive?: boolean
@@ -66,7 +67,7 @@ interface RawLobbyPayload {
   code: string
   phase: string
   mode?: string
-  players: RawPlayerPayload[]
+  players?: RawPlayerPayload[]
   timeRemaining?: number
   time_remaining?: number
   phaseTotalSeconds?: number
@@ -141,7 +142,7 @@ const buildWebSocketUrl = (token: string, lobbyCode: string, displayName: string
   parsed.search = ''
   parsed.searchParams.set('token', token)
   parsed.searchParams.set('code', lobbyCode)
-  const name = displayName.trim()
+  const name = safeTrim(displayName)
   if (name.length > 0) {
     parsed.searchParams.set('name', name)
   }
@@ -194,17 +195,6 @@ const normalizePhaseSettingsPayload = (raw?: RawPhaseSettingsPayload): PhaseSett
   }
 }
 
-const logWs = (message: string, detail?: unknown) => {
-  if (!import.meta.env.DEV) {
-    return
-  }
-  if (detail !== undefined) {
-    console.log(`[useGameWebSocket] ${message}`, detail)
-    return
-  }
-  console.log(`[useGameWebSocket] ${message}`)
-}
-
 const normalizeLobbyPayload = (payload: RawLobbyPayload): LobbyState => ({
   code: payload.code,
   phase: payload.phase,
@@ -232,21 +222,26 @@ const normalizeLobbyPayload = (payload: RawLobbyPayload): LobbyState => ({
   winnerTeam: payload.winnerTeam ?? payload.winner_team,
   maxPlayers: payload.maxPlayers ?? payload.max_players,
   minPlayers: payload.minPlayers ?? payload.min_players,
-  players: payload.players.map((player) => ({
-    id: player.id,
-    name: player.name,
-    role: player.role ?? null,
-    isAlive: player.isAlive ?? player.is_alive ?? true,
-    isHost: player.isHost ?? player.is_host ?? false,
-    chairId: player.chairId ?? player.chair_id ?? -1,
-    isExcludedFromCouncil: player.isExcludedFromCouncil ?? player.is_excluded_from_council ?? false,
-  })),
+  players: (payload.players ?? []).map((player) => {
+    const nm = safeTrim(player.name)
+    return {
+      id: String(player.id ?? ''),
+      name: nm.length > 0 ? nm : UNKNOWN_PLAYER_LABEL,
+      role: player.role ?? null,
+      isAlive: player.isAlive ?? player.is_alive ?? true,
+      isHost: player.isHost ?? player.is_host ?? false,
+      chairId: player.chairId ?? player.chair_id ?? -1,
+      isExcludedFromCouncil: player.isExcludedFromCouncil ?? player.is_excluded_from_council ?? false,
+    }
+  }),
 })
 
 export const useGameWebSocket = (
   lobbyCode: string | undefined,
   options?: UseGameWebSocketOptions
 ) => {
+  const accessToken = useAuthStore((state) => state.token)
+  const authUser = useAuthStore((state) => state.user)
   const wsRef = useRef<WebSocket | null>(null)
   const didReceiveLobbySyncRef = useRef(false)
   const isUnmountingRef = useRef(false)
@@ -270,8 +265,7 @@ export const useGameWebSocket = (
       return
     }
 
-    const { token, user } = useAuthStore.getState()
-
+    const token = safeTrim(accessToken)
     if (!token) {
       notifyInvalidLobby('Authentication required.')
       resetGame()
@@ -281,7 +275,8 @@ export const useGameWebSocket = (
     didReceiveLobbySyncRef.current = false
     isUnmountingRef.current = false
     reconnectAttemptsRef.current = 0
-    const displayName = user?.username ?? ''
+    /** `authUser.id` = UUID interne Wendigo (alignée backend) ; le WS résout le nom via la table users si ?name= absent. */
+    const displayName = safeTrim(authUser?.username)
     const connect = () => {
       const ws = new WebSocket(buildWebSocketUrl(token, lobbyCode, displayName))
       wsRef.current = ws
@@ -290,7 +285,6 @@ export const useGameWebSocket = (
         if (wsRef.current !== ws) {
           return
         }
-        logWs('socket open', { lobbyCode })
         reconnectAttemptsRef.current = 0
         setConnected(true)
       }
@@ -301,8 +295,6 @@ export const useGameWebSocket = (
         }
         try {
           const message = JSON.parse(event.data) as IncomingSocketMessage
-          logWs('message reçu', { type: message.type })
-
           if (isLobbySyncMessage(message)) {
             didReceiveLobbySyncRef.current = true
             const nextLobby = normalizeLobbyPayload(message.payload)
@@ -354,11 +346,9 @@ export const useGameWebSocket = (
 
       ws.onclose = () => {
         if (wsRef.current !== ws) {
-          logWs('close ignoré (socket obsolète, ex. StrictMode / reconnexion)', { lobbyCode })
           return
         }
         wsRef.current = null
-        logWs('socket fermé', { lobbyCode })
         setConnected(false)
 
         if (isUnmountingRef.current || didReceiveLobbySyncRef.current) {
@@ -395,7 +385,16 @@ export const useGameWebSocket = (
       ws?.close()
       resetGame()
     }
-  }, [lobbyCode, notifyInvalidLobby, resetGame, setConnected, setLiveKitToken, setLobby])
+  }, [
+    accessToken,
+    authUser?.username,
+    lobbyCode,
+    notifyInvalidLobby,
+    resetGame,
+    setConnected,
+    setLiveKitToken,
+    setLobby,
+  ])
 
   const disconnect = useCallback(() => {
     isUnmountingRef.current = true

@@ -8,6 +8,7 @@ import { useGameAudio } from '@/hooks/useGameAudio'
 import { useGameWebSocket } from '@/hooks/useGameWebSocket'
 import { isGameOverPhase, isLobbyWaitingPhase } from '@/lib/gamePhase'
 import { resolveLobbyBackgroundImagePath } from '@/lib/lobbyPhaseBackground'
+import { samePlayerId } from '@/lib/samePlayerId'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -235,9 +236,20 @@ export default function LobbyPage() {
   /** Même chrome minimal qu’en partie (pas d’en-tête « dashboard ») — y compris écran de fin. */
   const gameOverlayLayout = isConnected && !showLobbyWaitingLayout
 
+  useEffect(() => {
+    if (!import.meta.env.DEV || !lobby || !user) {
+      return
+    }
+    const hostPlayer = lobby.players.find((p) => p.isHost)
+    const userId = user.id
+    const hostId = hostPlayer?.id
+    const isHost = Boolean(hostPlayer && samePlayerId(userId, hostId))
+    console.log('DEBUG AUTH:', { userId, hostId, isHost, players: lobby.players.map((p) => ({ id: p.id, isHost: p.isHost })) })
+  }, [lobby, user])
+
   const gameOverlayHostMenu = useMemo((): GameOverlayHostMenuProps | undefined => {
     if (!gameOverlayLayout || !lobby || !user) return undefined
-    const cp = lobby.players.find((p) => p.id === user.id)
+    const cp = lobby.players.find((p) => samePlayerId(p.id, user.id))
     if (!cp?.isHost) return undefined
     if (isGameOverPhase(lobby.phase)) return undefined
     return {

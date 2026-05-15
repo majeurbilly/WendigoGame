@@ -1,16 +1,17 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useAuth } from 'react-oidc-context'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/api/auth'
 import { createLobbyAPI } from '@/api/game'
 import VoxelButton from '@/features/dashboard/components/game/VoxelButton'
 import { useSmokeTransition } from '@/contexts/smokeTransitionContext'
+import { safeTrim } from '@/lib/safeTrim'
 import { useAuthStore } from '@/store/useAuthStore'
 
 const JOIN_PANEL_MIN_H = 'min-h-[24.5rem]'
 
 const DashboardPage = () => {
-  const navigate = useNavigate()
+  const auth = useAuth()
   const { transitionTo } = useSmokeTransition()
   const logout = useAuthStore((state) => state.logout)
   const user = useAuthStore((state) => state.user)
@@ -32,7 +33,7 @@ const DashboardPage = () => {
   }
 
   const handleJoinLobby = (code: string) => {
-    const normalized = code.trim().toUpperCase()
+    const normalized = safeTrim(code).toUpperCase()
     if (!normalized) {
       toast.error('Entrez un code de lobby.')
       return
@@ -49,7 +50,7 @@ const DashboardPage = () => {
 
   const handleLogout = () => {
     logout()
-    navigate('/login', { replace: true })
+    void auth.signoutRedirect()
   }
 
   const busy = creatingMode !== null

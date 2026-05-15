@@ -31,7 +31,8 @@ const registerAndLandOnHome = async (page: Page, user: UniqueUser) => {
   await expect(page.getByText(`Welcome back, ${user.username}!`)).toBeVisible({ timeout: 15000 })
 }
 
-test.describe('Flux Utilisateur Atomiques', () => {
+// TODO(Authentik) : réécrire les E2E après flux OIDC (plus d'inscription / login locaux).
+test.describe.skip('Flux Utilisateur Atomiques', () => {
   test('un utilisateur peut s’inscrire et voir l’accueil', async ({ page }) => {
     const user = createUniqueUser('atomic')
     await registerAndLandOnHome(page, user)

@@ -1,8 +1,9 @@
 import { cn } from '@/lib/utils'
+import { safeTrim } from '@/lib/safeTrim'
 import { UserRound } from 'lucide-react'
 
-export const playerInitial = (name: string): string => {
-  const t = name.trim()
+export const playerInitial = (name: string | undefined | null): string => {
+  const t = safeTrim(name)
   if (!t) return '?'
   return t.slice(0, 1).toUpperCase()
 }

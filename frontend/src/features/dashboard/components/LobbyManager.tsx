@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createLobbyAPI } from '@/api/game'
 import { getApiErrorMessage } from '@/api/auth'
+import { createLobbyAPI } from '@/api/game'
+import { safeTrim } from '@/lib/safeTrim'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -26,7 +27,7 @@ const LobbyManager = () => {
   }
 
   const handleJoinGame = () => {
-    const code = joinCode.trim().toUpperCase()
+    const code = safeTrim(joinCode).toUpperCase()
     if (!code) {
       toast.error('Please enter a lobby code.')
       return

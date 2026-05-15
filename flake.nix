@@ -48,6 +48,12 @@
             docker-compose
             go-task
             gnumake
+            skopeo
+            curl
+            jq
+            wget
+            bind.dnsutils
+            prometheus
           ];
 
           shellHook = ''

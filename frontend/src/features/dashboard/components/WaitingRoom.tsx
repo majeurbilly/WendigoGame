@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import VoxelButton from '@/features/dashboard/components/game/VoxelButton'
 import { playerInitial } from '@/features/dashboard/components/game/PlayerAvatarGrid'
 import { cn } from '@/lib/utils'
+import { samePlayerId } from '@/lib/samePlayerId'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
 import { Check, Flame, Hourglass, LogOut, Sparkles } from 'lucide-react'
@@ -167,14 +168,14 @@ function LobbyRhythmGuestSettingsBody({ lobby }: { lobby: LobbyState }) {
   )
 }
 
-export default function WaitingRoom({ sendMessage, disconnect: _disconnect, onLeave }: WaitingRoomProps) {
+export default function WaitingRoom({ sendMessage, onLeave }: WaitingRoomProps) {
   const [activeTab, setActiveTab] = useState<'main' | 'settings'>('main')
   const user = useAuthStore((state) => state.user)
   const lobby = useGameStore((state) => state.lobby)
 
   const hostPlayer = useMemo(() => lobby?.players.find((player) => player.isHost) ?? null, [lobby?.players])
-  const isHost = Boolean(user?.id && hostPlayer?.id === user.id)
-  const isMember = Boolean(user?.id && lobby?.players.some((p) => p.id === user.id))
+  const isHost = Boolean(user?.id && hostPlayer && samePlayerId(hostPlayer.id, user.id))
+  const isMember = Boolean(user?.id && lobby?.players.some((p) => samePlayerId(p.id, user.id)))
 
   const handleStartGame = () => {
     const sent = sendMessage('START_GAME', {})

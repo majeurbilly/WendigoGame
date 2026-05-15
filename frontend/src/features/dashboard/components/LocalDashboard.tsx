@@ -5,6 +5,7 @@ import { useLocalTimer } from '@/hooks/useLocalTimer'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
 import { isVoiceChatGameMode, type LobbyState } from '@/api/game'
+import { samePlayerId } from '@/lib/samePlayerId'
 import type { ComponentProps } from 'react'
 import { useMemo } from 'react'
 import {
@@ -90,7 +91,7 @@ export default function LocalDashboard({ sendMessage }: LocalDashboardProps) {
   const lobby = useGameStore((state) => state.lobby)
 
   const currentPlayer = useMemo(
-    () => lobby?.players.find((player) => player.id === user?.id) ?? null,
+    () => lobby?.players.find((player) => samePlayerId(player.id, user?.id)) ?? null,
     [lobby?.players, user?.id]
   )
 

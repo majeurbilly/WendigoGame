@@ -4,6 +4,7 @@ import NarrativeBox from '@/features/dashboard/components/NarrativeBox'
 import PlayerAvatarGrid, { playerInitial } from '@/features/dashboard/components/game/PlayerAvatarGrid'
 import VoxelButton from '@/features/dashboard/components/game/VoxelButton'
 import { useGameAudio } from '@/hooks/useGameAudio'
+import { safeTrim } from '@/lib/safeTrim'
 import { cn } from '@/lib/utils'
 import { LoaderCircle } from 'lucide-react'
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
@@ -352,7 +353,7 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
     toast.success('Vote d’abandon enregistré.')
   }
 
-  const narrativeDisplay = (narrativeText.trim() || phaseHint.trim()).trim()
+  const narrativeDisplay = safeTrim(safeTrim(narrativeText) || safeTrim(phaseHint))
 
   const withTablet = (body: ReactNode) => (
     <div className={tabletShellInGameClass}>
