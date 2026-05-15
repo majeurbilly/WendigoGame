@@ -1,0 +1,161 @@
+/**
+ * WendigoGame — thème Authentik (carte de connexion uniquement).
+ *
+ * L’arrière-plan est géré nativement par Authentik (Flux → Paramètres d’apparence).
+ * Ce fichier ne stylise que le formulaire PatternFly (.pf-c-login).
+ *
+ * Chargement : marque Authentik → CSS personnalisé ou
+ *   <link rel="stylesheet" href="/media/wendigo.css">
+ * Montage Docker : ./custom-authentik/wendigo.css → /media/wendigo.css
+ */
+
+/* -------------------------------------------------------------------------
+ * Transparence des couches PatternFly — laisse voir le fond du flux Authentik
+ * ------------------------------------------------------------------------- */
+.pf-c-login,
+.pf-c-background-image,
+.pf-c-login__container {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+/* -------------------------------------------------------------------------
+ * Carte principale (effet voxel / bois sombre)
+ * ------------------------------------------------------------------------- */
+.pf-c-login__main {
+  background-color: #1a1612 !important;
+  border-width: 4px 2px 8px 2px !important;
+  border-style: solid !important;
+  border-color: #2d261f !important;
+  border-radius: 1.5rem !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8) !important;
+  color: #f5f5f4 !important;
+}
+
+/* -------------------------------------------------------------------------
+ * Titres et en-têtes (ambre doré)
+ * ------------------------------------------------------------------------- */
+.pf-c-login__header,
+.pf-c-login__main-header {
+  color: #fbbf24 !important;
+}
+
+.pf-c-login__main-header .pf-c-title,
+.pf-c-login__header .pf-c-title,
+.pf-c-login__main-header h1,
+.pf-c-login__header h1 {
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.2em !important;
+  color: #fbbf24 !important;
+  text-shadow: 0 0 15px rgba(251, 191, 36, 0.6) !important;
+}
+
+/* -------------------------------------------------------------------------
+ * Corps du formulaire (labels, texte secondaire)
+ * ------------------------------------------------------------------------- */
+.pf-c-login__main-footer,
+.pf-c-login__main-body {
+  color: rgba(253, 230, 138, 0.6) !important;
+}
+
+.pf-c-form__label,
+.pf-c-login__main-body label {
+  color: rgba(253, 230, 138, 0.6) !important;
+  font-weight: 500;
+}
+
+/* -------------------------------------------------------------------------
+ * Champs de saisie
+ * ------------------------------------------------------------------------- */
+.pf-c-form-control,
+.pf-c-login input[type="text"],
+.pf-c-login input[type="email"],
+.pf-c-login input[type="password"] {
+  background-color: #241e18 !important;
+  border: 2px solid #2d261f !important;
+  border-radius: 0.75rem !important;
+  color: #f59e0b !important;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35) !important;
+}
+
+.pf-c-form-control:focus,
+.pf-c-login input:focus {
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  outline: none !important;
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(245, 158, 11, 0.25) !important;
+}
+
+/* -------------------------------------------------------------------------
+ * Boutons (style voxel 3D)
+ * ------------------------------------------------------------------------- */
+.pf-c-login .pf-c-button.pf-m-primary,
+.pf-c-login__main-footer-links .pf-c-button,
+.pf-c-login__main-footer-links a.pf-c-button,
+.pf-c-login a.pf-c-button.pf-m-secondary,
+.pf-c-login a.pf-c-button.pf-m-block,
+.pf-c-login button.pf-c-button.pf-m-secondary {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  width: 100% !important;
+  min-height: 2.75rem !important;
+  padding: 0.75rem 1rem !important;
+  font-weight: 900 !important;
+  font-size: 0.875rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: #f5f5f4 !important;
+  border-width: 4px !important;
+  border-style: solid !important;
+  border-top-color: #e8dcc4 !important;
+  border-left-color: #e8dcc4 !important;
+  border-bottom-color: #0a0604 !important;
+  border-right-color: #0a0604 !important;
+  border-radius: 0.5rem !important;
+  background: linear-gradient(to bottom, #4a3f35, #342b24, #1c1612) !important;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -5px 0 rgba(0, 0, 0, 0.42),
+    0 6px 0 rgba(0, 0, 0, 0.55),
+    0 10px 24px rgba(0, 0, 0, 0.4) !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease !important;
+}
+
+.pf-c-login .pf-c-button.pf-m-primary:hover,
+.pf-c-login__main-footer-links .pf-c-button:hover,
+.pf-c-login__main-footer-links a.pf-c-button:hover,
+.pf-c-login a.pf-c-button:hover {
+  filter: brightness(1.06);
+}
+
+.pf-c-login .pf-c-button.pf-m-primary:active,
+.pf-c-login__main-footer-links .pf-c-button:active,
+.pf-c-login__main-footer-links a.pf-c-button:active,
+.pf-c-login a.pf-c-button:active {
+  transform: translateY(3px) !important;
+  box-shadow:
+    inset 0 4px 12px rgba(0, 0, 0, 0.5),
+    0 2px 0 rgba(0, 0, 0, 0.4) !important;
+}
+
+.pf-c-login .pf-c-button:disabled {
+  opacity: 0.4 !important;
+  pointer-events: none !important;
+  transform: none !important;
+}
+
+/* -------------------------------------------------------------------------
+ * Liens secondaires (mot de passe oublié, etc.)
+ * ------------------------------------------------------------------------- */
+.pf-c-login__main-footer-links a:not(.pf-c-button),
+.pf-c-login a.pf-c-login__main-footer-links-item-link {
+  color: rgba(253, 230, 138, 0.6) !important;
+}
+
+.pf-c-login__main-footer-links a:not(.pf-c-button):hover {
+  color: #fbbf24 !important;
+}
