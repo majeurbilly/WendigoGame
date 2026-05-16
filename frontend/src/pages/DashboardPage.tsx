@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { useAuth } from 'react-oidc-context'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/api/auth'
 import { createLobbyAPI } from '@/api/game'
+import { performAuthentikLogout } from '@/auth/oidcUserManager'
 import VoxelButton from '@/features/dashboard/components/game/VoxelButton'
 import { useSmokeTransition } from '@/contexts/smokeTransitionContext'
 import { safeTrim } from '@/lib/safeTrim'
@@ -11,7 +11,6 @@ import { useAuthStore } from '@/store/useAuthStore'
 const JOIN_PANEL_MIN_H = 'min-h-[24.5rem]'
 
 const DashboardPage = () => {
-  const auth = useAuth()
   const { transitionTo } = useSmokeTransition()
   const logout = useAuthStore((state) => state.logout)
   const user = useAuthStore((state) => state.user)
@@ -50,7 +49,7 @@ const DashboardPage = () => {
 
   const handleLogout = () => {
     logout()
-    void auth.signoutRedirect()
+    void performAuthentikLogout()
   }
 
   const busy = creatingMode !== null
