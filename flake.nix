@@ -54,6 +54,8 @@
             wget
             bind.dnsutils
             prometheus
+            pulumi
+            pulumiPackages.pulumi-language-nodejs
           ];
 
           shellHook = ''
