@@ -1,4 +1,5 @@
 import { type LobbyState, type Player } from '@/api/game'
+import { Trans, t } from '@/lib/lingui'
 import ChairPicker from '@/features/dashboard/components/ChairPicker'
 import NarrativeBox from '@/features/dashboard/components/NarrativeBox'
 import PlayerAvatarGrid, { playerInitial } from '@/features/dashboard/components/game/PlayerAvatarGrid'
@@ -160,65 +161,65 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
   const pausedControlClass = isPaused ? 'cursor-not-allowed opacity-50' : ''
   const canPrayAtNight = currentPlayer.role !== 'WENDIGO'
   const findTargetName = (targetId: string): string =>
-    aliveOpponents.find((player) => player.id === targetId)?.name ?? 'Unknown target'
+    aliveOpponents.find((player) => player.id === targetId)?.name ?? t`Unknown target`
 
   const findAlivePlayerName = (playerId: string): string =>
-    lobby.players.find((player) => player.id === playerId)?.name ?? 'Unknown target'
+    lobby.players.find((player) => player.id === playerId)?.name ?? t`Unknown target`
   const findPlayerName = (playerId: string): string =>
     lobby.players.find((player) => player.id === playerId)?.name ?? playerId.slice(0, 8)
 
   const submitNightAction = (action: NightAction, targetId: string) => {
     const sent = sendMessage('SUBMIT_NIGHT_ACTION', { action, target_id: targetId })
     if (!sent) {
-      toast.error('Connection is not ready. Please try again.')
+      toast.error(t`Connection is not ready. Please try again.`)
       return
     }
 
-    toast.success('Action submitted.')
+    toast.success(t`Action submitted.`)
     if (action === 'PRAY') {
-      setLockedActionMessage('Praying')
+      setLockedActionMessage(t`Praying`)
       playLock()
       return
     }
 
     const targetName = findTargetName(targetId)
     if (action === 'KILL') {
-      setLockedActionMessage(`Targeting ${targetName} for a kill`)
+      setLockedActionMessage(t`Targeting ${targetName} for a kill`)
       playLock()
       return
     }
 
-    setLockedActionMessage(`Inspecting ${targetName}`)
+    setLockedActionMessage(t`Inspecting ${targetName}`)
     playLock()
   }
 
   const submitPrayer = (targetId: string) => {
     const sent = sendMessage('SUBMIT_PRAYER', { target_id: targetId })
     if (!sent) {
-      toast.error('Connection is not ready. Please try again.')
+      toast.error(t`Connection is not ready. Please try again.`)
       return
     }
-    toast.success(`Prière envoyée pour ${findAlivePlayerName(targetId)}.`)
-    setLockedActionMessage(`Prière en cours : ${findAlivePlayerName(targetId)}`)
+    toast.success(t`Prayer sent for ${findAlivePlayerName(targetId)}.`)
+    setLockedActionMessage(t`Praying for ${findAlivePlayerName(targetId)}`)
     playLock()
   }
 
   const submitVoteDay = (targetId: string) => {
     const sent = sendMessage('VOTE_DAY', { target_id: targetId })
     if (!sent) {
-      toast.error('Connection is not ready. Please try again.')
+      toast.error(t`Connection is not ready. Please try again.`)
       return
     }
 
-    toast.success('Vote enregistré.')
-    setLockedActionMessage(`Vote conseil : ${findAlivePlayerName(targetId)}`)
+    toast.success(t`Vote recorded.`)
+    setLockedActionMessage(t`Council vote: ${findAlivePlayerName(targetId)}`)
     playLock()
   }
 
   const sendWendigoIntent = (targetId: string) => {
     const sent = sendMessage('WENDIGO_INTENT', { target_id: targetId })
     if (!sent) {
-      toast.error('Connection is not ready. Please try again.')
+      toast.error(t`Connection is not ready. Please try again.`)
       return false
     }
     return true
@@ -227,22 +228,22 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
   const submitCouncilAccuse = (targetId: string) => {
     const sent = sendMessage('ACCUSE', { target_id: targetId })
     if (!sent) {
-      toast.error('Connection is not ready. Please try again.')
+      toast.error(t`Connection is not ready. Please try again.`)
       return
     }
 
-    toast.success('Accusation envoyée.')
-    setLockedActionMessage(`Vous accusez ${findTargetName(targetId)}`)
+    toast.success(t`Accusation sent.`)
+    setLockedActionMessage(t`You accuse ${findTargetName(targetId)}`)
     playLock()
   }
 
   const submitStartPleading = () => {
     const sent = sendMessage('START_PLEADING', {})
     if (!sent) {
-      toast.error('Connection is not ready. Please try again.')
+      toast.error(t`Connection is not ready. Please try again.`)
       return
     }
-    toast.success('Chrono lancé.')
+    toast.success(t`Timer started.`)
     playLock()
   }
 
@@ -275,7 +276,7 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
       return
     }
     if (lockedActionMessage) {
-      setNarrativeText('Votre action est enregistrée. Patientez jusqu’à la fin de la phase.')
+      setNarrativeText(t`Your action is recorded. Wait until the phase ends.`)
       return
     }
 
@@ -283,43 +284,43 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
     if (phase === 'NIGHT') {
       msg =
         role === 'WENDIGO'
-          ? 'La meute se coordonne. Touchez une cible pour votre intention, puis confirmez le meurtre.'
-          : 'La nuit tombe. Touchez un habitant pour envoyer votre prière d’immunité.'
+          ? t`The pack coordinates. Tap a target for your intent, then confirm the kill.`
+          : t`Night falls. Tap a villager to send your immunity prayer.`
     } else if (phase === 'CHAIR_SELECTION') {
-      msg = 'Choisissez votre place au feu. Quand tous sont assis, le jour se lève.'
+      msg = t`Choose your seat by the fire. When everyone is seated, day breaks.`
     } else if (phase === 'DAY') {
-      msg = 'Phase sociale : discutez et surveillez le sablier avant la course aux chaises.'
+      msg = t`Social phase: discuss and watch the hourglass before the chair rush.`
     } else if (phase === 'COUNCIL_START') {
-      msg = 'Le conseil du village s’ouvre. Qui soupçonnez-vous ?'
+      msg = t`The village council opens. Who do you suspect?`
     } else if (phase === 'COUNCIL_VOTE') {
       msg = isExcludedFromCouncil
-        ? 'Vous êtes exclu du conseil : ni vote ni parole.'
-        : 'Le conseil délibère. Désignez qui éliminer.'
+        ? t`You are excluded from council: no vote or speech.`
+        : t`The council deliberates. Choose who to eliminate.`
     } else if (phase === 'COUNCIL_SUMMARY') {
       msg =
         councilSummaryCount === 0
-          ? 'Nulle accusation aujourd’hui. Le village passe au vote libre.'
-          : 'Bilan des accusations : le village écoute.'
+          ? t`No accusations today. The village moves to open voting.`
+          : t`Accusation tally: the village listens.`
     } else if (phase === 'STAKE') {
       msg =
         stakeVictimId !== ''
-          ? `Le bûcher attend ${stakeVictimName}.`
-          : 'Personne ne brûle ce soir. La nuit va tomber…'
+          ? t`The stake awaits ${stakeVictimName}.`
+          : t`No one burns tonight. Night is falling…`
     } else if (phase === 'MORNING') {
       msg =
         morningVictimId !== ''
-          ? `L’aube révèle un drame autour de ${morningVictimName}…`
+          ? t`Dawn reveals tragedy around ${morningVictimName}…`
           : morningSaved
-            ? 'Les prières ont repoussé la nuit. Le village respire.'
-            : 'Une nuit étrangement calme. Personne n’a péri.'
+            ? t`Prayers held back the night. The village breathes.`
+            : t`An eerily calm night. No one perished.`
     } else if (phase === 'NO_COUNCIL') {
-      msg = 'Le conseil est désert… Le village glisse vers la nuit.'
+      msg = t`The council stands empty… The village slides toward night.`
     } else if (phase === 'ACCUSATION') {
       msg = isExcludedFromCouncil
-        ? 'Exclu du conseil pour votre chaise manquée.'
-        : 'Une voix, une cible. Désignez qui accuser au feu.'
+        ? t`Excluded from council for missing your seat.`
+        : t`One voice, one target. Choose who to accuse at the fire.`
     } else if (phase === 'PLEADINGS') {
-      msg = `Plaidoiries — à la parole : ${speakerName}.`
+      msg = t`Pleadings — now speaking: ${speakerName}.`
     }
     setNarrativeText(msg)
     return () => {
@@ -347,10 +348,10 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
   const submitSurrenderVote = (voteYes: boolean) => {
     const sent = sendMessage('SUBMIT_SURRENDER_VOTE', { vote_yes: voteYes })
     if (!sent) {
-      toast.error('Connexion indisponible. Réessayez.')
+      toast.error(t`Connection unavailable. Please try again.`)
       return
     }
-    toast.success('Vote d’abandon enregistré.')
+    toast.success(t`Surrender vote recorded.`)
   }
 
   const narrativeDisplay = safeTrim(safeTrim(narrativeText) || safeTrim(phaseHint))
@@ -361,14 +362,18 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
         <NarrativeBox embedded text={narrativeDisplay} />
         {showSurrenderUI ? (
           <div className="mb-3 rounded-xl border border-rose-900/50 bg-[linear-gradient(165deg,rgba(60,20,28,0.55)_0%,rgba(18,10,10,0.92)_100%)] px-3 py-3 text-rose-50 shadow-inner">
-            <p className="mb-2 text-center text-xs font-semibold text-rose-100/95">Vote d’abandon proposé</p>
-            <p className="mb-3 text-center text-[11px] text-rose-100/80">Arrêter la partie ?</p>
+            <p className="mb-2 text-center text-xs font-semibold text-rose-100/95">
+              <Trans>Surrender vote proposed</Trans>
+            </p>
+            <p className="mb-3 text-center text-[11px] text-rose-100/80">
+              <Trans>End the game?</Trans>
+            </p>
             <div className="grid grid-cols-2 gap-2">
               <VoxelButton type="button" variant="danger" className="h-10 text-xs" onClick={() => submitSurrenderVote(true)}>
-                Oui
+                <Trans>Yes</Trans>
               </VoxelButton>
               <VoxelButton type="button" variant="muted" className="h-10 text-xs" onClick={() => submitSurrenderVote(false)}>
-                Non
+                <Trans>No</Trans>
               </VoxelButton>
             </div>
           </div>
@@ -387,9 +392,13 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
       <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 rounded-xl border border-amber-500/45 bg-[#14100c]/80 px-4 py-3 text-[#f5ecd8] shadow-inner">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-amber-300" aria-hidden />
-          <span>Action verrouillée : {lockedActionMessage}</span>
+          <span>
+            <Trans>Action locked: {lockedActionMessage}</Trans>
+          </span>
         </div>
-        <p className="mt-2 text-xs text-amber-200/75">En attente de la fin de phase…</p>
+        <p className="mt-2 text-xs text-amber-200/75">
+          <Trans>Waiting for phase to end…</Trans>
+        </p>
       </div>
     )
   }
@@ -413,7 +422,7 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
           {aliveTargetsForWendigo.length > 0 ? (
             <div className="rounded-lg border border-amber-900/35 bg-black/35 px-2 py-2">
               <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-amber-200/80">
-                Intentions
+                <Trans>Intentions</Trans>
               </p>
               <div className="flex flex-col gap-2">
                 {aliveTargetsForWendigo.map((candidate) => {
@@ -460,12 +469,14 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
             disabled={isPaused || selectedTarget.length === 0}
             onClick={() => submitNightAction('KILL', selectedTarget)}
           >
-            Confirmer le meurtre
+            <Trans>Confirm kill</Trans>
           </VoxelButton>
           <div className="rounded-lg border border-amber-900/35 bg-black/35 px-2 py-2">
             {canPrayAtNight ? (
               <>
-                <p className="mb-2 text-center text-[10px] text-amber-200/80">Camouflage : prière</p>
+                <p className="mb-2 text-center text-[10px] text-amber-200/80">
+                  <Trans>Camouflage: prayer</Trans>
+                </p>
                 <PlayerAvatarGrid
                   players={alivePrayerTargets}
                   selectedId={prayerTarget}
@@ -481,14 +492,14 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
                   disabled={isPaused || prayerTarget.length === 0}
                   onClick={() => submitPrayer(prayerTarget)}
                 >
-                  Prier pour ce joueur
+                  <Trans>Pray for this player</Trans>
                 </VoxelButton>
               </>
             ) : null}
             {hasPrayerTallies ? (
               <div className="mt-3 rounded-md border border-amber-900/30 bg-black/40 p-2">
                 <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-wide text-amber-200/75">
-                  Écho des prières
+                  <Trans>Echo of prayers</Trans>
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {Object.entries(prayerTallies).map(([targetID, count]) => {
@@ -532,11 +543,13 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
           disabled={isPaused || prayerTarget.length === 0}
           onClick={() => submitPrayer(prayerTarget)}
         >
-          Prier pour ce joueur
+          <Trans>Pray for this player</Trans>
         </VoxelButton>
         {hasPrayerTallies ? (
           <div className="rounded-md border border-amber-900/35 bg-black/40 p-2">
-            <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-wide text-amber-200/75">Écho des prières</p>
+            <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-wide text-amber-200/75">
+              <Trans>Echo of prayers</Trans>
+            </p>
             <div className="flex flex-wrap justify-center gap-2">
               {Object.entries(prayerTallies).map(([targetID, count]) => {
                 const name = findAlivePlayerName(targetID)
@@ -565,7 +578,9 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
       <div className="space-y-3">
         <ChairPicker lobby={lobby} currentPlayer={currentPlayer} sendMessage={sendMessage} disabled={isPaused} />
         {hasSeat ? (
-          <p className="text-center text-xs font-semibold text-emerald-300/95">Vous êtes assis — en attente des autres.</p>
+          <p className="text-center text-xs font-semibold text-emerald-300/95">
+            <Trans>You are seated — waiting for others.</Trans>
+          </p>
         ) : null}
       </div>
     )
@@ -574,7 +589,7 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
   if (phase === 'DAY') {
     return withTablet(
       <div className="rounded-lg border border-amber-900/30 bg-black/30 px-3 py-4 text-center text-sm text-[#f5ecd8]/90">
-        Discussions libres — préparez-vous pour la suite.
+        <Trans>Open discussion — get ready for what comes next.</Trans>
       </div>
     )
   }
@@ -582,7 +597,7 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
   if (phase === 'COUNCIL_START') {
     return withTablet(
       <div className="rounded-lg border border-amber-500/35 bg-black/35 px-3 py-5 text-center text-sm font-serif font-medium leading-relaxed text-[#f5ecd8]">
-        Le feu du conseil brûle. Les regards se croisent…
+        <Trans>The council fire burns. Eyes meet…</Trans>
       </div>
     )
   }
@@ -591,7 +606,7 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
     if (isExcludedFromCouncil) {
       return withTablet(
         <div className="rounded-lg border border-rose-800/50 bg-rose-950/25 px-3 py-4 text-center text-sm font-semibold text-rose-100">
-          Sanction : exclu du conseil — pas de vote ni de parole.
+          <Trans>Penalty: excluded from council — no vote or speech.</Trans>
         </div>
       )
     }
@@ -615,7 +630,7 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
           disabled={isPaused || disableTargetAction}
           onClick={() => submitVoteDay(selectedTarget)}
         >
-          Voter au conseil
+          <Trans>Vote in council</Trans>
         </VoxelButton>
       </div>
     )
@@ -626,14 +641,16 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
     if (accusations.length === 0) {
       return withTablet(
         <div className="rounded-lg border border-amber-500/35 bg-black/35 px-3 py-5 text-center text-sm font-serif text-[#f5ecd8]">
-          Silence au village…
+          <Trans>Silence in the village…</Trans>
         </div>
       )
     }
 
     return withTablet(
       <div className="rounded-lg border border-amber-900/35 bg-black/35 px-2 py-3">
-        <p className="mb-3 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-amber-200/85">Accusations</p>
+        <p className="mb-3 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-amber-200/85">
+          <Trans>Accusations</Trans>
+        </p>
         <ul className="flex flex-col gap-2">
           {accusations.map(([accuserId, accusedId]) => (
             <li
@@ -657,22 +674,32 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
     const voteEntries = Object.entries(votes)
     return withTablet(
       <div className="space-y-3 rounded-lg border border-orange-900/40 bg-black/35 px-2 py-3 text-center">
-        <p className="font-serif text-lg font-bold tracking-wide text-orange-200">Le bûcher</p>
+        <p className="font-serif text-lg font-bold tracking-wide text-orange-200">
+          <Trans>The stake</Trans>
+        </p>
         {victimID !== '' ? (
           <div className="flex flex-col items-center gap-2 py-2">
             <MiniAvatar name={victimName} className="h-12 w-12 text-base" />
             <p className="text-sm font-semibold text-orange-200/95">
-              Le village condamne <span className="text-orange-50">{victimName}</span>.
+              <Trans>
+                The village condemns <span className="text-orange-50">{victimName}</span>.
+              </Trans>
             </p>
           </div>
         ) : (
-          <p className="py-2 text-sm font-semibold text-orange-200/90">Nul ne monte sur le bûcher ce soir.</p>
+          <p className="py-2 text-sm font-semibold text-orange-200/90">
+            <Trans>No one goes to the stake tonight.</Trans>
+          </p>
         )}
 
         <div className="rounded-md border border-amber-900/30 bg-black/30 p-2 text-left">
-          <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-wide text-amber-200/75">Votes</p>
+          <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-wide text-amber-200/75">
+            <Trans>Votes</Trans>
+          </p>
           {voteEntries.length === 0 ? (
-            <p className="text-center text-xs text-[#f5ecd8]/75">Aucun vote enregistré.</p>
+            <p className="text-center text-xs text-[#f5ecd8]/75">
+              <Trans>No votes recorded.</Trans>
+            </p>
           ) : (
             <ul className="flex flex-col gap-1.5 text-xs text-[#f5ecd8]/90">
               {voteEntries.map(([voterId, targetId]) => (
@@ -686,7 +713,9 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
           )}
         </div>
 
-        <p className="text-[10px] text-orange-200/65">En attente de la nuit.</p>
+        <p className="text-[10px] text-orange-200/65">
+          <Trans>Waiting for night.</Trans>
+        </p>
       </div>
     )
   }
@@ -698,20 +727,30 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
 
     return withTablet(
       <div className="space-y-2 rounded-lg border border-amber-900/35 bg-black/35 px-2 py-4 text-center">
-        <p className="font-serif text-lg font-bold text-[#f5ecd8]">Matin</p>
+        <p className="font-serif text-lg font-bold text-[#f5ecd8]">
+          <Trans>Morning</Trans>
+        </p>
         {victimID !== '' ? (
           <div className="flex flex-col items-center gap-2">
             <MiniAvatar name={victimName} className="h-12 w-12 text-base" />
             <p className="text-sm font-semibold text-rose-200/95">
-              Le village découvre le sort de <span className="text-rose-50">{victimName}</span>.
+              <Trans>
+                The village learns the fate of <span className="text-rose-50">{victimName}</span>.
+              </Trans>
             </p>
           </div>
         ) : saved ? (
-          <p className="text-sm font-semibold text-cyan-200/95">Les prières ont tenu la nuit.</p>
+          <p className="text-sm font-semibold text-cyan-200/95">
+            <Trans>Prayers held through the night.</Trans>
+          </p>
         ) : (
-          <p className="text-sm font-semibold text-[#f5ecd8]/90">Une nuit sans victime.</p>
+          <p className="text-sm font-semibold text-[#f5ecd8]/90">
+            <Trans>A night without a victim.</Trans>
+          </p>
         )}
-        <p className="text-[10px] text-amber-200/60">Le jour se lève…</p>
+        <p className="text-[10px] text-amber-200/60">
+          <Trans>Day breaks…</Trans>
+        </p>
       </div>
     )
   }
@@ -719,8 +758,12 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
   if (phase === 'NO_COUNCIL') {
     return withTablet(
       <div className="rounded-lg border border-violet-800/40 bg-black/35 px-3 py-5 text-center">
-        <p className="font-serif text-lg font-bold text-violet-100">Conseil annulé</p>
-        <p className="mt-2 text-sm font-medium text-violet-200/90">Les sièges vides murmurent déjà la nuit…</p>
+        <p className="font-serif text-lg font-bold text-violet-100">
+          <Trans>Council cancelled</Trans>
+        </p>
+        <p className="mt-2 text-sm font-medium text-violet-200/90">
+          <Trans>Empty seats already whisper of night…</Trans>
+        </p>
       </div>
     )
   }
@@ -731,7 +774,9 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
     if (isExcludedFromCouncil) {
       return withTablet(
         <div className="space-y-2 text-center">
-          <p className="text-sm font-bold text-rose-400">Exclu du conseil (chaise manquée).</p>
+          <p className="text-sm font-bold text-rose-400">
+            <Trans>Excluded from council (missed your seat).</Trans>
+          </p>
           {Object.keys(councilAccusations).length > 0 ? (
             <div className="flex flex-col gap-2 rounded-lg border border-amber-900/30 bg-black/30 p-2">
               {Object.entries(councilAccusations).map(([accuserId, accusedId]) => (
@@ -776,7 +821,7 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
           disabled={isPaused || disableTargetAction || hasAlreadyAccused || accusedTargets.has(selectedTarget)}
           onClick={() => submitCouncilAccuse(selectedTarget)}
         >
-          Accuser au conseil
+          <Trans>Accuse in council</Trans>
         </VoxelButton>
       </div>
     )
@@ -801,12 +846,16 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
         ) : null}
         {!lobby.pleadingTimerStarted ? (
           <p className="text-center text-[10px] text-amber-200/75">
-            {isCurrentSpeaker
-              ? `Vous parlez bientôt (${lobby.phaseSettings.pleadingSpeechSeconds}s une fois lancé).`
-              : `À l’écoute de ${speakerNameP}.`}
+            {isCurrentSpeaker ? (
+              <Trans>You will speak soon ({lobby.phaseSettings.pleadingSpeechSeconds}s once started).</Trans>
+            ) : (
+              <Trans>Listening to {speakerNameP}.</Trans>
+            )}
           </p>
         ) : (
-          <p className="text-center text-xs font-mono font-bold text-amber-200/90">Temps : {lobby.timeRemaining}s</p>
+          <p className="text-center text-xs font-mono font-bold text-amber-200/90">
+            <Trans>Time: {lobby.timeRemaining}s</Trans>
+          </p>
         )}
         {isCurrentSpeaker && !lobby.pleadingTimerStarted ? (
           <VoxelButton
@@ -816,7 +865,7 @@ function ActionPanelInGame({ lobby, currentPlayer, sendMessage, phaseHint }: Act
             disabled={isPaused}
             onClick={submitStartPleading}
           >
-            Prendre la parole
+            <Trans>Take the floor</Trans>
           </VoxelButton>
         ) : null}
       </div>

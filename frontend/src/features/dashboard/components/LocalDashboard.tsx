@@ -2,6 +2,7 @@ import ActionPanel from '@/features/dashboard/components/ActionPanel'
 import SecretRoleCard from '@/features/dashboard/components/SecretRoleCard'
 import { isGameOverPhase } from '@/lib/gamePhase'
 import { useLocalTimer } from '@/hooks/useLocalTimer'
+import { Trans, t } from '@/lib/lingui'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
 import { isVoiceChatGameMode, type LobbyState } from '@/api/game'
@@ -25,7 +26,7 @@ const hudBadge =
   'rounded-md border border-amber-600/50 bg-[#1c1814]/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#f5ecd8] shadow-[inset_0_1px_0_rgba(255,215,160,0.08)]'
 
 const modeLabel = (mode: string | undefined): string =>
-  isVoiceChatGameMode(mode) ? 'En ligne' : 'Présentiel'
+  isVoiceChatGameMode(mode) ? t`Online` : t`In person`
 
 const modeBadgeClass = (mode: string | undefined): string =>
   isVoiceChatGameMode(mode)
@@ -43,22 +44,8 @@ const phaseProgressTotal = (lobby: LobbyState, phaseLabel: string): number => {
   if (phaseLabel === 'DAY' && (lobby.socialPhaseTotalTime ?? 0) > 0) {
     return lobby.socialPhaseTotalTime as number
   }
-  const t = lobby.phaseTotalSeconds ?? 0
-  return t > 0 ? t : 0
-}
-
-const PHASE_HINTS: Record<string, string> = {
-  CHAIR_SELECTION: 'Choisissez votre siège au conseil.',
-  NIGHT: 'Nuit : agissez avant la fin du sablier.',
-  DAY: 'Jour : préparez le vote du village.',
-  MORNING: 'L’aube révèle ce qui s’est passé.',
-  NO_COUNCIL: 'Pas de conseil — la journée continue.',
-  COUNCIL_START: 'Le conseil s’ouvre.',
-  ACCUSATION: 'Accusez ou passez votre tour.',
-  COUNCIL_SUMMARY: 'Synthèse des accusations.',
-  PLEADINGS: 'À la parole : défendez-vous ou écoutez.',
-  COUNCIL_VOTE: 'Votez pour le sort du suspect.',
-  STAKE: 'Dernière décision au bûcher.',
+  const total = lobby.phaseTotalSeconds ?? 0
+  return total > 0 ? total : 0
 }
 
 function PhaseGlyph({ phase }: { phase: string }) {
@@ -89,6 +76,23 @@ interface LocalDashboardProps {
 export default function LocalDashboard({ sendMessage }: LocalDashboardProps) {
   const user = useAuthStore((state) => state.user)
   const lobby = useGameStore((state) => state.lobby)
+
+  const getPhaseHint = useMemo(() => {
+    const hints: Record<string, string> = {
+      CHAIR_SELECTION: t`Choose your seat at the council.`,
+      NIGHT: t`Night: act before the hourglass runs out.`,
+      DAY: t`Day: prepare for the village vote.`,
+      MORNING: t`Dawn reveals what happened overnight.`,
+      NO_COUNCIL: t`No council — the day continues.`,
+      COUNCIL_START: t`The council opens.`,
+      ACCUSATION: t`Accuse someone or pass your turn.`,
+      COUNCIL_SUMMARY: t`Summary of accusations.`,
+      PLEADINGS: t`Speak up: defend yourself or listen.`,
+      COUNCIL_VOTE: t`Vote on the suspect's fate.`,
+      STAKE: t`Final decision at the stake.`,
+    }
+    return (phase: string) => hints[phase.toUpperCase()] ?? ''
+  }, [])
 
   const currentPlayer = useMemo(
     () => lobby?.players.find((player) => samePlayerId(player.id, user?.id)) ?? null,
@@ -133,7 +137,7 @@ export default function LocalDashboard({ sendMessage }: LocalDashboardProps) {
     phaseLabel !== 'GAME_OVER' &&
     phaseLabel !== 'ENDED'
 
-  const phaseHint = PHASE_HINTS[phaseUpper] ?? ''
+  const phaseHint = getPhaseHint(phaseUpper)
 
   return (
     <div className="relative min-h-[100dvh] w-full">
@@ -144,7 +148,7 @@ export default function LocalDashboard({ sendMessage }: LocalDashboardProps) {
           <div
             className={`mx-auto w-fit px-4 py-2 text-center text-[11px] font-bold uppercase tracking-[0.22em] ${overlayChrome}`}
           >
-            Partie en pause
+            <Trans>Game paused</Trans>
           </div>
         ) : null}
 
@@ -161,11 +165,13 @@ export default function LocalDashboard({ sendMessage }: LocalDashboardProps) {
             <div className={`min-w-[9.5rem] w-fit max-w-full ${overlayChrome} px-4 py-2.5`}>
               {isInitialChairSelectionWait ? (
                 <p className="max-w-[14rem] text-left text-[10px] font-medium leading-tight text-amber-100/85">
-                  En attente des joueurs…
+                  <Trans>Waiting for players…</Trans>
                 </p>
               ) : (
                 <>
-                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-amber-200/75">Temps</p>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-amber-200/75">
+                    <Trans>Time</Trans>
+                  </p>
                   <p className="font-mono text-xl font-bold tabular-nums tracking-tight text-amber-300 drop-shadow-[0_0_14px_rgba(251,191,36,0.45)] sm:text-2xl sm:text-amber-200">
                     {formatTimer(displayedTime)}
                   </p>

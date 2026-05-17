@@ -1,3 +1,4 @@
+import { Trans, t } from '@/lib/lingui'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Slider } from '@/components/ui/slider'
@@ -16,7 +17,9 @@ export const GlobalVolumePopoverBody = () => {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium">Volume global</p>
+        <p className="text-sm font-medium">
+          <Trans>Global volume</Trans>
+        </p>
         <span className="text-xs opacity-60">{Math.round(volume * 100)}%</span>
       </div>
       <Slider
@@ -30,7 +33,7 @@ export const GlobalVolumePopoverBody = () => {
         }}
       />
       <Button type="button" size="sm" variant="secondary" className="w-full" onClick={toggleGlobalMute}>
-        {isMuted ? 'Réactiver le son' : 'Couper le son'}
+        {isMuted ? <Trans>Unmute</Trans> : <Trans>Mute</Trans>}
       </Button>
     </div>
   )
@@ -52,7 +55,7 @@ const GlobalAudioToggle = () => {
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label="Réglages du volume"
+          aria-label={t`Volume settings`}
           className={triggerClass}
           style={{
             marginTop: 'max(0.25rem, env(safe-area-inset-top))',

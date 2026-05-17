@@ -1,3 +1,4 @@
+import { Trans, t } from '@/lib/lingui'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { getApiErrorMessage } from '@/api/auth'
@@ -34,7 +35,7 @@ const DashboardPage = () => {
   const handleJoinLobby = (code: string) => {
     const normalized = safeTrim(code).toUpperCase()
     if (!normalized) {
-      toast.error('Entrez un code de lobby.')
+      toast.error(t`Enter a lobby code.`)
       return
     }
     setJoinCode('')
@@ -66,7 +67,11 @@ const DashboardPage = () => {
           WENDIGO
         </h1>
         <p className="mb-6 border-b border-[#2d261f] pb-6 text-center font-medium text-amber-200/60">
-          Bienvenue{user?.username ? `, ${user.username}` : ''}
+          {user?.username ? (
+            <Trans>Welcome, {user.username}</Trans>
+          ) : (
+            <Trans>Welcome</Trans>
+          )}
         </p>
 
         <div className={`flex flex-col gap-4 ${JOIN_PANEL_MIN_H} transition-[opacity] duration-200 ease-out`}>
@@ -78,11 +83,11 @@ const DashboardPage = () => {
                 onClick={() => void handleCreateLobby('local')}
                 disabled={busy}
               >
-                {creatingMode === 'local' ? 'Création…' : 'Create Lobby (Local)'}
+                {creatingMode === 'local' ? <Trans>Creating…</Trans> : <Trans>Create Lobby (Local)</Trans>}
               </VoxelButton>
 
-              <VoxelButton type="button" className="w-full" disabled title="Bientôt disponible">
-                Create Lobby (Online)
+              <VoxelButton type="button" className="w-full" disabled title={t`Coming soon`}>
+                <Trans>Create Lobby (Online)</Trans>
               </VoxelButton>
 
               <VoxelButton
@@ -94,7 +99,7 @@ const DashboardPage = () => {
                 }}
                 disabled={busy}
               >
-                Join Lobby
+                <Trans>Join Lobby</Trans>
               </VoxelButton>
 
               <VoxelButton
@@ -104,7 +109,7 @@ const DashboardPage = () => {
                 onClick={() => transitionTo('/profile')}
                 disabled={busy}
               >
-                Profile
+                <Trans>Profile</Trans>
               </VoxelButton>
 
               <VoxelButton
@@ -113,11 +118,11 @@ const DashboardPage = () => {
                 className="w-full"
                 onClick={() => transitionTo('/settings')}
               >
-                Settings
+                <Trans>Settings</Trans>
               </VoxelButton>
 
               <VoxelButton type="button" variant="danger" className="w-full" onClick={handleLogout} disabled={busy}>
-                Déconnexion
+                <Trans>Log out</Trans>
               </VoxelButton>
             </>
           ) : (
@@ -129,7 +134,7 @@ const DashboardPage = () => {
               }}
             >
               <p className="mb-2 text-center text-sm text-amber-200/60">
-                Saisissez le code à 4 caractères affiché par l&apos;hôte.
+                <Trans>Enter the 4-character code shown by the host.</Trans>
               </p>
               <input
                 type="text"
@@ -141,13 +146,13 @@ const DashboardPage = () => {
                 value={joinCode}
                 onChange={(e) => onJoinCodeChange(e.target.value)}
                 className="mb-4 w-full rounded-xl border-2 border-[#2d261f] bg-[#241e18] px-4 py-3 text-center text-2xl font-black uppercase tracking-[0.3em] text-amber-500 shadow-inner focus:border-amber-500/50 focus:outline-none"
-                aria-label="Code du lobby"
+                aria-label={t`Lobby code`}
               />
               <VoxelButton type="submit" className="w-full" disabled={busy}>
-                Rejoindre
+                <Trans>Join</Trans>
               </VoxelButton>
               <VoxelButton type="button" variant="danger" className="w-full" onClick={handleCancelJoin} disabled={busy}>
-                Annuler
+                <Trans>Cancel</Trans>
               </VoxelButton>
             </form>
           )}

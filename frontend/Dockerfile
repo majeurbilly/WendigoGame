@@ -1,13 +1,14 @@
 # syntax=docker/dockerfile:1
 
-FROM node:20-alpine AS builder
+# Lingui 6 exige Node >= 22.19 (fs.globSync dans node:fs)
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
 RUN npm install -g pnpm
 
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+COPY package.json pnpm-lock.yaml .npmrc ./
+RUN pnpm install --frozen-lockfile --config.dangerously-allow-all-builds=true
 
 COPY . .
 

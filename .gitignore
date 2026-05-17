@@ -171,3 +171,8 @@ cython_debug/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# pnpm
+.pnpm-store
+pnpm-lock.yaml
+pnpm-workspace.yaml

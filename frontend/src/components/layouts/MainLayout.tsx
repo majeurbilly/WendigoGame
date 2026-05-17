@@ -1,3 +1,4 @@
+import { Trans, t } from '@/lib/lingui'
 import { type ReactNode, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -42,7 +43,7 @@ const MainLayout = ({ children, transparentBg, gameOverlay, gameOverlayHostMenu 
                   type="button"
                   variant="outline"
                   size="icon-sm"
-                  aria-label="Réglages hôte"
+                  aria-label={t`Host settings`}
                   className="pointer-events-auto h-10 w-10 rounded-lg border border-[#2d261f] bg-[#1a1612] text-amber-100 shadow-lg hover:bg-[#241e18] hover:text-amber-50"
                 >
                   <Settings className="h-4 w-4" />
@@ -53,9 +54,11 @@ const MainLayout = ({ children, transparentBg, gameOverlay, gameOverlayHostMenu 
                 sideOffset={8}
                 className="w-64 space-y-2 border-amber-700/50 bg-[#1a1510]/95 p-3 text-amber-50 shadow-xl"
               >
-                <p className="text-center text-[10px] font-bold uppercase tracking-[0.2em] text-amber-200/80">Hôte</p>
+                <p className="text-center text-[10px] font-bold uppercase tracking-[0.2em] text-amber-200/80">
+                  <Trans>Host</Trans>
+                </p>
                 <VoxelButton type="button" className="w-full" onClick={() => { gameOverlayHostMenu.onTogglePause(); setHostOpen(false) }}>
-                  {gameOverlayHostMenu.isPaused ? 'Reprendre' : 'Pause'}
+                  {gameOverlayHostMenu.isPaused ? <Trans>Resume</Trans> : <Trans>Pause</Trans>}
                 </VoxelButton>
                 <VoxelButton
                   type="button"
@@ -69,7 +72,7 @@ const MainLayout = ({ children, transparentBg, gameOverlay, gameOverlayHostMenu 
                     }
                   }}
                 >
-                  Abandon
+                  <Trans>Surrender</Trans>
                 </VoxelButton>
                 <VoxelButton
                   type="button"
@@ -80,7 +83,7 @@ const MainLayout = ({ children, transparentBg, gameOverlay, gameOverlayHostMenu 
                     setHostOpen(false)
                   }}
                 >
-                  Forcer la fin
+                  <Trans>Force end</Trans>
                 </VoxelButton>
               </PopoverContent>
             </Popover>

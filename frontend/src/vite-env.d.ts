@@ -1,5 +1,10 @@
 /// <reference types="vite/client" />
 
+declare module '*.po' {
+  import type { Messages } from '@lingui/core'
+  export const messages: Messages
+}
+
 interface ImportMetaEnv {
   /** Issuer OIDC Authentik (ex. https://authentik.example/application/o/wendigo/) */
   readonly VITE_AUTHENTIK_URL?: string

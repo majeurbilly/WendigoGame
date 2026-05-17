@@ -1,4 +1,5 @@
 import type { LobbyState, Player } from '@/api/game'
+import { Trans, t } from '@/lib/lingui'
 import { cn } from '@/lib/utils'
 import { safeTrim } from '@/lib/safeTrim'
 import { toast } from 'sonner'
@@ -38,14 +39,18 @@ const ChairPicker = ({ lobby, currentPlayer, sendMessage, disabled = false }: Ch
     if (disabled || hasSeat) return
     const sent = sendMessage('CLAIM_SEAT', { chair_id: chairId })
     if (!sent) {
-      toast.error('Connexion indisponible.')
+      toast.error(t`Connection unavailable.`)
       return
     }
-    toast.success(`Place ${chairId + 1} demandée.`)
+    toast.success(t`Seat ${chairId + 1} requested.`)
   }
 
   if (numChairs === 0) {
-    return <p className="text-center text-xs text-amber-200/70">Aucune place à afficher.</p>
+    return (
+      <p className="text-center text-xs text-amber-200/70">
+        <Trans>No seats to display.</Trans>
+      </p>
+    )
   }
 
   const gridCols = numChairs <= 4 ? 'grid-cols-2' : 'grid-cols-4'
@@ -65,19 +70,19 @@ const ChairPicker = ({ lobby, currentPlayer, sendMessage, disabled = false }: Ch
         const occName = safeTrim(occupant?.name)
         const label = occupied ? (occName ? occName.charAt(0).toUpperCase() : '?') : String(chairId + 1)
 
+        const seatTitle = occupied
+          ? occName || t`Taken`
+          : hasSeat
+            ? t`You already have a seat`
+            : t`Choose seat ${chairId + 1}`
+
         return (
           <button
             key={chairId}
             type="button"
             disabled={!clickable}
             onClick={() => pickChair(chairId)}
-            title={
-              occupied
-                ? occName || 'Occupée'
-                : hasSeat
-                  ? 'Vous avez déjà une place'
-                  : `Choisir la place ${chairId + 1}`
-            }
+            title={seatTitle}
             className={cn(
               'flex h-16 w-16 touch-manipulation items-center justify-center rounded-full text-sm transition-transform sm:h-[4.25rem] sm:w-[4.25rem] sm:text-base',
               cellRing,

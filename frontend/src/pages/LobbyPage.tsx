@@ -11,6 +11,7 @@ import { resolveLobbyBackgroundImagePath } from '@/lib/lobbyPhaseBackground'
 import { samePlayerId } from '@/lib/samePlayerId'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
+import { Trans, t } from '@/lib/lingui'
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -256,13 +257,13 @@ export default function LobbyPage() {
       isPaused: lobby.isPaused === true,
       surrenderDisabled: lobby.surrenderVoteActive === true || lobby.surrenderApproved === true,
       onTogglePause: () => {
-        if (!sendMessage('TOGGLE_PAUSE', {})) toast.error('Connexion indisponible. Réessayez.')
+        if (!sendMessage('TOGGLE_PAUSE', {})) toast.error(t`Connection unavailable. Please try again.`)
       },
       onStartSurrender: () => {
-        if (!sendMessage('START_SURRENDER_VOTE', {})) toast.error('Connexion indisponible. Réessayez.')
+        if (!sendMessage('START_SURRENDER_VOTE', {})) toast.error(t`Connection unavailable. Please try again.`)
       },
       onForceEnd: () => {
-        if (!sendMessage('FORCE_END_GAME', {})) toast.error('Connexion indisponible. Réessayez.')
+        if (!sendMessage('FORCE_END_GAME', {})) toast.error(t`Connection unavailable. Please try again.`)
       },
     }
   }, [gameOverlayLayout, lobby, user, sendMessage])
@@ -284,7 +285,7 @@ export default function LobbyPage() {
           {!isConnected ? (
             <div className="flex h-[50vh] items-center justify-center">
               <div className="animate-pulse rounded-lg border border-slate-800 bg-slate-900/60 px-6 py-4 text-slate-200">
-                Connexion au serveur...
+                <Trans>Connecting to server…</Trans>
               </div>
             </div>
           ) : isEndedPhase ? (

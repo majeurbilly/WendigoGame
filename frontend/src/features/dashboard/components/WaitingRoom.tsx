@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import VoxelButton from '@/features/dashboard/components/game/VoxelButton'
 import { playerInitial } from '@/features/dashboard/components/game/PlayerAvatarGrid'
+import { Trans, t } from '@/lib/lingui'
 import { cn } from '@/lib/utils'
 import { samePlayerId } from '@/lib/samePlayerId'
 import { useAuthStore } from '@/store/useAuthStore'
@@ -31,24 +32,8 @@ const plateauStone =
 
 const modeLabel = (mode: string | undefined): string => {
   const m = (mode ?? 'local').toLowerCase()
-  return m === 'online' ? 'En ligne' : 'Présentiel'
+  return m === 'online' ? t`Online` : t`In person`
 }
-
-const phaseFieldRowsLobby: { key: keyof PhaseSettings; label: string }[] = [
-  { key: 'chairSelectionSeconds', label: 'Sélection des chaises (s)' },
-  { key: 'daySocialSeconds', label: 'Jour social / discussion (s)' },
-  { key: 'morningSeconds', label: 'Matin (s)' },
-  { key: 'noCouncilSeconds', label: 'Conseil annulé (s)' },
-  { key: 'councilStartSeconds', label: 'Début du conseil (s)' },
-  { key: 'councilAccusationPostChairSeconds', label: 'Accusation après rappel chaises (s)' },
-  { key: 'councilAccusationAfterDaySeconds', label: 'Accusation fin de journée (s)' },
-  { key: 'councilSummarySeconds', label: 'Résumé du conseil (s)' },
-  { key: 'pleadingSpeechSeconds', label: 'Temps de parole plaidoirie (s)' },
-  { key: 'councilVoteSeconds', label: 'Vote du conseil (s)' },
-  { key: 'stakeSeconds', label: 'Le Bûcher (s)' },
-  { key: 'nightSeconds', label: 'Phase de nuit (s)' },
-  { key: 'postNightDaySeconds', label: 'Segment jour après la nuit (s)' },
-]
 
 const lobbySettingsTabBodyClass =
   'mx-auto mt-6 w-full max-w-2xl max-h-[50vh] overflow-y-auto overscroll-contain pr-4 [scrollbar-width:thin] [scrollbar-color:#2a231c_#0c0a08] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-md [&::-webkit-scrollbar-track]:bg-[#0c0a08] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#241e18] [&::-webkit-scrollbar-thumb]:shadow-[inset_0_0_0_1px_rgba(0,0,0,0.45)] hover:[&::-webkit-scrollbar-thumb]:bg-[#322a22]'
@@ -64,7 +49,7 @@ const ReadySeal = ({ ready }: { ready: boolean }) => (
         ? 'bg-green-950/35 text-emerald-300 shadow-[0_0_22px_rgba(34,197,94,0.4)] ring-4 ring-inset ring-green-500/60'
         : 'bg-red-950/20 text-red-300/75 ring-4 ring-inset ring-red-500/40'
     )}
-    title={ready ? 'Prêt' : 'Pas prêt'}
+    title={ready ? t`Ready` : t`Not ready`}
   >
     {ready ? (
       <Check className="h-7 w-7 stroke-[3] sm:h-8 sm:w-8" strokeLinecap="round" aria-hidden />
@@ -74,6 +59,28 @@ const ReadySeal = ({ ready }: { ready: boolean }) => (
   </div>
 )
 
+function usePhaseFieldRowsLobby() {
+  return useMemo(
+    () =>
+      [
+        { key: 'chairSelectionSeconds' as const, label: t`Chair selection (s)` },
+        { key: 'daySocialSeconds' as const, label: t`Social day / discussion (s)` },
+        { key: 'morningSeconds' as const, label: t`Morning (s)` },
+        { key: 'noCouncilSeconds' as const, label: t`Council cancelled (s)` },
+        { key: 'councilStartSeconds' as const, label: t`Council start (s)` },
+        { key: 'councilAccusationPostChairSeconds' as const, label: t`Accusation after chair recall (s)` },
+        { key: 'councilAccusationAfterDaySeconds' as const, label: t`End-of-day accusation (s)` },
+        { key: 'councilSummarySeconds' as const, label: t`Council summary (s)` },
+        { key: 'pleadingSpeechSeconds' as const, label: t`Pleading speech time (s)` },
+        { key: 'councilVoteSeconds' as const, label: t`Council vote (s)` },
+        { key: 'stakeSeconds' as const, label: t`The Stake (s)` },
+        { key: 'nightSeconds' as const, label: t`Night phase (s)` },
+        { key: 'postNightDaySeconds' as const, label: t`Day segment after night (s)` },
+      ] satisfies { key: keyof PhaseSettings; label: string }[],
+    []
+  )
+}
+
 function LobbyRhythmHostSettingsBody({
   lobby,
   sendMessage,
@@ -82,6 +89,7 @@ function LobbyRhythmHostSettingsBody({
   sendMessage: (type: string, payload: unknown) => boolean
 }) {
   const [draft, setDraft] = useState<PhaseSettings>(defaultPhaseSettings)
+  const phaseFieldRowsLobby = usePhaseFieldRowsLobby()
 
   useEffect(() => {
     if (lobby.phase?.toUpperCase() === 'LOBBY') {
@@ -92,10 +100,10 @@ function LobbyRhythmHostSettingsBody({
   const handleApplyPhaseSettings = () => {
     const sent = sendMessage('UPDATE_PHASE_SETTINGS', phaseSettingsToServerPayload(draft))
     if (!sent) {
-      toast.error('Connexion indisponible. Réessayez.')
+      toast.error(t`Connection unavailable. Please try again.`)
       return
     }
-    toast.success('Durées envoyées au serveur.')
+    toast.success(t`Durations sent to the server.`)
   }
 
   const onDraftNumberChange = (key: keyof PhaseSettings) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -109,21 +117,23 @@ function LobbyRhythmHostSettingsBody({
 
   return (
     <div className={lobbySettingsTabBodyClass}>
-      <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700/95">Rythme de partie</p>
+      <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700/95">
+        <Trans>Game rhythm</Trans>
+      </p>
       <div className="space-y-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
           <VoxelButton type="button" variant="danger" className="flex-1 text-[10px] sm:text-xs" onClick={() => applyPreset('blitz')}>
-            Blitz
+            <Trans>Blitz</Trans>
           </VoxelButton>
           <VoxelButton type="button" className="flex-1 text-[10px] sm:text-xs" onClick={() => applyPreset('normal')}>
-            Normal
+            <Trans>Normal</Trans>
           </VoxelButton>
           <VoxelButton type="button" variant="muted" className="flex-1 text-[10px] sm:text-xs" onClick={() => applyPreset('long')}>
-            Longue
+            <Trans>Long</Trans>
           </VoxelButton>
         </div>
         <p className="text-[10px] leading-relaxed text-[#8a7a66]/95">
-          Les préréglages remplissent le brouillon ; appuyez sur « Graver les durées » pour les envoyer au serveur.
+          <Trans>Presets fill the draft; press “Engrave durations” to send them to the server.</Trans>
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           {phaseFieldRowsLobby.map(({ key, label }) => (
@@ -143,7 +153,7 @@ function LobbyRhythmHostSettingsBody({
           ))}
           <div className="sm:col-span-2">
             <VoxelButton type="button" variant="muted" className="w-full text-xs" onClick={handleApplyPhaseSettings}>
-              Graver les durées
+              <Trans>Engrave durations</Trans>
             </VoxelButton>
           </div>
         </div>
@@ -153,9 +163,13 @@ function LobbyRhythmHostSettingsBody({
 }
 
 function LobbyRhythmGuestSettingsBody({ lobby }: { lobby: LobbyState }) {
+  const phaseFieldRowsLobby = usePhaseFieldRowsLobby()
+
   return (
     <div className={lobbySettingsTabBodyClass}>
-      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700/95">Durées gravées par l’hôte</p>
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700/95">
+        <Trans>Durations engraved by the host</Trans>
+      </p>
       <div className="grid gap-1.5 text-[11px] sm:grid-cols-2">
         {phaseFieldRowsLobby.map(({ key, label }) => (
           <div key={key} className="flex justify-between gap-2 border-b border-[#2a241c] py-1 text-[#c9b8a0]">
@@ -177,18 +191,22 @@ export default function WaitingRoom({ sendMessage, onLeave }: WaitingRoomProps) 
   const isHost = Boolean(user?.id && hostPlayer && samePlayerId(hostPlayer.id, user.id))
   const isMember = Boolean(user?.id && lobby?.players.some((p) => samePlayerId(p.id, user.id)))
 
+  const grimoireNarrative = useMemo(
+    () =>
+      isHost
+        ? t`You preside over the council: adjust phase rhythm, then light the fire when the seats are ready.`
+        : t`The council gathers around the engraved code. Wait for the host to start the game.`,
+    [isHost]
+  )
+
   const handleStartGame = () => {
     const sent = sendMessage('START_GAME', {})
     if (!sent) {
-      toast.error('Connexion indisponible. Réessayez.')
+      toast.error(t`Connection unavailable. Please try again.`)
       return
     }
-    toast.success('Démarrage envoyé au serveur.')
+    toast.success(t`Start request sent to the server.`)
   }
-
-  const grimoireNarrative = isHost
-    ? 'Vous présidez le conseil : ajustez le rythme des phases, puis enclenchez le feu lorsque les sièges sont prêts.'
-    : 'Le conseil se rassemble autour du code gravé. Attendez que l’hôte allume la partie.'
 
   if (!lobby) return null
 
@@ -201,7 +219,17 @@ export default function WaitingRoom({ sendMessage, onLeave }: WaitingRoomProps) 
             className={lobbySettingsSummaryClass}
             onClick={() => setActiveTab(activeTab === 'main' ? 'settings' : 'main')}
           >
-            {isHost ? (activeTab === 'main' ? 'RÉGLAGES' : 'RETOUR') : activeTab === 'main' ? 'DURÉES' : 'RETOUR'}
+            {isHost ? (
+              activeTab === 'main' ? (
+                <Trans>SETTINGS</Trans>
+              ) : (
+                <Trans>BACK</Trans>
+              )
+            ) : activeTab === 'main' ? (
+              <Trans>DURATIONS</Trans>
+            ) : (
+              <Trans>BACK</Trans>
+            )}
           </button>
         </div>
       ) : null}
@@ -210,8 +238,8 @@ export default function WaitingRoom({ sendMessage, onLeave }: WaitingRoomProps) 
         <VoxelButton
           type="button"
           variant="danger"
-          title="Quitter le lobby"
-          aria-label="Quitter le lobby"
+          title={t`Leave lobby`}
+          aria-label={t`Leave lobby`}
           onClick={onLeave}
           className="!h-11 !w-11 !min-w-0 shrink-0 !rounded-lg !p-0"
         >
@@ -224,7 +252,9 @@ export default function WaitingRoom({ sendMessage, onLeave }: WaitingRoomProps) 
           className="text-center font-black uppercase tracking-[0.2em] text-amber-300 drop-shadow-[0_0_18px_rgba(251,191,36,0.55)] sm:tracking-[0.28em]"
           style={{ fontVariantNumeric: 'tabular-nums' }}
         >
-          <span className="block text-[10px] font-bold text-amber-600/90 sm:text-[11px]">Code du lobby</span>
+          <span className="block text-[10px] font-bold text-amber-600/90 sm:text-[11px]">
+            <Trans>Lobby code</Trans>
+          </span>
           <span className="mt-1 block text-5xl text-amber-400 sm:text-6xl md:text-7xl">{lobby.code}</span>
         </h1>
       </div>
@@ -235,8 +265,10 @@ export default function WaitingRoom({ sendMessage, onLeave }: WaitingRoomProps) 
         </span>
         {typeof lobby.players?.length === 'number' ? (
           <span className="text-[11px] font-semibold uppercase tracking-wide text-[#c9a66b]/80">
-            {lobby.players.length}
-            {lobby.maxPlayers != null ? ` / ${lobby.maxPlayers}` : ''} conseillers
+            <Trans>
+              {lobby.players.length}
+              {lobby.maxPlayers != null ? ` / ${lobby.maxPlayers}` : ''} councillors
+            </Trans>
           </span>
         ) : null}
       </div>
@@ -269,7 +301,9 @@ export default function WaitingRoom({ sendMessage, onLeave }: WaitingRoomProps) 
                   {player.name}
                 </p>
                 {player.isHost ? (
-                  <p className="-mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-amber-500/90">Maître du feu</p>
+                  <p className="-mt-1 text-[9px] font-bold uppercase tracking-[0.2em] text-amber-500/90">
+                    <Trans>Master of the fire</Trans>
+                  </p>
                 ) : null}
                 <ReadySeal ready={player.isAlive} />
               </div>
@@ -290,7 +324,7 @@ export default function WaitingRoom({ sendMessage, onLeave }: WaitingRoomProps) 
                 onClick={handleStartGame}
               >
                 <Flame className="h-7 w-7 shrink-0 text-orange-200 sm:h-8 sm:w-8" aria-hidden />
-                Lancer la partie
+                <Trans>Start game</Trans>
                 <Sparkles className="h-6 w-6 shrink-0 text-amber-200/90 sm:h-7 sm:w-7" aria-hidden />
               </VoxelButton>
             </div>

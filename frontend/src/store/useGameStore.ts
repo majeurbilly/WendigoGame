@@ -1,8 +1,11 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import type { LobbyState } from '@/api/game'
+import { type AppLocale, defaultLocale, loadCatalog } from '@/i18n'
 
 const clampGlobalVolume = (value: number): number => Math.min(1, Math.max(0, value))
+
+const isAppLocale = (value: string): value is AppLocale => value === 'en' || value === 'fr'
 
 interface GameState {
   lobby: LobbyState | null
@@ -13,12 +16,14 @@ interface GameState {
   /** Volume global 0–1 ; si muté, l’effet perçu est 0 mais la valeur du slider est conservée. */
   globalVolume: number
   isMuted: boolean
+  language: AppLocale
   setLobby: (lobby: LobbyState | null) => void
   setConnected: (status: boolean) => void
   setLiveKitToken: (token: string | null) => void
   setCinematicPlaying: (playing: boolean) => void
   setGlobalVolume: (volume: number) => void
   toggleGlobalMute: () => void
+  setLanguage: (locale: AppLocale) => void
   resetGame: () => void
 }
 
@@ -31,6 +36,7 @@ export const useGameStore = create<GameState>()(
       isCinematicPlaying: false,
       globalVolume: 0.5,
       isMuted: false,
+      language: defaultLocale,
       setLobby: (lobby) => set({ lobby }),
       setConnected: (status) => set({ isConnected: status }),
       setLiveKitToken: (token) => set({ livekitToken: token }),
@@ -44,6 +50,10 @@ export const useGameStore = create<GameState>()(
           }
         }),
       toggleGlobalMute: () => set((state) => ({ isMuted: !state.isMuted })),
+      setLanguage: (locale) => {
+        set({ language: locale })
+        void loadCatalog(locale)
+      },
       resetGame: () =>
         set({
           lobby: null,
@@ -61,7 +71,19 @@ export const useGameStore = create<GameState>()(
         livekitToken: state.livekitToken,
         globalVolume: state.globalVolume,
         isMuted: state.isMuted,
+        language: state.language,
       }),
+      merge: (persisted, current) => {
+        const merged = { ...current, ...(persisted as Partial<GameState>) }
+        const lang = merged.language
+        merged.language = isAppLocale(lang) ? lang : defaultLocale
+        return merged
+      },
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          void loadCatalog(state.language)
+        }
+      },
     }
   )
 )

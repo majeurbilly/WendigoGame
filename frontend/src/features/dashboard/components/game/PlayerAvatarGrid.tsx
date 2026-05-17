@@ -1,11 +1,12 @@
+import { Trans, t } from '@/lib/lingui'
 import { cn } from '@/lib/utils'
 import { safeTrim } from '@/lib/safeTrim'
 import { UserRound } from 'lucide-react'
 
 export const playerInitial = (name: string | undefined | null): string => {
-  const t = safeTrim(name)
-  if (!t) return '?'
-  return t.slice(0, 1).toUpperCase()
+  const trimmed = safeTrim(name)
+  if (!trimmed) return '?'
+  return trimmed.slice(0, 1).toUpperCase()
 }
 
 export interface AvatarPlayer {
@@ -48,7 +49,6 @@ export default function PlayerAvatarGrid({
       ? 'h-[3.35rem] w-[3.35rem] shrink-0 text-sm'
       : 'h-[2.85rem] w-[2.85rem] shrink-0 text-xs'
 
-  /** Pion / rune : relief physique ; sélection = enfoncé + lueur intérieure. */
   const cellPhysical =
     'flex shrink-0 items-center justify-center rounded-lg border-t border-x border-[#3d3428] font-black text-amber-50 bg-[#241e18] transition-all duration-200'
 
@@ -90,7 +90,9 @@ export default function PlayerAvatarGrid({
           {!opts.isClear ? (
             <span className="min-w-0 flex-1 truncate text-xl font-bold uppercase tracking-tight text-[#e8dcc4]">{displayName}</span>
           ) : (
-            <span className="min-w-0 flex-1 text-sm font-bold uppercase tracking-wide text-amber-200/85">Retirer la cible</span>
+            <span className="min-w-0 flex-1 text-sm font-bold uppercase tracking-wide text-amber-200/85">
+              <Trans>Clear target</Trans>
+            </span>
           )}
         </button>
       )
@@ -143,10 +145,10 @@ export default function PlayerAvatarGrid({
         rowTokens ? 'flex flex-col gap-3' : cn('grid gap-x-3 gap-y-2.5 sm:gap-x-3.5 sm:gap-y-3', columnsClassName)
       )}
       role="listbox"
-      aria-label="Choisir un joueur"
+      aria-label={t`Choose a player`}
     >
       {allowClear
-        ? renderTile('', clearLabel, '', 'Retirer la sélection', {
+        ? renderTile('', clearLabel, '', t`Clear selection`, {
             isClear: true,
             blocked: false,
           })
@@ -154,7 +156,7 @@ export default function PlayerAvatarGrid({
       {players.map((player) => {
         const blocked = idsDisabled?.has(player.id) === true
         const isSelf = selfId !== undefined && player.id === selfId
-        const displayName = isSelf ? `${player.name} (vous)` : player.name
+        const displayName = isSelf ? t`${player.name} (you)` : player.name
         return renderTile(player.id, playerInitial(player.name), displayName, displayName, {
           blocked,
         })
@@ -167,7 +169,7 @@ export default function PlayerAvatarGrid({
           )}
         >
           <UserRound className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
-          Aucun joueur éligible
+          <Trans>No eligible players</Trans>
         </div>
       ) : null}
     </div>

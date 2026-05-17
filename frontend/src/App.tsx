@@ -24,6 +24,8 @@ import LoginPage from './pages/LoginPage'
 import GlobalAudioToggle from './features/dashboard/components/GlobalAudioToggle'
 import { Toaster } from './components/ui/sonner'
 import { isGameOverPhase, isLobbyWaitingPhase } from './lib/gamePhase'
+import { Trans } from '@/lib/lingui'
+import I18nRoot from './components/I18nRoot'
 import { useAuthStore } from './store/useAuthStore'
 import { useGameStore } from './store/useGameStore'
 
@@ -40,7 +42,7 @@ const ProtectedRoute = ({ children }: { children: ReactElement }) => {
     return (
       <div className="flex h-screen items-center justify-center text-slate-200">
         <div className="rounded-xl border border-slate-700/60 bg-black/40 px-6 py-4 backdrop-blur-sm">
-          Validation des sceaux du Conseil…
+          <Trans>Validating the Council seals…</Trans>
         </div>
       </div>
     )
@@ -182,32 +184,61 @@ const AppShell = () => {
     audio.volume = isMuted ? 0 : globalVolume
   }, [globalVolume, isMuted])
 
+  const tryPlayGlobalTheme = useCallback(() => {
+    const audio = globalThemeAudioRef.current
+    if (!audio || !shouldPlayGlobalTheme) {
+      return
+    }
+    const { isMuted: muted, globalVolume: gv } = useGameStore.getState()
+    if (muted || gv <= 0.001) {
+      return
+    }
+    void audio.play().catch(() => {})
+  }, [shouldPlayGlobalTheme])
+
   useEffect(() => {
     const audio = globalThemeAudioRef.current
     if (!audio) {
       return
     }
     if (shouldPlayGlobalTheme) {
-      void audio.play().catch(() => {})
+      tryPlayGlobalTheme()
     } else {
       audio.pause()
     }
-  }, [shouldPlayGlobalTheme])
+  }, [shouldPlayGlobalTheme, tryPlayGlobalTheme])
 
   useEffect(() => {
-    const tryResumeAfterGesture = () => {
-      const audio = globalThemeAudioRef.current
-      if (!audio || !shouldPlayGlobalTheme) {
-        return
-      }
-      void audio.play().catch(() => {})
-    }
+    tryPlayGlobalTheme()
+  }, [globalVolume, isMuted, tryPlayGlobalTheme])
 
-    window.addEventListener('pointerdown', tryResumeAfterGesture, true)
-    return () => {
-      window.removeEventListener('pointerdown', tryResumeAfterGesture, true)
+  useEffect(() => {
+    if (useGameStore.persist.hasHydrated()) {
+      tryPlayGlobalTheme()
+      return
     }
-  }, [shouldPlayGlobalTheme])
+    return useGameStore.persist.onFinishHydration(() => {
+      tryPlayGlobalTheme()
+    })
+  }, [tryPlayGlobalTheme])
+
+  useEffect(() => {
+    const resumeOnGesture = () => tryPlayGlobalTheme()
+
+    window.addEventListener('pointerdown', resumeOnGesture, true)
+    window.addEventListener('keydown', resumeOnGesture, true)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        tryPlayGlobalTheme()
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      window.removeEventListener('pointerdown', resumeOnGesture, true)
+      window.removeEventListener('keydown', resumeOnGesture, true)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [tryPlayGlobalTheme])
 
   return (
     <SmokeTransitionContext.Provider value={transitionValue}>
@@ -223,7 +254,7 @@ const AppShell = () => {
         {oidcCallbackPending(auth) || isInitializing ? (
           <div className="flex h-screen items-center justify-center text-slate-200">
             <div className="rounded-xl border border-slate-700/60 bg-black/40 px-6 py-4 backdrop-blur-sm">
-              Validation des sceaux du Conseil…
+              <Trans>Validating the Council seals…</Trans>
             </div>
           </div>
         ) : (
@@ -276,12 +307,14 @@ const onSigninCallback = () => {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider userManager={oidcUserManager} onSigninCallback={onSigninCallback}>
-        <AppShell />
-        <Toaster />
-      </AuthProvider>
-    </BrowserRouter>
+    <I18nRoot>
+      <BrowserRouter>
+        <AuthProvider userManager={oidcUserManager} onSigninCallback={onSigninCallback}>
+          <AppShell />
+          <Toaster />
+        </AuthProvider>
+      </BrowserRouter>
+    </I18nRoot>
   )
 }
 

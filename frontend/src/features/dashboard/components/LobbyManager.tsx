@@ -1,3 +1,4 @@
+import { Trans, t } from '@/lib/lingui'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getApiErrorMessage } from '@/api/auth'
@@ -29,7 +30,7 @@ const LobbyManager = () => {
   const handleJoinGame = () => {
     const code = safeTrim(joinCode).toUpperCase()
     if (!code) {
-      toast.error('Please enter a lobby code.')
+      toast.error(t`Please enter a lobby code.`)
       return
     }
 
@@ -40,11 +41,15 @@ const LobbyManager = () => {
     <div className="grid gap-4 md:grid-cols-2">
       <Card className="border-slate-800 bg-slate-900/60 text-slate-100">
         <CardHeader>
-          <CardTitle>Create Game</CardTitle>
+          <CardTitle>
+            <Trans>Create Game</Trans>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Mode de partie</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+              <Trans>Game mode</Trans>
+            </p>
             <div className="flex flex-col gap-2 sm:flex-row">
               <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 has-[:checked]:border-amber-500/50 has-[:checked]:bg-amber-500/10">
                 <input
@@ -54,7 +59,9 @@ const LobbyManager = () => {
                   checked={createMode === 'local'}
                   onChange={() => setCreateMode('local')}
                 />
-                <span className="text-sm text-slate-200">Local (présentiel)</span>
+                <span className="text-sm text-slate-200">
+                  <Trans>Local (in person)</Trans>
+                </span>
               </label>
               <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 has-[:checked]:border-sky-500/50 has-[:checked]:bg-sky-500/10">
                 <input
@@ -64,30 +71,34 @@ const LobbyManager = () => {
                   checked={createMode === 'online'}
                   onChange={() => setCreateMode('online')}
                 />
-                <span className="text-sm text-slate-200">Online (en ligne)</span>
+                <span className="text-sm text-slate-200">
+                  <Trans>Online</Trans>
+                </span>
               </label>
             </div>
           </div>
           <Button type="button" className="w-full" onClick={handleCreateGame} disabled={isCreating}>
-            {isCreating ? 'Creating...' : 'Create Lobby'}
+            {isCreating ? <Trans>Creating...</Trans> : <Trans>Create Lobby</Trans>}
           </Button>
         </CardContent>
       </Card>
 
       <Card className="border-slate-800 bg-slate-900/60 text-slate-100">
         <CardHeader>
-          <CardTitle>Join Game</CardTitle>
+          <CardTitle>
+            <Trans>Join Game</Trans>
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <Input
             value={joinCode}
             onChange={(event) => setJoinCode(event.target.value)}
-            placeholder="Lobby code"
+            placeholder={t`Lobby code`}
             className="uppercase"
             maxLength={12}
           />
           <Button type="button" className="w-full" onClick={handleJoinGame}>
-            Join
+            <Trans>Join</Trans>
           </Button>
         </CardContent>
       </Card>

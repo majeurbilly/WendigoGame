@@ -1,3 +1,4 @@
+import { t } from '@/lib/lingui'
 import { cn } from '@/lib/utils'
 import { Eye, Scroll, Skull, Users } from 'lucide-react'
 import { useCallback, useLayoutEffect, useState } from 'react'
@@ -103,7 +104,7 @@ export default function SecretRoleCard({ role }: SecretRoleCardProps) {
       <div
         role="button"
         tabIndex={0}
-        aria-label="Maintenir pour afficher votre rôle secret"
+        aria-label={t`Hold to reveal your secret role`}
         aria-pressed={peeking}
         className={cn(
           'pointer-events-auto select-none touch-manipulation',

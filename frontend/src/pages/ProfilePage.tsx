@@ -1,3 +1,4 @@
+import { Trans, t } from '@/lib/lingui'
 import { type FormEvent, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useSmokeTransition } from '@/contexts/smokeTransitionContext'
@@ -29,7 +30,7 @@ const ProfilePage = () => {
 
   const handleSave = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    toast.message('Mise à jour du profil : bientôt disponible.')
+    toast.message(t`Profile update: coming soon.`)
   }
 
   const initialChar = safeTrim(user?.username)
@@ -39,7 +40,7 @@ const ProfilePage = () => {
     <div className="relative z-10 flex min-h-screen items-center justify-center p-4 text-slate-100">
       <div className="mx-auto flex w-full max-w-xl flex-col rounded-3xl border-x-2 border-b-8 border-t-4 border-[#2d261f] bg-[#1a1612] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.8)] max-h-[calc(100vh-2rem)] overflow-y-auto">
         <h1 className="mb-8 text-center text-4xl font-black uppercase tracking-widest text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.6)] md:text-5xl">
-          Profil
+          <Trans>Profile</Trans>
         </h1>
 
         <div
@@ -57,30 +58,30 @@ const ProfilePage = () => {
           <div className="mb-8 grid grid-cols-2 gap-3 border-b border-[#2d261f] pb-8 text-center text-xs uppercase tracking-wider text-amber-200/50 sm:grid-cols-3">
             <div className="rounded-lg border border-[#2d261f]/80 bg-[#0f0c09]/80 px-2 py-2">
               <div className="font-black text-amber-400/90">{user.games_played}</div>
-              <div>Parties</div>
+              <div><Trans>Games</Trans></div>
             </div>
             <div className="rounded-lg border border-[#2d261f]/80 bg-[#0f0c09]/80 px-2 py-2">
               <div className="font-black text-amber-400/90">{user.games_won ?? '—'}</div>
-              <div>Victoires</div>
+              <div><Trans>Wins</Trans></div>
             </div>
             <div className="rounded-lg border border-[#2d261f]/80 bg-[#0f0c09]/80 px-2 py-2">
               <div className="font-black text-amber-400/90">{user.games_lost ?? '—'}</div>
-              <div>Défaites</div>
+              <div><Trans>Losses</Trans></div>
             </div>
             <div className="rounded-lg border border-[#2d261f]/80 bg-[#0f0c09]/80 px-2 py-2">
               <div className="font-black text-amber-400/90">{user.wins_as_wendigo ?? '—'}</div>
-              <div>Wendigo</div>
+              <div><Trans>Wendigo</Trans></div>
             </div>
             <div className="col-span-2 rounded-lg border border-[#2d261f]/80 bg-[#0f0c09]/80 px-2 py-2 sm:col-span-1">
               <div className="font-black text-amber-400/90">{user.wins_as_villager ?? '—'}</div>
-              <div>Village</div>
+              <div><Trans>Village</Trans></div>
             </div>
           </div>
         ) : null}
 
         <form className="flex flex-col" onSubmit={handleSave}>
           <label htmlFor="profile-username" className={labelClass}>
-            Pseudo
+            <Trans>Username</Trans>
           </label>
           <input
             id="profile-username"
@@ -93,7 +94,7 @@ const ProfilePage = () => {
           />
 
           <label htmlFor="profile-email" className={labelClass}>
-            Email
+            <Trans>Email</Trans>
           </label>
           <input
             id="profile-email"
@@ -106,7 +107,7 @@ const ProfilePage = () => {
           />
 
           <label htmlFor="profile-password" className={labelClass}>
-            Nouveau mot de passe
+            <Trans>New password</Trans>
           </label>
           <input
             id="profile-password"
@@ -119,12 +120,12 @@ const ProfilePage = () => {
           />
 
           <VoxelButton type="submit" className="mb-4 w-full">
-            Mettre à jour
+            <Trans>Update</Trans>
           </VoxelButton>
         </form>
 
         <VoxelButton type="button" variant="danger" className="w-full" onClick={() => transitionTo('/')}>
-          Retour au menu
+          <Trans>Back to menu</Trans>
         </VoxelButton>
       </div>
     </div>

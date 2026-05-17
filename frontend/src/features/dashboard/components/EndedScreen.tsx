@@ -1,4 +1,5 @@
 import type { LobbyState, Player } from '@/api/game'
+import { Trans, t } from '@/lib/lingui'
 import NarrativeBox from '@/features/dashboard/components/NarrativeBox'
 import VoxelButton from '@/features/dashboard/components/game/VoxelButton'
 import { playerInitial } from '@/features/dashboard/components/game/PlayerAvatarGrid'
@@ -7,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
 import { DoorOpen, Flame, Skull, Sparkles } from 'lucide-react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const VILLAGER_WIN_BG = '/assets/images/villager_win.png'
@@ -17,19 +19,12 @@ interface EndedScreenProps {
   sendMessage: (type: string, payload: unknown) => boolean
 }
 
-const roleLabelFr = (role: string | null): string => {
-  const r = (role ?? 'INCONNU').toUpperCase()
+const roleLabel = (role: string | null): string => {
+  const r = (role ?? 'UNKNOWN').toUpperCase()
   if (r === 'WENDIGO') return 'Wendigo'
-  if (r === 'VILLAGER') return 'Villageois'
-  if (r === 'SEER') return 'Voyante'
+  if (r === 'VILLAGER') return 'Villager'
+  if (r === 'SEER') return 'Seer'
   return r.replaceAll('_', ' ')
-}
-
-const endedNarration = (isVillageWin: boolean): string => {
-  if (isVillageWin) {
-    return 'Tous les Wendigos ont été démasqués ou terrassés. Le village tient encore debout, le feu des braises n’est pas éteint.'
-  }
-  return 'Les Wendigos ont eu raison du village. Les ombres ont bu la peur et la nuit referme ses mâchoires sur les derniers survivants.'
 }
 
 const tabletShellClass =
@@ -50,7 +45,7 @@ const MiniPion = ({ name, className }: { name: string; className?: string }) => 
 
 function SummaryTile({ player }: { player: Player }) {
   const alive = player.isAlive === true
-  const role = roleLabelFr(player.role)
+  const role = roleLabel(player.role)
 
   return (
     <div
@@ -67,13 +62,13 @@ function SummaryTile({ player }: { player: Player }) {
           <span className="truncate font-black text-[#f5ecd8] sm:text-base">{player.name}</span>
           {player.isHost ? (
             <span className="shrink-0 rounded border border-amber-600/50 px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider text-amber-200/90">
-              Hôte
+              <Trans>Host</Trans>
             </span>
           ) : null}
         </div>
         <p className="mt-0.5 text-xs font-bold uppercase tracking-wide text-amber-200/95">{role}</p>
         <p className={cn('mt-1 text-[11px] font-semibold', alive ? 'text-emerald-300/95' : 'text-rose-300/80')}>
-          {alive ? 'Survivant' : 'Éliminé'}
+          {alive ? <Trans>Survivor</Trans> : <Trans>Eliminated</Trans>}
         </p>
       </div>
       {!alive ? (
@@ -94,8 +89,13 @@ const EndedScreen = ({ lobby, sendMessage }: EndedScreenProps) => {
   const isVillageWin = winnerTeam === 'VILLAGER'
   const winBg = isVillageWin ? VILLAGER_WIN_BG : WENDIGO_WIN_BG
 
-  const titleMain = isVillageWin ? 'VICTOIRE ÉCLATANTE' : 'VICTOIRE DES WENDIGOS'
-  const titleSub = isVillageWin ? 'Le village a triomphé' : 'Les Wendigos règnent sur la nuit'
+  const endedNarrationText = useMemo(
+    () =>
+      isVillageWin
+        ? t`Every Wendigo has been unmasked or brought down. The village still stands; the embers are not yet cold.`
+        : t`The Wendigos claimed the village. The shadows drank their fear, and night closes its jaws on the last survivors.`,
+    [isVillageWin]
+  )
 
   const titleColorClass = isVillageWin
     ? 'text-amber-300 drop-shadow-[0_0_20px_rgba(251,191,36,0.7)]'
@@ -122,23 +122,26 @@ const EndedScreen = ({ lobby, sendMessage }: EndedScreenProps) => {
       <div className={cn(tabletShellClass, 'max-h-[min(88vh,calc(100vh-5.5rem))] overflow-y-auto overscroll-contain')}>
         <div className="pointer-events-auto space-y-6">
           <header className="text-center">
-            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.35em] text-amber-200/55">Verdict final</p>
-            <h1
-              className={cn(
-                'text-5xl font-black uppercase tracking-tight sm:text-6xl',
-                titleColorClass
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.35em] text-amber-200/55">
+              <Trans>Final verdict</Trans>
+            </p>
+            <h1 className={cn('text-5xl font-black uppercase tracking-tight sm:text-6xl', titleColorClass)}>
+              {isVillageWin ? (
+                <Trans>BLAZING VICTORY</Trans>
+              ) : (
+                <Trans>WENDIGO VICTORY</Trans>
               )}
-            >
-              {titleMain}
             </h1>
-            <p className="mt-2 text-sm font-semibold uppercase tracking-[0.2em] text-stone-400">{titleSub}</p>
+            <p className="mt-2 text-sm font-semibold uppercase tracking-[0.2em] text-stone-400">
+              {isVillageWin ? <Trans>The village prevailed</Trans> : <Trans>The Wendigos rule the night</Trans>}
+            </p>
           </header>
 
-          <NarrativeBox embedded text={endedNarration(isVillageWin)} className="rounded-xl border border-amber-900/35 bg-[#141210]/75 px-3 py-3" />
+          <NarrativeBox embedded text={endedNarrationText} className="rounded-xl border border-amber-900/35 bg-[#141210]/75 px-3 py-3" />
 
           <div>
             <p className="mb-3 text-center text-[10px] font-black uppercase tracking-[0.28em] text-amber-200/75">
-              Bilan des âmes
+              <Trans>Souls accounted for</Trans>
             </p>
             <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3">
               {lobby.players.map((player) => (
@@ -157,7 +160,7 @@ const EndedScreen = ({ lobby, sendMessage }: EndedScreenProps) => {
               >
                 <Flame className="h-6 w-6 shrink-0 text-amber-300" aria-hidden />
                 <Sparkles className="h-5 w-5 shrink-0 text-amber-200/90" aria-hidden />
-                Relancer la partie
+                <Trans>Restart game</Trans>
               </VoxelButton>
             ) : null}
             <VoxelButton
@@ -168,7 +171,7 @@ const EndedScreen = ({ lobby, sendMessage }: EndedScreenProps) => {
               onClick={handleQuitLobby}
             >
               <DoorOpen className="h-6 w-6 shrink-0" aria-hidden />
-              Quitter le lobby
+              <Trans>Leave lobby</Trans>
             </VoxelButton>
           </div>
         </div>
