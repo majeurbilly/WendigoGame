@@ -1,6 +1,5 @@
-import { Trans, t } from '@/lib/lingui'
-import { type FormEvent, useEffect, useState } from 'react'
-import { toast } from 'sonner'
+import { Trans } from '@/lib/lingui'
+import { useEffect, useState } from 'react'
 import { useSmokeTransition } from '@/contexts/smokeTransitionContext'
 import VoxelButton from '@/features/dashboard/components/game/VoxelButton'
 import { safeTrim } from '@/lib/safeTrim'
@@ -9,32 +8,32 @@ import { useAuthStore } from '@/store/useAuthStore'
 const labelClass = 'mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-amber-200/60'
 
 const inputClass =
-  'mb-4 w-full rounded-xl border-2 border-[#2d261f] bg-[#241e18] px-4 py-3 font-medium text-amber-500/80 shadow-inner focus:border-amber-500/50 focus:outline-none'
+  'mb-4 w-full rounded-xl border-2 border-[#2d261f] bg-[#241e18] px-4 py-3 font-medium text-amber-500/80 shadow-inner focus:border-amber-500/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60'
+
+const avatarShellClass =
+  'mx-auto mb-6 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-b-4 border-[#14100c] bg-[#241e18] text-4xl font-bold text-white ring-2 ring-amber-500/50'
 
 const ProfilePage = () => {
   const user = useAuthStore((state) => state.user)
+  const token = useAuthStore((state) => state.token)
+  const fetchMeProfile = useAuthStore((state) => state.fetchMeProfile)
   const { transitionTo } = useSmokeTransition()
 
-  const [username, setUsername] = useState('')
-  const [email, setEmail] = useState('')
-  const [newPassword, setNewPassword] = useState('')
+  const [avatarError, setAvatarError] = useState(false)
 
   useEffect(() => {
-    if (!user) {
-      return
+    if (token) {
+      void fetchMeProfile()
     }
-    setUsername(safeTrim(user.username))
-    setEmail(safeTrim(user.email))
-    setNewPassword('')
-  }, [user])
+  }, [token, fetchMeProfile])
 
-  const handleSave = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    toast.message(t`Profile update: coming soon.`)
-  }
+  useEffect(() => {
+    setAvatarError(false)
+  }, [user?.picture])
 
   const initialChar = safeTrim(user?.username)
   const initial = initialChar ? initialChar.charAt(0).toUpperCase() : '?'
+  const showGoogleAvatar = Boolean(user?.picture) && !avatarError
 
   return (
     <div className="relative z-10 flex min-h-screen items-center justify-center p-4 text-slate-100">
@@ -43,11 +42,17 @@ const ProfilePage = () => {
           <Trans>Profile</Trans>
         </h1>
 
-        <div
-          className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full border-b-4 border-[#14100c] bg-[#241e18] text-4xl font-bold text-white ring-2 ring-amber-500/50"
-          aria-hidden
-        >
-          {initial}
+        <div className={avatarShellClass} aria-hidden>
+          {showGoogleAvatar ? (
+            <img
+              src={user!.picture}
+              alt=""
+              className="h-24 w-24 rounded-full object-cover"
+              onError={() => setAvatarError(true)}
+            />
+          ) : (
+            initial
+          )}
         </div>
 
         {user?.username ? (
@@ -58,28 +63,38 @@ const ProfilePage = () => {
           <div className="mb-8 grid grid-cols-2 gap-3 border-b border-[#2d261f] pb-8 text-center text-xs uppercase tracking-wider text-amber-200/50 sm:grid-cols-3">
             <div className="rounded-lg border border-[#2d261f]/80 bg-[#0f0c09]/80 px-2 py-2">
               <div className="font-black text-amber-400/90">{user.games_played}</div>
-              <div><Trans>Games</Trans></div>
+              <div>
+                <Trans>Games</Trans>
+              </div>
             </div>
             <div className="rounded-lg border border-[#2d261f]/80 bg-[#0f0c09]/80 px-2 py-2">
               <div className="font-black text-amber-400/90">{user.games_won ?? '—'}</div>
-              <div><Trans>Wins</Trans></div>
+              <div>
+                <Trans>Wins</Trans>
+              </div>
             </div>
             <div className="rounded-lg border border-[#2d261f]/80 bg-[#0f0c09]/80 px-2 py-2">
               <div className="font-black text-amber-400/90">{user.games_lost ?? '—'}</div>
-              <div><Trans>Losses</Trans></div>
+              <div>
+                <Trans>Losses</Trans>
+              </div>
             </div>
             <div className="rounded-lg border border-[#2d261f]/80 bg-[#0f0c09]/80 px-2 py-2">
               <div className="font-black text-amber-400/90">{user.wins_as_wendigo ?? '—'}</div>
-              <div><Trans>Wendigo</Trans></div>
+              <div>
+                <Trans>Wendigo</Trans>
+              </div>
             </div>
             <div className="col-span-2 rounded-lg border border-[#2d261f]/80 bg-[#0f0c09]/80 px-2 py-2 sm:col-span-1">
               <div className="font-black text-amber-400/90">{user.wins_as_villager ?? '—'}</div>
-              <div><Trans>Village</Trans></div>
+              <div>
+                <Trans>Village</Trans>
+              </div>
             </div>
           </div>
         ) : null}
 
-        <form className="flex flex-col" onSubmit={handleSave}>
+        <div className="mb-4 flex flex-col">
           <label htmlFor="profile-username" className={labelClass}>
             <Trans>Username</Trans>
           </label>
@@ -88,8 +103,9 @@ const ProfilePage = () => {
             name="username"
             type="text"
             autoComplete="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={safeTrim(user?.username)}
+            disabled
+            readOnly
             className={inputClass}
           />
 
@@ -101,28 +117,12 @@ const ProfilePage = () => {
             name="email"
             type="email"
             autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={safeTrim(user?.email)}
+            disabled
+            readOnly
             className={inputClass}
           />
-
-          <label htmlFor="profile-password" className={labelClass}>
-            <Trans>New password</Trans>
-          </label>
-          <input
-            id="profile-password"
-            name="newPassword"
-            type="password"
-            autoComplete="new-password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className={inputClass}
-          />
-
-          <VoxelButton type="submit" className="mb-4 w-full">
-            <Trans>Update</Trans>
-          </VoxelButton>
-        </form>
+        </div>
 
         <VoxelButton type="button" variant="danger" className="w-full" onClick={() => transitionTo('/')}>
           <Trans>Back to menu</Trans>

@@ -1,5 +1,6 @@
 import type { User } from 'oidc-client-ts'
 import { create } from 'zustand'
+import { apiClient } from '@/api/axios'
 import { oidcUserManager } from '@/auth/oidcUserManager'
 import { internalUserIdFromOidcSub } from '@/lib/internalUserIdFromOidcSub'
 import { safeTrim } from '@/lib/safeTrim'
@@ -8,6 +9,7 @@ export interface UserProfile {
   id: string
   email: string
   username: string
+  picture?: string
   games_played?: number
   games_won?: number
   games_lost?: number
@@ -47,10 +49,26 @@ function userProfileFromOidcUser(oidcUser: User | null | undefined): UserProfile
     localPart ||
     id
 
+  const picture =
+    safeTrim(p.picture) || safeTrim(p.avatar) || safeTrim(p.avatar_url) || undefined
+
   return {
     id,
     email,
     username: safeTrim(username) || id,
+    picture,
+  }
+}
+
+function mergeUserProfile(current: UserProfile | null, incoming: UserProfile): UserProfile {
+  const id = safeTrim(incoming.id) || safeTrim(current?.id) || 'unknown'
+  return {
+    ...current,
+    ...incoming,
+    id,
+    email: safeTrim(incoming.email) || safeTrim(current?.email) || '',
+    username: safeTrim(incoming.username) || safeTrim(current?.username) || id,
+    picture: current?.picture ?? incoming.picture,
   }
 }
 
@@ -61,11 +79,13 @@ interface AuthState {
   isInitializing: boolean
   setUser: (user: UserProfile | null) => void
   logout: () => void
-  /** Synchrone : profil issu uniquement du jeton / claims OIDC (Authentik), plus d’appel GET /auth/me. */
+  /** Synchrone : profil issu des claims OIDC (Authentik / Google). */
   syncFromOidc: (input: OidcAuthSyncInput) => void
+  /** Charge pseudo, email et statistiques depuis GET /auth/me (fusionne avec le profil OIDC). */
+  fetchMeProfile: () => Promise<void>
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   token: null,
   user: null,
   isInitializing: true,
@@ -75,12 +95,14 @@ export const useAuthStore = create<AuthState>((set) => ({
       return
     }
     const id = safeTrim(user.id) || 'unknown'
+    const picture = safeTrim(user.picture) || undefined
     set({
       user: {
         ...user,
         id,
         email: safeTrim(user.email),
         username: safeTrim(user.username) || id,
+        picture,
       },
     })
   },
@@ -125,10 +147,23 @@ export const useAuthStore = create<AuthState>((set) => ({
       return
     }
 
-    set({
+    set((state) => ({
       token: accessToken,
-      user: profile,
+      user: mergeUserProfile(state.user, profile),
       isInitializing: false,
-    })
+    }))
+  },
+  fetchMeProfile: async () => {
+    if (!safeTrim(get().token)) {
+      return
+    }
+    try {
+      const { data } = await apiClient.get<UserProfile>('/auth/me')
+      set((state) => ({
+        user: state.user ? mergeUserProfile(state.user, data) : data,
+      }))
+    } catch (error) {
+      console.error('fetchMeProfile failed:', error)
+    }
   },
 }))
