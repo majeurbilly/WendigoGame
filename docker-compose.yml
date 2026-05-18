@@ -221,7 +221,7 @@ services:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
         VITE_LIVEKIT_URL: ${VITE_LIVEKIT_URL:-ws://localhost:7880}
         VITE_AUTHENTIK_URL: ${VITE_AUTHENTIK_URL:-http://localhost:9000/application/o/wendigo}
-        VITE_AUTHENTIK_CLIENT_ID: ${VITE_AUTHENTIK_CLIENT_ID:-}
+        VITE_AUTHENTIK_CLIENT_ID: ${VITE_AUTHENTIK_CLIENT_ID:-wendigo-dev}
     depends_on:
       - backend
     ports:

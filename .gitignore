@@ -176,3 +176,8 @@ Desktop.ini
 .pnpm-store
 pnpm-lock.yaml
 pnpm-workspace.yaml
+
+# Pulumi (Authentik IaC)
+infrastructure/authentik/node_modules/
+infrastructure/authentik/bin/
+infrastructure/authentik/.pulumi/
