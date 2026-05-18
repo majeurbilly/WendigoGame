@@ -1,6 +1,0 @@
-node_modules/
-bin/
-.pulumi/
-*.log
-# Secrets dev (config stack en clair)
-Pulumi.dev.yaml

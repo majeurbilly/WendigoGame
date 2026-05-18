@@ -1,0 +1,25 @@
+{
+  "name": "wendigo-authentik",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pulumi IaC for Wendigo infrastructure (Authentik OIDC, Grafana, Prometheus)",
+  "main": "index.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "biome check .",
+    "fix": "biome check --write .",
+    "preview": "pulumi preview",
+    "up": "pulumi up",
+    "destroy": "pulumi destroy"
+  },
+  "dependencies": {
+    "@pulumi/authentik": "npm:@sapslaj/pulumi-authentik@2025.12.1",
+    "@pulumi/pulumi": "^3.142.0",
+    "@pulumiverse/grafana": "^2.30.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "@types/node": "^20",
+    "typescript": "^5.6.0"
+  }
+}
