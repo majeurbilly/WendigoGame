@@ -11,8 +11,6 @@ docker run --rm \
   -w /app \
   node:22-alpine \
   sh -lc "
-    corepack enable
-    corepack prepare pnpm@10.22.0 --activate
-    pnpm install --frozen-lockfile --config.dangerously-allow-all-builds=true
-    pnpm exec lingui ${CMD} $*
+    npm ci
+    npx lingui ${CMD} $*
   "

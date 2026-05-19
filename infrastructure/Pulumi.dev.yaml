@@ -1,0 +1,26 @@
+config:
+  authentik:url: http://localhost:9000
+  wendigo:clientId: wendigo-dev
+  wendigo:redirectUris: "http://localhost:5173/,http://localhost:5173/login"
+  wendigo:oidcIncludePropertyMappings: "false"
+  # Set secrets with --secret so Pulumi encrypts them before writing to this file:
+  #   pulumi config set --secret authentik:token "ak-..."
+  #   pulumi config set wendigo:googleClientId "xxx.apps.googleusercontent.com"
+  #   pulumi config set --secret wendigo:googleClientSecret "GOCSPX-..."
+
+  authentik:token:
+    secure: v1:70ztGRknUVM0cyL2:FEbCe3wZ9gzYkThurHALde5K2JUxaSE4SV6mMRktuVGG9sv0rhtNXD3bvWSl7fWG634AJ68AX0ggVpEfMwiKzppNySTYu2d+9L8M1w==
+  wendigo:googleClientId: placeholder-google-client-id.apps.googleusercontent.com
+  wendigo:googleClientSecret:
+    secure: v1:nKhwN5ieB5xzDkrK:tyRgpnMGmrJXmGYVObztegJtxq0rCFMTPqntbitrovKfZou3pRZtcArfB3OZHTz1
+  grafana:adminPassword:
+    secure: v1:vhXj9M0ICBBKNPhB:4XLUXt9eW/MRVGnY83n88tgUHc7F
+  wendigo:authentikSecretKey:
+    secure: v1:fwmYq3WTktYHOhOr:CLZ9MFc2GZj1wSHS2E9cJ7c6O7xfJg1Yc+7h+vzlf+ntcVUAhPSX16tffqgWgB/inRNEuYNZphA3E7UQjGPHrAU4a+YmWiY78+4erQx0n64MVHHwqg==
+  wendigo:authentikPgPass:
+    secure: v1:RbE6IIWx6e8nmY1b:L8go6gI1wTT3X/t724FhCpIAXzTzGnTLHoLGDVdoyT7Wu+22Iw==
+  wendigo:authentikBootstrapPassword:
+    secure: v1:KCRQKVeb2L9Tg348:PYFGL40TXc4oM+jzpcugV3fuSpSUExQ=
+  wendigo:pgPassword:
+    secure: v1:Z1oMToFzgM3C0kW+:d8dZaU+gNTnpnV9AIi8h7ng8uH3fQNo=
+encryptionsalt: v1:xSUb4wh5Zk8=:v1:ND/apJh+5SMCppDu:pE/1WswMfDyvP96EY7qwmzEMjGw7KQ==

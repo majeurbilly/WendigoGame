@@ -1,35 +1,15 @@
 /**
- * WendigoGame — thème Authentik (panorama + carte dashboard).
+ * WendigoGame — Authentik login card theme.
+ * Background is managed natively by Authentik (Flow → Appearance settings).
+ * Only the PatternFly login form (.pf-c-login) is styled here.
  *
- * Chargement : Brand → brandingCustomCss (Pulumi) ou
+ * Loading: Authentik brand → Custom CSS or
  *   <link rel="stylesheet" href="/media/wendigo.css">
- * Montage Docker : ./custom-authentik/wendigo.css → /media/wendigo.css
+ * Docker mount: ./infrastructure/assets/authentik/wendigo.css → /media/wendigo.css
  */
 
 /* -------------------------------------------------------------------------
- * Panorama + vignette (aligné LobbyPanorama / DashboardPage)
- * ------------------------------------------------------------------------- */
-.pf-c-background-image {
-  background-image: url("http://localhost:5173/assets/images/panorama_360_final.jpg") !important;
-  background-size: cover !important;
-  background-position: center !important;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(circle, transparent 0%, rgba(10, 15, 25, 0.85) 100%);
-  z-index: 0;
-  pointer-events: none;
-}
-
-body {
-  color: #f1f5f9;
-}
-
-/* -------------------------------------------------------------------------
- * Transparence des couches PatternFly — laisse voir le panorama
+ * PatternFly layer transparency — lets the Authentik flow background show through
  * ------------------------------------------------------------------------- */
 .pf-c-login,
 .pf-c-background-image,
@@ -39,7 +19,7 @@ body {
 }
 
 /* -------------------------------------------------------------------------
- * Carte principale (effet voxel / bois sombre)
+ * Main card (voxel / dark wood effect)
  * ------------------------------------------------------------------------- */
 .pf-c-login__main {
   background-color: #1a1612 !important;
@@ -52,7 +32,7 @@ body {
 }
 
 /* -------------------------------------------------------------------------
- * Titres et en-têtes (ambre doré)
+ * Titles and headers (golden amber)
  * ------------------------------------------------------------------------- */
 .pf-c-login__header,
 .pf-c-login__main-header {
@@ -71,7 +51,7 @@ body {
 }
 
 /* -------------------------------------------------------------------------
- * Corps du formulaire (labels, texte secondaire)
+ * Form body (labels, secondary text)
  * ------------------------------------------------------------------------- */
 .pf-c-login__main-footer,
 .pf-c-login__main-body {
@@ -85,7 +65,7 @@ body {
 }
 
 /* -------------------------------------------------------------------------
- * Champs de saisie
+ * Input fields
  * ------------------------------------------------------------------------- */
 .pf-c-form-control,
 .pf-c-login input[type="text"],
@@ -108,7 +88,7 @@ body {
 }
 
 /* -------------------------------------------------------------------------
- * Boutons (style voxel 3D)
+ * Buttons (3D voxel style)
  * ------------------------------------------------------------------------- */
 .pf-c-login .pf-c-button.pf-m-primary,
 .pf-c-login__main-footer-links .pf-c-button,
@@ -168,7 +148,7 @@ body {
 }
 
 /* -------------------------------------------------------------------------
- * Liens secondaires (mot de passe oublié, etc.)
+ * Secondary links (forgot password, etc.)
  * ------------------------------------------------------------------------- */
 .pf-c-login__main-footer-links a:not(.pf-c-button),
 .pf-c-login a.pf-c-login__main-footer-links-item-link {

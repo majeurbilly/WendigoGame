@@ -1,0 +1,25 @@
+name: wendigo-authentik
+description: Wendigo infrastructure (Authentik OIDC, Grafana, Prometheus, docker-compose .env)
+runtime:
+  name: nodejs
+  options:
+    typescript: true
+config:
+  authentik:url: http://localhost:9000
+  grafana:url: http://localhost:3000
+  grafana:adminUser: admin
+  wendigo:redirectUris: http://localhost:5173/,http://localhost:5173/login
+  wendigo:clientId: wendigo-dev
+  wendigo:oidcIncludePropertyMappings: false
+  wendigo:prometheusUrl: http://prometheus:9090
+  wendigo:lokiUrl: http://loki:3100
+  wendigo:prometheusReloadUrl: http://localhost:9090
+  # Secrets — set once per workstation via pulumi config set --secret:
+  #   authentik:token            API token (create after first docker compose up)
+  #   grafana:adminPassword      Grafana admin password (default: admin)
+  #   wendigo:googleClientId     Google OAuth client ID
+  #   wendigo:googleClientSecret Google OAuth client secret
+  #   wendigo:authentikSecretKey Django secret key (min 50 chars)
+  #   wendigo:authentikPgPass    Authentik PostgreSQL password
+  #   wendigo:authentikBootstrapPassword  Initial admin password (first run only)
+  #   wendigo:pgPassword         Game PostgreSQL password

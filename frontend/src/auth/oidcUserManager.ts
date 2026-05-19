@@ -11,16 +11,16 @@ export function getPostLogoutRedirectUri(): string {
   return new URL('login', window.location.origin + (import.meta.env.BASE_URL || '/')).href
 }
 
-/** Origine du serveur Authentik (ex. http://localhost:9000) dérivée de VITE_AUTHENTIK_URL. */
+/** Origine du serveur Authentik (ex. http://localhost:9002) dérivée de VITE_AUTHENTIK_URL. */
 export function getAuthentikServerOrigin(): string {
   const issuer = safeTrim(import.meta.env.VITE_AUTHENTIK_URL)
   if (!issuer) {
-    return 'http://localhost:9000'
+    return 'http://localhost:9002'
   }
   try {
     return new URL(issuer).origin
   } catch {
-    return 'http://localhost:9000'
+    return 'http://localhost:9002'
   }
 }
 
