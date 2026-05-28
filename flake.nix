@@ -10,8 +10,6 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-        repoRoot = toString ./.;
-        infraDir = "${repoRoot}/infrastructure";
 
         playwrightLinuxLibs = with pkgs; [
           glib
@@ -26,19 +24,19 @@
           cairo
           alsa-lib
           mesa
-          xorg.libX11
-          xorg.libXcomposite
-          xorg.libXdamage
-          xorg.libXext
-          xorg.libXfixes
-          xorg.libXrandr
-          xorg.libxcb
+          libx11
+          libxcomposite
+          libxdamage
+          libxext
+          libxfixes
+          libxrandr
+          libxcb
           libxkbcommon
-          xorg.libXi
-          xorg.libXrender
-          xorg.libXtst
-          xorg.libXcursor
-          xorg.libXinerama
+          libxi
+          libxrender
+          libxtst
+          libxcursor
+          libxinerama
         ];
       in
       {
@@ -58,17 +56,19 @@
             bind.dnsutils
             prometheus
             pulumi
-            pulumiPackages.pulumi-language-nodejs
+            pulumiPackages.pulumi-nodejs
           ];
 
           shellHook = ''
             export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
             export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath playwrightLinuxLibs}:''${LD_LIBRARY_PATH:-}"
             export PULUMI_CONFIG_PASSPHRASE="''${PULUMI_CONFIG_PASSPHRASE:-}"
-            export PULUMI_BACKEND_URL="file://${infraDir}"
 
-            _infra="${infraDir}"
-            _repo="${repoRoot}"
+            # Important: in flake-based shells, `toString ./.` resolves to a /nix/store path (read-only).
+            # Compute paths at runtime from the user's current checkout instead.
+            _repo="$(pwd)"
+            _infra="$_repo/infrastructure"
+            export PULUMI_BACKEND_URL="file://$_infra"
 
             if [ ! -d "$_infra/node_modules" ]; then
               echo "Installing infrastructure npm dependencies..."
