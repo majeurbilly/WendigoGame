@@ -11,34 +11,11 @@ export function getPostLogoutRedirectUri(): string {
   return new URL('login', window.location.origin + (import.meta.env.BASE_URL || '/')).href
 }
 
-/** Origine du serveur Authentik (ex. http://localhost:9002) dérivée de VITE_AUTHENTIK_URL. */
-export function getAuthentikServerOrigin(): string {
-  const issuer = safeTrim(import.meta.env.VITE_AUTHENTIK_URL)
-  if (!issuer) {
-    return 'http://localhost:9002'
-  }
-  try {
-    return new URL(issuer).origin
-  } catch {
-    return 'http://localhost:9002'
-  }
-}
-
-/**
- * Flux d'invalidation Authentik avec ?next= — évite l'écran de déconnexion intermédiaire.
- * @see https://goauthentik.io/docs/flow/
- */
-export function getAuthentikInvalidationLogoutUrl(
-  flowSlug = 'default-invalidation-flow'
-): string {
-  const next = encodeURIComponent(getPostLogoutRedirectUri())
-  return `${getAuthentikServerOrigin()}/if/flow/${flowSlug}/?next=${next}`
-}
-
-/** Efface la session OIDC locale puis redirige vers le flux d'invalidation Authentik. */
+/** RP-initiated logout OIDC : envoie post_logout_redirect_uri à Authentik (end-session). */
 export async function performAuthentikLogout(): Promise<void> {
-  await oidcUserManager.removeUser()
-  window.location.assign(getAuthentikInvalidationLogoutUrl())
+  await oidcUserManager.signoutRedirect({
+    post_logout_redirect_uri: getPostLogoutRedirectUri(),
+  })
 }
 
 function buildUserManagerSettings(): UserManagerSettings {

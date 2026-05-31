@@ -1,26 +1,17 @@
+encryptionsalt: v1:FNCdHH+8ZCo=:v1:HW42hgYYAhjRbkKW:TTX4G+aRDKDApPysVdWSl7MjVMTzig==
 config:
-  authentik:url: http://localhost:9000
-  wendigo:clientId: wendigo-dev
-  wendigo:redirectUris: "http://localhost:5173/,http://localhost:5173/login"
-  wendigo:oidcIncludePropertyMappings: "false"
-  # Set secrets with --secret so Pulumi encrypts them before writing to this file:
-  #   pulumi config set --secret authentik:token "ak-..."
-  #   pulumi config set wendigo:googleClientId "xxx.apps.googleusercontent.com"
-  #   pulumi config set --secret wendigo:googleClientSecret "GOCSPX-..."
-
-  authentik:token:
-    secure: v1:70ztGRknUVM0cyL2:FEbCe3wZ9gzYkThurHALde5K2JUxaSE4SV6mMRktuVGG9sv0rhtNXD3bvWSl7fWG634AJ68AX0ggVpEfMwiKzppNySTYu2d+9L8M1w==
-  wendigo:googleClientId: placeholder-google-client-id.apps.googleusercontent.com
+  wendigo:googleClientId: 276321618988-c9gn61hqql7fspuva25g9lam4jh25mvg.apps.googleusercontent.com
   wendigo:googleClientSecret:
-    secure: v1:nKhwN5ieB5xzDkrK:tyRgpnMGmrJXmGYVObztegJtxq0rCFMTPqntbitrovKfZou3pRZtcArfB3OZHTz1
-  grafana:adminPassword:
-    secure: v1:vhXj9M0ICBBKNPhB:4XLUXt9eW/MRVGnY83n88tgUHc7F
+    secure: v1:3kyF3/qmBzwdptW5:kv4072hegAGNxnge1Qy3vbDoMS0uR7GO0fRyK9UAYeGY2+/24YsqDiyJ6e0ZzAtSg0KO
   wendigo:authentikSecretKey:
-    secure: v1:fwmYq3WTktYHOhOr:CLZ9MFc2GZj1wSHS2E9cJ7c6O7xfJg1Yc+7h+vzlf+ntcVUAhPSX16tffqgWgB/inRNEuYNZphA3E7UQjGPHrAU4a+YmWiY78+4erQx0n64MVHHwqg==
+    secure: v1:BZ1RXTvUmfaakGyi:snuxGttXgUfmQ9ioAjlC8xoS51hfP8ryqOTx0ivesF/ms5tPNB9uhq46nq/kADqhTnnb2WHk1aGbKe8mvMjkB9y1bVUA6lww9g==
   wendigo:authentikPgPass:
-    secure: v1:RbE6IIWx6e8nmY1b:L8go6gI1wTT3X/t724FhCpIAXzTzGnTLHoLGDVdoyT7Wu+22Iw==
+    secure: v1:rJyhydtIW5NSMXtY:vbi9glNLaOlnuahRxaJbEqK2NpiB+3UCAQ==
   wendigo:authentikBootstrapPassword:
-    secure: v1:KCRQKVeb2L9Tg348:PYFGL40TXc4oM+jzpcugV3fuSpSUExQ=
+    secure: v1:3NZLvopCGqwxhtGi:2rgguz4GWdReFbhbgQ6lkzGGebqIzaGgTU6rDGidGRyvC8IGJYGkqKBHC/al9Wekgg==
   wendigo:pgPassword:
-    secure: v1:Z1oMToFzgM3C0kW+:d8dZaU+gNTnpnV9AIi8h7ng8uH3fQNo=
-encryptionsalt: v1:xSUb4wh5Zk8=:v1:ND/apJh+5SMCppDu:pE/1WswMfDyvP96EY7qwmzEMjGw7KQ==
+    secure: v1:P6e1ILvHnMwI6EOO:wXxfof9MosYCOtBUFvab/BGOYFANap1E
+  grafana:adminPassword:
+    secure: v1:9JB78RrdWSFOEtM3:HckEPkuUAM4XaMb4McCXiVeHR30h
+  authentik:token:
+    secure: v1:3CO5Ws9Tf1wbJ9IJ:7Pz7x2nonImbGngbtPMDu+vKInxNZZhSuKKwLg/KXjqFOMWCFnM7tN6ulgDY+HxMEzwPj2ruh3S0CBuwfEispvEkdnpkygGRgMJHWA==

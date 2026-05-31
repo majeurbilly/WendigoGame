@@ -39,3 +39,6 @@ vendor/
 infrastructure/node_modules/
 infrastructure/bin/
 infrastructure/.pulumi/
+
+# Script
+infrastructure/setup-pulumi.sh

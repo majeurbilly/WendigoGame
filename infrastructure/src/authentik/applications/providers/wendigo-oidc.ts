@@ -10,14 +10,14 @@ import {
 } from '../../../config';
 import type { OidcScopeMappingsResult } from '../../customization/property-mappings/oauth-scopes';
 import type { WendigoAuthenticationFlowResult } from '../../flows-and-stages/flows/wendigo-authentication';
-import { flowUuidFromLookup, type SystemReferences } from '../../system/references';
+import type { SystemReferences } from '../../system/references';
 import { OidcProviderResource } from './oidc-provider-resource';
 
 export function createWendigoOidcProvider(
   deps: {
     provider: authentik.Provider;
     system: SystemReferences;
-    scopeMappings: OidcScopeMappingsResult;
+    scopeMappings?: OidcScopeMappingsResult;
     authentication: WendigoAuthenticationFlowResult;
   },
   opts?: pulumi.CustomResourceOptions,
@@ -28,10 +28,9 @@ export function createWendigoOidcProvider(
     name: applicationName,
     clientId: oidcClientId,
     clientType: 'public',
-    authorizationFlow: flowUuidFromLookup(deps.system.flows.authorization),
-    invalidationFlow: flowUuidFromLookup(deps.system.flows.invalidation),
+    authorizationFlow: deps.system.flows.authorization.uuid,
+    invalidationFlow: deps.system.flows.invalidation.uuid,
     authenticationFlow: deps.authentication.flow.uuid,
-    signingKey: deps.system.signingCertificate.id,
     redirectUris: allowedRedirectUris,
     issuerMode: 'per_provider',
     subMode: 'user_uuid',
@@ -40,7 +39,7 @@ export function createWendigoOidcProvider(
     refreshTokenValidity: 'days=30',
   };
 
-  if (oidcIncludePropertyMappings) {
+  if (oidcIncludePropertyMappings && deps.scopeMappings) {
     args.propertyMappings = deps.scopeMappings.oidcPropertyMappingIds;
   }
 

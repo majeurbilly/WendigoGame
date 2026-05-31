@@ -13,9 +13,9 @@
     "destroy": "pulumi destroy"
   },
   "dependencies": {
-    "@pulumi/authentik": "npm:@sapslaj/pulumi-authentik@2025.12.1",
-    "@pulumi/pulumi": "^3.142.0",
-    "@pulumiverse/grafana": "^2.30.0"
+    "@pulumi/pulumi": "^3.192.0",
+    "@pulumiverse/grafana": "^2.30.0",
+    "protobufjs": "^8.4.2"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",

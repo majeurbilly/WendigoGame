@@ -11,8 +11,8 @@ export const oidcClientIdOut = oidcClientId;
 export const oidcProviderId = stack.oidc.provider.id;
 export const applicationSlugOut = applicationSlug;
 
-export const profileScopeMapping = stack.scopeMappings.profileScopeMapping;
-export const oidcPropertyMappingIds = stack.scopeMappings.oidcPropertyMappingIds;
+export const profileScopeMapping = stack.scopeMappings?.profileScopeMapping;
+export const oidcPropertyMappingIds = stack.scopeMappings?.oidcPropertyMappingIds;
 export const googleProfileMapping = stack.googleProfileMapping.mapping;
 
 export const googleSource = stack.google.source;

@@ -9,7 +9,7 @@ interface OidcProviderInputs {
   authorizationFlow: string;
   invalidationFlow: string;
   authenticationFlow: string;
-  signingKey: string;
+  signingKey?: string;
   redirectUris: Array<{ matchingMode: string; url: string }>;
   issuerMode: string;
   subMode: string;
@@ -32,7 +32,6 @@ function toApiBody(inputs: OidcProviderInputs): Record<string, unknown> {
     authorization_flow: inputs.authorizationFlow,
     invalidation_flow: inputs.invalidationFlow,
     authentication_flow: inputs.authenticationFlow,
-    signing_key: inputs.signingKey,
     redirect_uris: inputs.redirectUris.map((u) => ({
       matching_mode: u.matchingMode,
       url: u.url,
@@ -40,6 +39,7 @@ function toApiBody(inputs: OidcProviderInputs): Record<string, unknown> {
     issuer_mode: inputs.issuerMode,
     sub_mode: inputs.subMode,
   };
+  if (inputs.signingKey) body.signing_key = inputs.signingKey;
   if (inputs.propertyMappings?.length) body.property_mappings = inputs.propertyMappings;
   if (inputs.includeClaimsInIdToken !== undefined)
     body.include_claims_in_id_token = inputs.includeClaimsInIdToken;
@@ -163,7 +163,7 @@ export interface OidcProviderResourceArgs {
   authorizationFlow: pulumi.Input<string>;
   invalidationFlow: pulumi.Input<string>;
   authenticationFlow: pulumi.Input<string>;
-  signingKey: pulumi.Input<string>;
+  signingKey?: pulumi.Input<string>;
   redirectUris: pulumi.Input<Array<{ matchingMode: string; url: string }>>;
   issuerMode: pulumi.Input<string>;
   subMode: pulumi.Input<string>;

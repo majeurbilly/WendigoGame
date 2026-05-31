@@ -1,4 +1,3 @@
-import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as pulumi from '@pulumi/pulumi';
 import {
@@ -22,10 +21,12 @@ interface DotEnvInputs {
 
 const dotEnvImpl: pulumi.dynamic.ResourceProvider = {
   async create(inputs: DotEnvInputs) {
+    const fs = require('node:fs') as typeof import('node:fs');
     fs.writeFileSync(inputs.envPath, inputs.content, 'utf8');
     return { id: inputs.envPath, outs: inputs };
   },
   async update(_id: string, _olds: DotEnvInputs, news: DotEnvInputs) {
+    const fs = require('node:fs') as typeof import('node:fs');
     fs.writeFileSync(news.envPath, news.content, 'utf8');
     return { outs: news };
   },

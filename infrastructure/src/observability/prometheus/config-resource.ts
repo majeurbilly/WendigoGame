@@ -1,5 +1,3 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
 import * as pulumi from '@pulumi/pulumi';
 
 interface PrometheusConfigInputs {
@@ -8,30 +6,46 @@ interface PrometheusConfigInputs {
   reloadUrl: string;
 }
 
-async function writeAndReload(inputs: PrometheusConfigInputs): Promise<void> {
-  fs.mkdirSync(path.dirname(inputs.configPath), { recursive: true });
-  fs.writeFileSync(inputs.configPath, inputs.content, 'utf8');
-
-  try {
-    const res = await fetch(`${inputs.reloadUrl}/-/reload`, { method: 'POST' });
-    if (!res.ok) {
-      console.warn(
-        `Prometheus reload returned ${res.status}: restart the container to pick up changes.`,
-      );
-    }
-  } catch {
-    console.warn('Prometheus not reachable: restart the container to pick up config changes.');
-  }
-}
-
 const prometheusConfigImpl: pulumi.dynamic.ResourceProvider = {
   async create(inputs: PrometheusConfigInputs) {
-    await writeAndReload(inputs);
+    const fs = require('node:fs') as typeof import('node:fs');
+    const path = require('node:path') as typeof import('node:path');
+
+    fs.mkdirSync(path.dirname(inputs.configPath), { recursive: true });
+    fs.writeFileSync(inputs.configPath, inputs.content, 'utf8');
+
+    try {
+      const res = await fetch(`${inputs.reloadUrl}/-/reload`, { method: 'POST' });
+      if (!res.ok) {
+        console.warn(
+          `Prometheus reload returned ${res.status}: restart the container to pick up changes.`,
+        );
+      }
+    } catch {
+      console.warn('Prometheus not reachable: restart the container to pick up config changes.');
+    }
+
     return { id: inputs.configPath, outs: inputs };
   },
 
   async update(_id: string, _olds: PrometheusConfigInputs, news: PrometheusConfigInputs) {
-    await writeAndReload(news);
+    const fs = require('node:fs') as typeof import('node:fs');
+    const path = require('node:path') as typeof import('node:path');
+
+    fs.mkdirSync(path.dirname(news.configPath), { recursive: true });
+    fs.writeFileSync(news.configPath, news.content, 'utf8');
+
+    try {
+      const res = await fetch(`${news.reloadUrl}/-/reload`, { method: 'POST' });
+      if (!res.ok) {
+        console.warn(
+          `Prometheus reload returned ${res.status}: restart the container to pick up changes.`,
+        );
+      }
+    } catch {
+      console.warn('Prometheus not reachable: restart the container to pick up config changes.');
+    }
+
     return { outs: news };
   },
 

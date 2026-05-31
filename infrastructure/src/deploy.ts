@@ -1,4 +1,5 @@
 import type * as pulumi from '@pulumi/pulumi';
+import { oidcIncludePropertyMappings } from './config';
 import { createWendigoOidcProvider } from './authentik/applications/providers/wendigo-oidc';
 import { createGoogleEnrollmentPolicies } from './authentik/customization/policies/google-enrollment';
 import { createGoogleProfileMapping } from './authentik/customization/property-mappings/google-profile';
@@ -16,11 +17,10 @@ import {
 } from './authentik/flows-and-stages/stages/user-login';
 import { createGoogleEnrollmentUserWriteStage } from './authentik/flows-and-stages/stages/user-write';
 // Authentik
-import { flowUuidFromLookup, loadSystemReferences } from './authentik/system/references';
+import { createSystemReferences, flowUuidFromLookup } from './authentik/system/references';
 import {
   createAuthentikProvider,
   createGrafanaProvider,
-  oidcIncludePropertyMappings,
   prometheusConfigPath,
   prometheusReloadUrl,
 } from './config';
@@ -34,9 +34,11 @@ import { renderPrometheusYaml } from './observability/prometheus/scrape-config';
 export function deploy() {
   // Authentik
   const authentikProvider = createAuthentikProvider();
-  const system = loadSystemReferences(authentikProvider);
+  const system = createSystemReferences(authentikProvider);
 
-  const scopeMappings = createOidcScopeMappings(system, authentikProvider);
+  const scopeMappings = oidcIncludePropertyMappings
+    ? createOidcScopeMappings(system, authentikProvider)
+    : undefined;
   const googleProfileMapping = createGoogleProfileMapping(authentikProvider);
   const enrollmentPolicies = createGoogleEnrollmentPolicies(authentikProvider);
 
@@ -57,14 +59,13 @@ export function deploy() {
   const google = createGoogleSource(
     {
       provider: authentikProvider,
-      defaultSourceAuthenticationFlowUuid: flowUuidFromLookup(
-        system.flows.defaultSourceAuthentication,
-      ),
+      defaultSourceAuthenticationFlowUuid: system.flows.sourceAuthentication.uuid,
       enrollment: googleEnrollment,
       profileMapping: googleProfileMapping,
     },
     {
       dependsOn: [
+        system.flows.sourceAuthentication,
         googleEnrollment.flow,
         enrollmentPrompt.stage,
         enrollmentUserWrite.stage,
@@ -90,6 +91,8 @@ export function deploy() {
   });
 
   const oidcDependsOn: pulumi.Resource[] = [
+    system.flows.authorization,
+    system.flows.invalidation,
     google.source,
     wendigoAuthentication.flow,
     wendigoIdentification.stage,
@@ -97,7 +100,7 @@ export function deploy() {
     authBindings.identificationBinding,
     authBindings.loginBinding,
   ];
-  if (oidcIncludePropertyMappings) {
+  if (oidcIncludePropertyMappings && scopeMappings) {
     oidcDependsOn.push(scopeMappings.profileScopeMapping);
   }
 

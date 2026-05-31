@@ -31,9 +31,10 @@ export function createOidcScopeMappings(system: SystemReferences, provider: auth
     akOpts(provider),
   );
 
+  // Deterministic: only attach Wendigo-managed scopes. Avoid lookups of Authentik-managed default scopes.
   const oidcPropertyMappingIds = pulumi
-    .all([system.defaultOidcScopes.ids, profileScopeMapping.id])
-    .apply(([managedIds, profileId]) => [...managedIds, profileId]);
+    .all([profileScopeMapping.id])
+    .apply(([profileId]) => [profileId]);
 
   return { profileScopeMapping, oidcPropertyMappingIds };
 }
