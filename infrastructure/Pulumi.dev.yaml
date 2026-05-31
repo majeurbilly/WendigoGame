@@ -1,0 +1,17 @@
+encryptionsalt: v1:FNCdHH+8ZCo=:v1:HW42hgYYAhjRbkKW:TTX4G+aRDKDApPysVdWSl7MjVMTzig==
+config:
+  wendigo:googleClientId: 276321618988-c9gn61hqql7fspuva25g9lam4jh25mvg.apps.googleusercontent.com
+  wendigo:googleClientSecret:
+    secure: v1:3kyF3/qmBzwdptW5:kv4072hegAGNxnge1Qy3vbDoMS0uR7GO0fRyK9UAYeGY2+/24YsqDiyJ6e0ZzAtSg0KO
+  wendigo:authentikSecretKey:
+    secure: v1:BZ1RXTvUmfaakGyi:snuxGttXgUfmQ9ioAjlC8xoS51hfP8ryqOTx0ivesF/ms5tPNB9uhq46nq/kADqhTnnb2WHk1aGbKe8mvMjkB9y1bVUA6lww9g==
+  wendigo:authentikPgPass:
+    secure: v1:rJyhydtIW5NSMXtY:vbi9glNLaOlnuahRxaJbEqK2NpiB+3UCAQ==
+  wendigo:authentikBootstrapPassword:
+    secure: v1:3NZLvopCGqwxhtGi:2rgguz4GWdReFbhbgQ6lkzGGebqIzaGgTU6rDGidGRyvC8IGJYGkqKBHC/al9Wekgg==
+  wendigo:pgPassword:
+    secure: v1:P6e1ILvHnMwI6EOO:wXxfof9MosYCOtBUFvab/BGOYFANap1E
+  grafana:adminPassword:
+    secure: v1:9JB78RrdWSFOEtM3:HckEPkuUAM4XaMb4McCXiVeHR30h
+  authentik:token:
+    secure: v1:3CO5Ws9Tf1wbJ9IJ:7Pz7x2nonImbGngbtPMDu+vKInxNZZhSuKKwLg/KXjqFOMWCFnM7tN6ulgDY+HxMEzwPj2ruh3S0CBuwfEispvEkdnpkygGRgMJHWA==

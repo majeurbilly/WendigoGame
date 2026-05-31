@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef } from 'react'
-import type { LobbyState } from '@/api/game'
+import {
+  defaultPhaseSettings,
+  isVoiceChatGameMode,
+  type LobbyState,
+  type PhaseSettings,
+} from '@/api/game'
+import { UNKNOWN_PLAYER_LABEL, safeTrim } from '@/lib/safeTrim'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
@@ -11,7 +17,13 @@ type ClientMessageType =
   | 'ACCUSE'
   | 'WENDIGO_INTENT'
   | 'START_PLEADING'
+  | 'TOGGLE_PAUSE'
+  | 'FORCE_END_GAME'
+  | 'RESTART_GAME'
+  | 'START_SURRENDER_VOTE'
+  | 'SUBMIT_SURRENDER_VOTE'
   | 'START_GAME'
+  | 'UPDATE_PHASE_SETTINGS'
   | 'LEAVE_LOBBY'
   | string
 type ServerMessageType = 'LOBBY_SYNC' | 'GAME_TICK' | 'ERROR' | string
@@ -23,7 +35,7 @@ interface BaseSocketMessage<TType extends string, TPayload> {
 
 interface RawPlayerPayload {
   id: string
-  name: string
+  name?: string | null
   role?: string | null
   isAlive?: boolean
   is_alive?: boolean
@@ -35,27 +47,66 @@ interface RawPlayerPayload {
   is_excluded_from_council?: boolean
 }
 
+interface RawPhaseSettingsPayload {
+  chair_selection_seconds?: number
+  day_social_seconds?: number
+  morning_seconds?: number
+  no_council_seconds?: number
+  council_start_seconds?: number
+  council_accusation_post_chair_seconds?: number
+  council_accusation_after_day_seconds?: number
+  council_summary_seconds?: number
+  pleading_speech_seconds?: number
+  council_vote_seconds?: number
+  stake_seconds?: number
+  night_seconds?: number
+  post_night_day_seconds?: number
+}
+
 interface RawLobbyPayload {
   code: string
   phase: string
   mode?: string
-  players: RawPlayerPayload[]
+  players?: RawPlayerPayload[]
   timeRemaining?: number
   time_remaining?: number
+  phaseTotalSeconds?: number
+  phase_total_seconds?: number
+  phaseSettings?: PhaseSettings
+  phase_settings?: RawPhaseSettingsPayload
   socialPhaseTotalTime?: number
   social_phase_total_time?: number
   chairPromptTriggered?: boolean
   chair_prompt_triggered?: boolean
+  isPaused?: boolean
+  is_paused?: boolean
+  surrenderVoteActive?: boolean
+  surrender_vote_active?: boolean
+  surrenderVotes?: Record<string, boolean>
+  surrender_votes?: Record<string, boolean>
+  surrenderApproved?: boolean
+  surrender_approved?: boolean
   councilAccusations?: Record<string, string>
   council_accusations?: Record<string, string>
   wendigoIntentions?: Record<string, string>
   wendigo_intentions?: Record<string, string>
+  wendigoIntents?: Record<string, string>
+  wendigo_intents?: Record<string, string>
+  prayerTallies?: Record<string, number>
+  prayer_tallies?: Record<string, number>
   pleadingsQueue?: string[]
   pleadings_queue?: string[]
+  votes?: Record<string, string>
   currentSpeakerId?: string
   current_speaker_id?: string
   pleadingTimerStarted?: boolean
   pleading_timer_started?: boolean
+  lastLynchVictimId?: string
+  last_lynch_victim_id?: string
+  lastNightVictimId?: string
+  last_night_victim_id?: string
+  lastNightSavedByPrayer?: boolean
+  last_night_saved_by_prayer?: boolean
   winnerTeam?: string
   winner_team?: string
   maxPlayers?: number
@@ -91,7 +142,7 @@ const buildWebSocketUrl = (token: string, lobbyCode: string, displayName: string
   parsed.search = ''
   parsed.searchParams.set('token', token)
   parsed.searchParams.set('code', lobbyCode)
-  const name = displayName.trim()
+  const name = safeTrim(displayName)
   if (name.length > 0) {
     parsed.searchParams.set('name', name)
   }
@@ -112,15 +163,36 @@ const isGameTickMessage = (message: IncomingSocketMessage): message is GameTickM
 const isErrorMessage = (message: IncomingSocketMessage): message is ErrorMessage =>
   message.type === 'ERROR'
 
-const logWs = (message: string, detail?: unknown) => {
-  if (!import.meta.env.DEV) {
-    return
+const normalizePhaseSettingsPayload = (raw?: RawPhaseSettingsPayload): PhaseSettings => {
+  const d = defaultPhaseSettings()
+  if (!raw) {
+    return d
   }
-  if (detail !== undefined) {
-    console.log(`[useGameWebSocket] ${message}`, detail)
-    return
+  const n = (v: unknown, fallback: number) => {
+    const x = Number(v)
+    return Number.isFinite(x) && x > 0 ? x : fallback
   }
-  console.log(`[useGameWebSocket] ${message}`)
+  return {
+    chairSelectionSeconds: n(raw.chair_selection_seconds, d.chairSelectionSeconds),
+    daySocialSeconds: n(raw.day_social_seconds, d.daySocialSeconds),
+    morningSeconds: n(raw.morning_seconds, d.morningSeconds),
+    noCouncilSeconds: n(raw.no_council_seconds, d.noCouncilSeconds),
+    councilStartSeconds: n(raw.council_start_seconds, d.councilStartSeconds),
+    councilAccusationPostChairSeconds: n(
+      raw.council_accusation_post_chair_seconds,
+      d.councilAccusationPostChairSeconds
+    ),
+    councilAccusationAfterDaySeconds: n(
+      raw.council_accusation_after_day_seconds,
+      d.councilAccusationAfterDaySeconds
+    ),
+    councilSummarySeconds: n(raw.council_summary_seconds, d.councilSummarySeconds),
+    pleadingSpeechSeconds: n(raw.pleading_speech_seconds, d.pleadingSpeechSeconds),
+    councilVoteSeconds: n(raw.council_vote_seconds, d.councilVoteSeconds),
+    stakeSeconds: n(raw.stake_seconds, d.stakeSeconds),
+    nightSeconds: n(raw.night_seconds, d.nightSeconds),
+    postNightDaySeconds: n(raw.post_night_day_seconds, d.postNightDaySeconds),
+  }
 }
 
 const normalizeLobbyPayload = (payload: RawLobbyPayload): LobbyState => ({
@@ -128,31 +200,48 @@ const normalizeLobbyPayload = (payload: RawLobbyPayload): LobbyState => ({
   phase: payload.phase,
   mode: payload.mode,
   timeRemaining: payload.timeRemaining ?? payload.time_remaining ?? 0,
+  phaseTotalSeconds: payload.phaseTotalSeconds ?? payload.phase_total_seconds,
+  phaseSettings: payload.phaseSettings ?? normalizePhaseSettingsPayload(payload.phase_settings),
   socialPhaseTotalTime: payload.socialPhaseTotalTime ?? payload.social_phase_total_time,
   chairPromptTriggered: payload.chairPromptTriggered ?? payload.chair_prompt_triggered,
+  isPaused: payload.isPaused ?? payload.is_paused ?? false,
+  surrenderVoteActive: payload.surrenderVoteActive ?? payload.surrender_vote_active ?? false,
+  surrenderVotes: payload.surrenderVotes ?? payload.surrender_votes ?? {},
+  surrenderApproved: payload.surrenderApproved ?? payload.surrender_approved ?? false,
   councilAccusations: payload.councilAccusations ?? payload.council_accusations ?? {},
   wendigoIntentions: payload.wendigoIntentions ?? payload.wendigo_intentions ?? {},
+  wendigoIntents: payload.wendigoIntents ?? payload.wendigo_intents ?? {},
+  prayerTallies: payload.prayerTallies ?? payload.prayer_tallies ?? {},
   pleadingsQueue: payload.pleadingsQueue ?? payload.pleadings_queue ?? [],
+  votes: payload.votes ?? {},
   currentSpeakerId: payload.currentSpeakerId ?? payload.current_speaker_id,
   pleadingTimerStarted: payload.pleadingTimerStarted ?? payload.pleading_timer_started ?? false,
+  lastLynchVictimId: payload.lastLynchVictimId ?? payload.last_lynch_victim_id,
+  lastNightVictimId: payload.lastNightVictimId ?? payload.last_night_victim_id,
+  lastNightSavedByPrayer: payload.lastNightSavedByPrayer ?? payload.last_night_saved_by_prayer ?? false,
   winnerTeam: payload.winnerTeam ?? payload.winner_team,
   maxPlayers: payload.maxPlayers ?? payload.max_players,
   minPlayers: payload.minPlayers ?? payload.min_players,
-  players: payload.players.map((player) => ({
-    id: player.id,
-    name: player.name,
-    role: player.role ?? null,
-    isAlive: player.isAlive ?? player.is_alive ?? true,
-    isHost: player.isHost ?? player.is_host ?? false,
-    chairId: player.chairId ?? player.chair_id ?? -1,
-    isExcludedFromCouncil: player.isExcludedFromCouncil ?? player.is_excluded_from_council ?? false,
-  })),
+  players: (payload.players ?? []).map((player) => {
+    const nm = safeTrim(player.name)
+    return {
+      id: String(player.id ?? ''),
+      name: nm.length > 0 ? nm : UNKNOWN_PLAYER_LABEL,
+      role: player.role ?? null,
+      isAlive: player.isAlive ?? player.is_alive ?? true,
+      isHost: player.isHost ?? player.is_host ?? false,
+      chairId: player.chairId ?? player.chair_id ?? -1,
+      isExcludedFromCouncil: player.isExcludedFromCouncil ?? player.is_excluded_from_council ?? false,
+    }
+  }),
 })
 
 export const useGameWebSocket = (
   lobbyCode: string | undefined,
   options?: UseGameWebSocketOptions
 ) => {
+  const accessToken = useAuthStore((state) => state.token)
+  const authUser = useAuthStore((state) => state.user)
   const wsRef = useRef<WebSocket | null>(null)
   const didReceiveLobbySyncRef = useRef(false)
   const isUnmountingRef = useRef(false)
@@ -176,8 +265,7 @@ export const useGameWebSocket = (
       return
     }
 
-    const { token, user } = useAuthStore.getState()
-
+    const token = safeTrim(accessToken)
     if (!token) {
       notifyInvalidLobby('Authentication required.')
       resetGame()
@@ -187,7 +275,8 @@ export const useGameWebSocket = (
     didReceiveLobbySyncRef.current = false
     isUnmountingRef.current = false
     reconnectAttemptsRef.current = 0
-    const displayName = user?.username ?? ''
+    /** `authUser.id` = UUID interne Wendigo (alignée backend) ; le WS résout le nom via la table users si ?name= absent. */
+    const displayName = safeTrim(authUser?.username)
     const connect = () => {
       const ws = new WebSocket(buildWebSocketUrl(token, lobbyCode, displayName))
       wsRef.current = ws
@@ -196,7 +285,6 @@ export const useGameWebSocket = (
         if (wsRef.current !== ws) {
           return
         }
-        logWs('socket open', { lobbyCode })
         reconnectAttemptsRef.current = 0
         setConnected(true)
       }
@@ -207,17 +295,30 @@ export const useGameWebSocket = (
         }
         try {
           const message = JSON.parse(event.data) as IncomingSocketMessage
-          logWs('message reçu', { type: message.type })
-
           if (isLobbySyncMessage(message)) {
             didReceiveLobbySyncRef.current = true
-            setLobby(normalizeLobbyPayload(message.payload))
+            const nextLobby = normalizeLobbyPayload(message.payload)
+            setLobby(nextLobby)
+            if (!isVoiceChatGameMode(nextLobby.mode)) {
+              const currentToken = useGameStore.getState().livekitToken
+              if (currentToken !== null) {
+                setLiveKitToken(null)
+              }
+            }
             return
           }
 
           if (isGameTickMessage(message)) {
             didReceiveLobbySyncRef.current = true
-            setLobby(normalizeLobbyPayload(message.payload))
+            const nextLobby = normalizeLobbyPayload(message.payload)
+            setLobby(nextLobby)
+            if (!isVoiceChatGameMode(nextLobby.mode)) {
+              const currentToken = useGameStore.getState().livekitToken
+              if (currentToken !== null) {
+                setLiveKitToken(null)
+              }
+              return
+            }
             const nextToken = message.payload.livekit_token ?? null
             const currentToken = useGameStore.getState().livekitToken
             if (nextToken !== currentToken) {
@@ -245,11 +346,9 @@ export const useGameWebSocket = (
 
       ws.onclose = () => {
         if (wsRef.current !== ws) {
-          logWs('close ignoré (socket obsolète, ex. StrictMode / reconnexion)', { lobbyCode })
           return
         }
         wsRef.current = null
-        logWs('socket fermé', { lobbyCode })
         setConnected(false)
 
         if (isUnmountingRef.current || didReceiveLobbySyncRef.current) {
@@ -286,7 +385,16 @@ export const useGameWebSocket = (
       ws?.close()
       resetGame()
     }
-  }, [lobbyCode, notifyInvalidLobby, resetGame, setConnected, setLiveKitToken, setLobby])
+  }, [
+    accessToken,
+    authUser?.username,
+    lobbyCode,
+    notifyInvalidLobby,
+    resetGame,
+    setConnected,
+    setLiveKitToken,
+    setLobby,
+  ])
 
   const disconnect = useCallback(() => {
     isUnmountingRef.current = true

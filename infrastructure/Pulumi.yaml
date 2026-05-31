@@ -1,0 +1,6 @@
+name: wendigo-authentik
+description: Wendigo infrastructure (Authentik OIDC, Grafana, Prometheus, docker-compose .env)
+runtime:
+  name: nodejs
+  options:
+    typescript: true

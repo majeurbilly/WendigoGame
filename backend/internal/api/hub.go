@@ -11,9 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-	"github.com/majeurbilly/wendigogame/internal/auth"
 	"github.com/majeurbilly/wendigogame/internal/models"
 	"github.com/majeurbilly/wendigogame/internal/services"
 	"github.com/majeurbilly/wendigogame/internal/store"
@@ -59,6 +57,26 @@ func NewHub(lobbyStore *store.Store, optionalLiveKitService ...*services.LiveKit
 
 func liveKitCacheKey(lobbyCode, playerID string) string {
 	return strings.ToUpper(strings.TrimSpace(lobbyCode)) + "|" + strings.TrimSpace(playerID)
+}
+
+func isGameplayActionBlockedByPause(messageType string) bool {
+	switch messageType {
+	case models.MessageTypeClaimSeat,
+		"CHOOSE_CHAIR",
+		models.MessageTypeAccuse,
+		"COUNCIL_ACCUSATION",
+		models.MessageTypeStartPleading,
+		"START_SPEAKING",
+		"STOP_SPEAKING",
+		models.MessageTypeVoteDay,
+		"COUNCIL_VOTE",
+		models.MessageTypeWendigoIntent,
+		models.MessageTypeSubmitNightAction,
+		models.MessageTypeSubmitPrayer:
+		return true
+	default:
+		return false
+	}
 }
 
 func (h *Hub) evictLiveKitCache(lobbyCode, playerID string) {
@@ -247,38 +265,24 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 	defer cancel()
 
 	token := strings.TrimSpace(request.URL.Query().Get("token"))
+	if token == "" {
+		http.Error(responseWriter, "missing token", http.StatusUnauthorized)
+		return
+	}
+
+	authUserID, err := serverConfig.userUUIDFromAccessToken(ctx, token)
+	if err != nil {
+		log.Printf("Erreur WS: token d'accès invalide pour lobby %s: %v", lobbyCode, err)
+		http.Error(responseWriter, "invalid or expired token", http.StatusUnauthorized)
+		return
+	}
+
 	playerName := strings.TrimSpace(request.URL.Query().Get("name"))
-
-	var (
-		authUserID    uuid.UUID
-		useJWTAuth    bool
-		playerIDClaim string
-		err           error
-	)
-
-	if token != "" {
-		useJWTAuth = true
-		authUserID, err = auth.ValidateToken(token)
-		if err != nil {
-			log.Printf("Erreur WS: token JWT invalide pour lobby %s: %v", lobbyCode, err)
-			http.Error(responseWriter, "invalid or expired token", http.StatusUnauthorized)
-			return
-		}
-		if playerName == "" && serverConfig.UserStore != nil {
-			if u, userErr := serverConfig.UserStore.GetUserByID(ctx, authUserID); userErr == nil && u != nil {
-				playerName = strings.TrimSpace(u.Username)
-			} else if userErr != nil {
-				log.Printf("Erreur WS: impossible de charger le profil utilisateur (lobby %s): %v", lobbyCode, userErr)
-			}
-		}
-	} else {
-		playerIDClaim = strings.TrimSpace(request.URL.Query().Get("player_id"))
-		if playerIDClaim != "" {
-			authUserID, err = uuid.Parse(playerIDClaim)
-			if err != nil {
-				http.Error(responseWriter, "invalid player_id", http.StatusBadRequest)
-				return
-			}
+	if playerName == "" && serverConfig.UserStore != nil {
+		if u, userErr := serverConfig.UserStore.GetUserByID(ctx, authUserID); userErr == nil && u != nil {
+			playerName = strings.TrimSpace(u.Username)
+		} else if userErr != nil {
+			log.Printf("Erreur WS: impossible de charger le profil utilisateur (lobby %s): %v", lobbyCode, userErr)
 		}
 	}
 
@@ -311,15 +315,12 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 		return
 	}
 
-	playerID := ""
+	playerID := authUserID.String()
 	isAlreadyInLobby := false
-	if useJWTAuth || authUserID != uuid.Nil {
-		playerID = authUserID.String()
-		for i := range existingLobby.Players {
-			if existingLobby.Players[i].ID == authUserID {
-				isAlreadyInLobby = true
-				break
-			}
+	for i := range existingLobby.Players {
+		if existingLobby.Players[i].ID == authUserID {
+			isAlreadyInLobby = true
+			break
 		}
 	}
 	if !isAlreadyInLobby {
@@ -337,10 +338,6 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 		}
 
 		if !hostClaimed {
-			if authUserID == uuid.Nil {
-				authUserID = uuid.New()
-				playerID = authUserID.String()
-			}
 			player := models.Player{
 				ID:      authUserID,
 				Name:    playerName,
@@ -356,9 +353,6 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 				return
 			}
 		}
-	}
-	if playerID == "" {
-		playerID = authUserID.String()
 	}
 
 	serverConfig.Hub.Register(lobbyCode, websocketConn, playerID)
@@ -420,6 +414,22 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 			log.Printf("websocket: invalid JSON from player %s: %v", playerID, err)
 			continue
 		}
+		if isGameplayActionBlockedByPause(inbound.Type) {
+			pauseCtx, pauseCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			currentLobby, pauseErr := serverConfig.Store.GetLobby(pauseCtx, lobbyCode)
+			pauseCancel()
+			if pauseErr != nil {
+				log.Printf("websocket: pause guard GetLobby(%s): %v", lobbyCode, pauseErr)
+				continue
+			}
+			if currentLobby.IsPaused {
+				_ = websocketConn.WriteJSON(models.WSMessage{
+					Type:    models.MessageTypeError,
+					Payload: map[string]string{"message": "action impossible: partie en pause"},
+				})
+				continue
+			}
+		}
 
 		var voteBody struct {
 			TargetID string `json:"target_id"`
@@ -428,6 +438,10 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 		var claimSeatBody struct {
 			ChairID int `json:"chair_id"`
 		}
+		var surrenderVoteBody struct {
+			VoteYes bool `json:"vote_yes"`
+		}
+		var phaseSettingsBody models.PhaseSettings
 		switch inbound.Type {
 		case models.MessageTypeVoteDay:
 			if err := json.Unmarshal(inbound.Payload, &voteBody); err != nil {
@@ -445,6 +459,8 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 					errMsg = "votes are only allowed during the council vote phase"
 				case errors.Is(voteErr, store.ErrVoteInvalid):
 					errMsg = "invalid vote"
+				case errors.Is(voteErr, store.ErrExcludedFromCouncil):
+					errMsg = "excluded from council: cannot vote"
 				case errors.Is(voteErr, store.ErrLobbyNotFound):
 					errMsg = "lobby not found"
 				}
@@ -489,6 +505,56 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 			nightCancel()
 			if nightErr != nil {
 				log.Printf("websocket: SubmitNightAction(%s, %s): %v", lobbyCode, playerID, nightErr)
+				continue
+			}
+		case models.MessageTypeSubmitPrayer:
+			if err := json.Unmarshal(inbound.Payload, &voteBody); err != nil {
+				log.Printf("websocket: invalid SUBMIT_PRAYER payload: %v", err)
+				continue
+			}
+			prayerCtx, prayerCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			prayerErr := serverConfig.Store.SubmitPrayer(prayerCtx, lobbyCode, playerID, voteBody.TargetID)
+			prayerCancel()
+			if prayerErr != nil {
+				log.Printf("websocket: SubmitPrayer(%s, %s): %v", lobbyCode, playerID, prayerErr)
+				errMsg := "unable to submit prayer"
+				switch {
+				case errors.Is(prayerErr, store.ErrWrongPhase):
+					errMsg = "prayers are only allowed during the night phase"
+				case errors.Is(prayerErr, store.ErrVoteInvalid):
+					errMsg = "invalid prayer target"
+				case errors.Is(prayerErr, store.ErrLobbyNotFound):
+					errMsg = "lobby not found"
+				}
+				_ = websocketConn.WriteJSON(models.WSMessage{
+					Type:    models.MessageTypeError,
+					Payload: map[string]string{"message": errMsg},
+				})
+				continue
+			}
+		case models.MessageTypeUpdatePhaseSettings:
+			if err := json.Unmarshal(inbound.Payload, &phaseSettingsBody); err != nil {
+				log.Printf("websocket: invalid UPDATE_PHASE_SETTINGS payload: %v", err)
+				continue
+			}
+			settingsCtx, settingsCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			settingsErr := serverConfig.Store.UpdatePhaseSettings(settingsCtx, lobbyCode, playerID, phaseSettingsBody)
+			settingsCancel()
+			if settingsErr != nil {
+				log.Printf("websocket: UpdatePhaseSettings(%s, %s): %v", lobbyCode, playerID, settingsErr)
+				errMsg := "unable to update settings"
+				switch {
+				case errors.Is(settingsErr, store.ErrUnauthorized):
+					errMsg = "only the host can change phase settings"
+				case errors.Is(settingsErr, store.ErrGameAlreadyStarted):
+					errMsg = "settings can only be changed before the game starts"
+				case errors.Is(settingsErr, store.ErrLobbyNotFound):
+					errMsg = "lobby not found"
+				}
+				_ = websocketConn.WriteJSON(models.WSMessage{
+					Type:    models.MessageTypeError,
+					Payload: map[string]string{"message": errMsg},
+				})
 				continue
 			}
 		case models.MessageTypeStartGame:
@@ -545,7 +611,7 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 				case errors.Is(accuseErr, store.ErrAlreadyAccused):
 					errMsg = "you have already accused someone this round"
 				case errors.Is(accuseErr, store.ErrTargetAlreadyAccused):
-					errMsg = "this player is already accused by someone else"
+					errMsg = "target already accused"
 				case errors.Is(accuseErr, store.ErrLobbyNotFound):
 					errMsg = "lobby not found"
 				}
@@ -568,6 +634,111 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 				case errors.Is(pleadingErr, store.ErrUnauthorized):
 					errMsg = "only the current speaker can start their pleading timer"
 				case errors.Is(pleadingErr, store.ErrLobbyNotFound):
+					errMsg = "lobby not found"
+				}
+				_ = websocketConn.WriteJSON(models.WSMessage{
+					Type:    models.MessageTypeError,
+					Payload: map[string]string{"message": errMsg},
+				})
+				continue
+			}
+		case models.MessageTypeTogglePause:
+			adminCtx, adminCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			adminErr := serverConfig.Store.TogglePause(adminCtx, lobbyCode, playerID)
+			adminCancel()
+			if adminErr != nil {
+				log.Printf("websocket: TogglePause(%s, %s): %v", lobbyCode, playerID, adminErr)
+				errMsg := "unable to toggle pause"
+				switch {
+				case errors.Is(adminErr, store.ErrUnauthorized):
+					errMsg = "only the host can pause the game"
+				case errors.Is(adminErr, store.ErrWrongPhase):
+					errMsg = "pause is not available during this phase"
+				case errors.Is(adminErr, store.ErrLobbyNotFound):
+					errMsg = "lobby not found"
+				}
+				_ = websocketConn.WriteJSON(models.WSMessage{
+					Type:    models.MessageTypeError,
+					Payload: map[string]string{"message": errMsg},
+				})
+				continue
+			}
+		case models.MessageTypeForceEndGame:
+			adminCtx, adminCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			adminErr := serverConfig.Store.ForceEndGame(adminCtx, lobbyCode, playerID)
+			adminCancel()
+			if adminErr != nil {
+				log.Printf("websocket: ForceEndGame(%s, %s): %v", lobbyCode, playerID, adminErr)
+				errMsg := "unable to force end game"
+				switch {
+				case errors.Is(adminErr, store.ErrUnauthorized):
+					errMsg = "only the host can force end the game"
+				case errors.Is(adminErr, store.ErrLobbyNotFound):
+					errMsg = "lobby not found"
+				}
+				_ = websocketConn.WriteJSON(models.WSMessage{
+					Type:    models.MessageTypeError,
+					Payload: map[string]string{"message": errMsg},
+				})
+				continue
+			}
+		case models.MessageTypeRestartGame:
+			adminCtx, adminCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			adminErr := serverConfig.Store.RestartGame(adminCtx, lobbyCode, playerID)
+			adminCancel()
+			if adminErr != nil {
+				log.Printf("websocket: RestartGame(%s, %s): %v", lobbyCode, playerID, adminErr)
+				errMsg := "unable to restart game"
+				switch {
+				case errors.Is(adminErr, store.ErrUnauthorized):
+					errMsg = "only the host can restart the game"
+				case errors.Is(adminErr, store.ErrLobbyNotFound):
+					errMsg = "lobby not found"
+				}
+				_ = websocketConn.WriteJSON(models.WSMessage{
+					Type:    models.MessageTypeError,
+					Payload: map[string]string{"message": errMsg},
+				})
+				continue
+			}
+		case models.MessageTypeStartSurrenderVote:
+			adminCtx, adminCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			adminErr := serverConfig.Store.StartSurrenderVote(adminCtx, lobbyCode, playerID)
+			adminCancel()
+			if adminErr != nil {
+				log.Printf("websocket: StartSurrenderVote(%s, %s): %v", lobbyCode, playerID, adminErr)
+				errMsg := "unable to start surrender vote"
+				switch {
+				case errors.Is(adminErr, store.ErrUnauthorized):
+					errMsg = "only the host can start a surrender vote"
+				case errors.Is(adminErr, store.ErrWrongPhase):
+					errMsg = "surrender vote is not available during this phase"
+				case errors.Is(adminErr, store.ErrLobbyNotFound):
+					errMsg = "lobby not found"
+				}
+				_ = websocketConn.WriteJSON(models.WSMessage{
+					Type:    models.MessageTypeError,
+					Payload: map[string]string{"message": errMsg},
+				})
+				continue
+			}
+		case models.MessageTypeSubmitSurrenderVote:
+			if err := json.Unmarshal(inbound.Payload, &surrenderVoteBody); err != nil {
+				log.Printf("websocket: invalid SUBMIT_SURRENDER_VOTE payload: %v", err)
+				continue
+			}
+			voteCtx, voteCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			voteErr := serverConfig.Store.SubmitSurrenderVote(voteCtx, lobbyCode, playerID, surrenderVoteBody.VoteYes)
+			voteCancel()
+			if voteErr != nil {
+				log.Printf("websocket: SubmitSurrenderVote(%s, %s): %v", lobbyCode, playerID, voteErr)
+				errMsg := "unable to record surrender vote"
+				switch {
+				case errors.Is(voteErr, store.ErrWrongPhase):
+					errMsg = "no surrender vote is active"
+				case errors.Is(voteErr, store.ErrUnauthorized):
+					errMsg = "only alive players can vote on surrender"
+				case errors.Is(voteErr, store.ErrLobbyNotFound):
 					errMsg = "lobby not found"
 				}
 				_ = websocketConn.WriteJSON(models.WSMessage{

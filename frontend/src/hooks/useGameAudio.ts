@@ -1,15 +1,15 @@
 import { useCallback } from 'react'
-import { useAudioStore } from '@/store/useAudioStore'
+import { useGameStore } from '@/store/useGameStore'
 import useSound from 'use-sound'
 
 const warnAudio = (name: string, error: unknown) => {
-  // Keep gameplay resilient when a sound asset is temporarily missing.
-  console.warn(`[audio] ${name} unavailable`, error)
+  void name
+  void error
 }
 
 export const useGameAudio = () => {
-  const volume = useAudioStore((state) => state.volume)
-  const isMuted = useAudioStore((state) => state.isMuted)
+  const volume = useGameStore((state) => state.globalVolume)
+  const isMuted = useGameStore((state) => state.isMuted)
   const effectiveVolume = useCallback(
     (baseVolume: number) => (isMuted ? 0 : baseVolume * volume),
     [isMuted, volume]

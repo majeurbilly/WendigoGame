@@ -2,49 +2,50 @@ package models
 
 type GamePhase string
 
-// ChairSelectionPhaseSeconds is the lobby timer for CHAIR_SELECTION (from LOBBY) and refill when not everyone is seated.
-const ChairSelectionPhaseSeconds = 10
-
-// DayPhaseSeconds is the default duration of the DAY phase after the initial chair round.
-const DayPhaseSeconds = 600
-
-// PostChairCouncilAccusationSeconds is the ACCUSATION phase length after the "musical chairs" recall before council.
-const PostChairCouncilAccusationSeconds = 30
-
-// PleadingSpeechSeconds is the speaking window after the current speaker sends START_PLEADING.
-const PleadingSpeechSeconds = 45
-
-// CouncilVotePhaseSeconds is the final chaotic council ballot after pleadings.
-const CouncilVotePhaseSeconds = 45
-
 const (
 	GamePhaseLobby          GamePhase = "LOBBY"
 	GamePhaseChairSelection GamePhase = "CHAIR_SELECTION"
 	GamePhaseDay            GamePhase = "DAY"
+	GamePhaseMorning        GamePhase = "MORNING"
+	GamePhaseNoCouncil      GamePhase = "NO_COUNCIL"
+	GamePhaseCouncilStart   GamePhase = "COUNCIL_START"
 	GamePhaseAccusation     GamePhase = "ACCUSATION"
+	GamePhaseCouncilSummary GamePhase = "COUNCIL_SUMMARY"
 	GamePhasePleadings      GamePhase = "PLEADINGS"
 	GamePhaseCouncilVote    GamePhase = "COUNCIL_VOTE"
+	GamePhaseStake          GamePhase = "STAKE"
 	GamePhaseNight          GamePhase = "NIGHT"
 	PhaseGameOver           GamePhase = "GAME_OVER"
 )
 
-// GetNextPhaseAndTime returns the next phase and its initial duration in seconds.
-func GetNextPhaseAndTime(currentPhase GamePhase) (GamePhase, int) {
+// GetNextPhaseAndTime returns the next phase and its initial duration in seconds for the given settings.
+func GetNextPhaseAndTime(currentPhase GamePhase, settings PhaseSettings) (GamePhase, int) {
+	s := settings.WithDefaults()
 	switch currentPhase {
 	case GamePhaseLobby:
-		return GamePhaseChairSelection, ChairSelectionPhaseSeconds
+		return GamePhaseChairSelection, s.ChairSelectionSeconds
 	case GamePhaseChairSelection:
-		return GamePhaseDay, DayPhaseSeconds
+		return GamePhaseDay, s.DaySocialSeconds
 	case GamePhaseDay:
-		return GamePhaseAccusation, 120
+		return GamePhaseCouncilStart, s.CouncilStartSeconds
+	case GamePhaseCouncilStart:
+		return GamePhaseAccusation, s.CouncilAccusationPostChairSeconds
 	case GamePhaseAccusation:
-		return GamePhaseNight, 60
+		return GamePhaseCouncilSummary, s.CouncilSummarySeconds
+	case GamePhaseCouncilSummary:
+		return GamePhaseCouncilVote, s.CouncilVoteSeconds
 	case GamePhasePleadings:
-		return GamePhaseCouncilVote, CouncilVotePhaseSeconds
+		return GamePhaseCouncilSummary, s.CouncilSummarySeconds
 	case GamePhaseCouncilVote:
-		return GamePhaseNight, 60
+		return GamePhaseStake, s.StakeSeconds
+	case GamePhaseStake:
+		return GamePhaseNight, s.NightSeconds
+	case GamePhaseNoCouncil:
+		return GamePhaseNight, s.NightSeconds
 	case GamePhaseNight:
-		return GamePhaseDay, 15
+		return GamePhaseMorning, s.MorningSeconds
+	case GamePhaseMorning:
+		return GamePhaseDay, s.DaySocialSeconds
 	case PhaseGameOver:
 		return PhaseGameOver, 0
 	default:

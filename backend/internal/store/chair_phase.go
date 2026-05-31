@@ -29,9 +29,12 @@ func chairSelectionPhaseComplete(lobby *models.Lobby) bool {
 // Caller must set lobby.TimeRemaining to the day length before calling.
 func enterDaySocialSnapshot(lobby *models.Lobby) {
 	lobby.SocialPhaseTotalTime = lobby.TimeRemaining
+	lobby.PhaseTotalSeconds = lobby.TimeRemaining
 	lobby.ChairPromptTriggered = false
 	lobby.CouncilAccusations = make(map[string]string)
+	lobby.Prayers = make(map[string]string)
 	lobby.WendigoIntentions = make(map[string]string)
+	lobby.PleadingsCompleted = false
 	clearPleadingsState(lobby)
 	for i := range lobby.Players {
 		lobby.Players[i].IsExcludedFromCouncil = false
@@ -72,17 +75,37 @@ func ensureRolesAfterInitialChairComplete(lobby *models.Lobby) error {
 	return nil
 }
 
-// advanceFromChairSelection ends CHAIR_SELECTION: first round → DAY with snapshot, recall round → ACCUSATION with sanctions.
+// advanceFromChairSelection ends CHAIR_SELECTION: first round → DAY with snapshot, recall round → COUNCIL_START with sanctions.
 func advanceFromChairSelection(lobby *models.Lobby) error {
+	ps := models.EffectivePhaseSettings(lobby)
 	if lobby.ChairPromptTriggered {
 		lobby.ChairPromptTriggered = false
-		lobby.Phase = models.GamePhaseAccusation
-		lobby.TimeRemaining = models.PostChairCouncilAccusationSeconds
 		applyCouncilChairSanctions(lobby)
+
+		councilParticipants := 0
+		for i := range lobby.Players {
+			if !lobby.Players[i].IsAlive {
+				continue
+			}
+			if lobby.Players[i].IsExcludedFromCouncil {
+				continue
+			}
+			councilParticipants++
+		}
+
+		if councilParticipants > 0 {
+			lobby.Phase = models.GamePhaseCouncilStart
+			models.SetPhaseCountdown(lobby, ps.CouncilStartSeconds)
+		} else {
+			lobby.Phase = models.GamePhaseNoCouncil
+			models.SetPhaseCountdown(lobby, ps.NoCouncilSeconds)
+			lobby.Votes = make(map[string]string)
+			lobby.CouncilAccusations = make(map[string]string)
+		}
 		return nil
 	}
 	lobby.Phase = models.GamePhaseDay
-	lobby.TimeRemaining = models.DayPhaseSeconds
+	models.SetPhaseCountdown(lobby, ps.DaySocialSeconds)
 	enterDaySocialSnapshot(lobby)
 	return ensureRolesAfterInitialChairComplete(lobby)
 }

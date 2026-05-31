@@ -1,22 +1,25 @@
 # syntax=docker/dockerfile:1
 
-FROM node:20-alpine AS builder
+# Lingui 6 exige Node >= 22.19 (fs.globSync dans node:fs)
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-RUN npm install -g pnpm
-
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+COPY package.json package-lock.json ./
+RUN npm ci
 
 COPY . .
 
-ARG VITE_API_URL=http://localhost:8080
+ARG VITE_API_URL=http://localhost:8081
 ARG VITE_LIVEKIT_URL=ws://localhost:7880
+ARG VITE_AUTHENTIK_URL=
+ARG VITE_AUTHENTIK_CLIENT_ID=
 ENV VITE_API_URL=${VITE_API_URL}
 ENV VITE_LIVEKIT_URL=${VITE_LIVEKIT_URL}
+ENV VITE_AUTHENTIK_URL=${VITE_AUTHENTIK_URL}
+ENV VITE_AUTHENTIK_CLIENT_ID=${VITE_AUTHENTIK_CLIENT_ID}
 
-RUN pnpm build
+RUN npm run build
 
 FROM nginx:alpine AS runner
 

@@ -2,15 +2,13 @@ package api
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/majeurbilly/wendigogame/internal/auth"
 )
 
 type contextKey string
@@ -88,9 +86,11 @@ func CORSMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func AuthMiddleware(next http.Handler) http.Handler {
+func (serverConfig Config) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(responseWriter http.ResponseWriter, request *http.Request) {
 		authHeader := strings.TrimSpace(request.Header.Get("Authorization"))
+		log.Printf("api: Auth Header reçu : %s", formatAuthHeaderForLog(authHeader))
+
 		if authHeader == "" {
 			http.Error(responseWriter, "missing authorization header", http.StatusUnauthorized)
 			return
@@ -102,13 +102,10 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		userID, err := auth.ValidateToken(strings.TrimSpace(parts[1]))
+		userID, err := serverConfig.userUUIDFromAccessToken(request.Context(), strings.TrimSpace(parts[1]))
 		if err != nil {
-			if errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenMalformed) || errors.Is(err, jwt.ErrTokenSignatureInvalid) || errors.Is(err, jwt.ErrTokenNotValidYet) {
-				http.Error(responseWriter, "invalid or expired token", http.StatusUnauthorized)
-				return
-			}
-			http.Error(responseWriter, "unauthorized", http.StatusUnauthorized)
+			log.Printf("api: Erreur de validation JWT : %v", err)
+			http.Error(responseWriter, "invalid or expired token", http.StatusUnauthorized)
 			return
 		}
 
@@ -117,7 +114,36 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func (serverConfig Config) userUUIDFromAccessToken(ctx context.Context, raw string) (uuid.UUID, error) {
+	if serverConfig.AccessTokenParser == nil {
+		return uuid.Nil, fmt.Errorf("access token parser not configured")
+	}
+	parsed, err := serverConfig.AccessTokenParser.ParseAccessToken(ctx, raw)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	if serverConfig.UserStore != nil {
+		if upsertErr := serverConfig.UserStore.UpsertOIDCUser(ctx, parsed); upsertErr != nil {
+			log.Printf("api: UpsertOIDCUser(%s): %v", parsed.InternalUserID, upsertErr)
+		}
+	}
+	return parsed.InternalUserID, nil
+}
+
 func userIDFromContext(ctx context.Context) (uuid.UUID, bool) {
 	userID, ok := ctx.Value(userIDContextKey).(uuid.UUID)
 	return userID, ok
+}
+
+// formatAuthHeaderForLog évite de journaliser le JWT entier (fuite) tout en montrant si le header est plausible.
+func formatAuthHeaderForLog(h string) string {
+	h = strings.TrimSpace(h)
+	if h == "" {
+		return "(vide)"
+	}
+	const max = 48
+	if len(h) <= max {
+		return h
+	}
+	return h[:max] + "…"
 }

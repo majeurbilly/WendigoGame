@@ -43,13 +43,16 @@ var ErrPlayerNotInLobby = errors.New("store: player not in lobby")
 
 var ErrVoteInvalid = errors.New("store: invalid vote")
 
+// ErrExcludedFromCouncil means the player may not take council actions (vote, speech) after missing a chair.
+var ErrExcludedFromCouncil = errors.New("store: action impossible: joueur exclu du conseil")
+
 var ErrNightActionInvalid = errors.New("store: invalid night action")
 
 // ErrAlreadyAccused means this player has already registered a council accusation this ACCUSATION phase.
 var ErrAlreadyAccused = errors.New("store: council accuser has already accused this phase")
 
 // ErrTargetAlreadyAccused means another accuser has already chosen this target.
-var ErrTargetAlreadyAccused = errors.New("store: council target is already accused by someone else")
+var ErrTargetAlreadyAccused = errors.New("cette personne est déjà accusée")
 
 func lobbyKey(code string) string {
 	return lobbyKeyPrefix + code
@@ -62,11 +65,20 @@ func ensureLobbyVotes(lobby *models.Lobby) {
 	if lobby.NightActions == nil {
 		lobby.NightActions = make(map[string]string)
 	}
+	if lobby.Prayers == nil {
+		lobby.Prayers = make(map[string]string)
+	}
 	if lobby.CouncilAccusations == nil {
 		lobby.CouncilAccusations = make(map[string]string)
 	}
 	if lobby.WendigoIntentions == nil {
 		lobby.WendigoIntentions = make(map[string]string)
+	}
+	if lobby.WendigoIntents == nil {
+		lobby.WendigoIntents = make(map[string]string)
+	}
+	if lobby.SurrenderVotes == nil {
+		lobby.SurrenderVotes = make(map[string]bool)
 	}
 }
 
@@ -117,10 +129,13 @@ func (s *Store) createLobbyWithHost(ctx context.Context, mode models.GameMode, h
 			CreatedAt:          time.Now().UTC(),
 			Phase:              models.GamePhaseLobby,
 			TimeRemaining:      0,
+			PhaseSettings:      models.DefaultPhaseSettings(),
 			Votes:              make(map[string]string),
 			NightActions:       make(map[string]string),
+			Prayers:            make(map[string]string),
 			CouncilAccusations: make(map[string]string),
 			WendigoIntentions:  make(map[string]string),
+			SurrenderVotes:     make(map[string]bool),
 		}
 
 		payload, err := json.Marshal(lobby)
@@ -396,7 +411,7 @@ func (s *Store) StartGame(ctx context.Context, code, hostID string) error {
 			}
 			nextPhase, seconds := lobby.GetNextPhase()
 			lobby.Phase = nextPhase
-			lobby.TimeRemaining = seconds
+			models.SetPhaseCountdown(&lobby, seconds)
 			payload, err := json.Marshal(&lobby)
 			if err != nil {
 				return fmt.Errorf("marshal lobby: %w", err)
@@ -419,6 +434,74 @@ func (s *Store) StartGame(ctx context.Context, code, hostID string) error {
 		return err
 	}
 	return fmt.Errorf("start game: excessive contention on lobby %s", code)
+}
+
+// UpdatePhaseSettings replaces phase timings while still in LOBBY (host only).
+func (s *Store) UpdatePhaseSettings(ctx context.Context, code, hostID string, settings models.PhaseSettings) error {
+	code = strings.ToUpper(strings.TrimSpace(code))
+	if len(code) != 4 {
+		return ErrLobbyNotFound
+	}
+	hostID = strings.TrimSpace(hostID)
+	if hostID == "" {
+		return ErrUnauthorized
+	}
+	key := lobbyKey(code)
+	clamped := settings.Clamped()
+	for range maxLobbyTxRetries {
+		err := s.redisClient.Watch(ctx, func(tx *redis.Tx) error {
+			raw, err := tx.Get(ctx, key).Result()
+			if err == redis.Nil {
+				return ErrLobbyNotFound
+			}
+			if err != nil {
+				return err
+			}
+			var lobby models.Lobby
+			if err := json.Unmarshal([]byte(raw), &lobby); err != nil {
+				return fmt.Errorf("unmarshal lobby: %w", err)
+			}
+			ensureLobbyVotes(&lobby)
+			creatorID := ""
+			for _, p := range lobby.Players {
+				if p.IsHost {
+					creatorID = p.ID.String()
+					break
+				}
+			}
+			if creatorID == "" || creatorID != hostID {
+				return ErrUnauthorized
+			}
+			phase := lobby.Phase
+			if phase == "" {
+				phase = models.GamePhaseLobby
+			}
+			if phase != models.GamePhaseLobby {
+				return ErrGameAlreadyStarted
+			}
+			lobby.PhaseSettings = clamped
+			payload, err := json.Marshal(&lobby)
+			if err != nil {
+				return fmt.Errorf("marshal lobby: %w", err)
+			}
+			_, err = tx.TxPipelined(ctx, func(pipe redis.Pipeliner) error {
+				pipe.Set(ctx, key, payload, lobbyTTL)
+				return nil
+			})
+			return err
+		}, key)
+		if err == nil {
+			return nil
+		}
+		if errors.Is(err, ErrLobbyNotFound) || errors.Is(err, ErrUnauthorized) || errors.Is(err, ErrGameAlreadyStarted) {
+			return err
+		}
+		if err == redis.TxFailedErr {
+			continue
+		}
+		return err
+	}
+	return fmt.Errorf("update phase settings: excessive contention on lobby %s", code)
 }
 
 func (s *Store) GetLobby(ctx context.Context, code string) (*models.Lobby, error) {

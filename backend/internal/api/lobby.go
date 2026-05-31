@@ -16,9 +16,10 @@ import (
 )
 
 type Config struct {
-	Store     *store.Store
-	UserStore *database.UserStore
-	Hub       *Hub
+	Store             *store.Store
+	UserStore         *database.UserStore
+	Hub               *Hub
+	AccessTokenParser *auth.TokenParser // nil: NewRouter crée un parser par défaut (JWKS ou mode test)
 }
 
 type createLobbyBody struct {
@@ -62,32 +63,20 @@ func (serverConfig Config) handleCreateLobby(responseWriter http.ResponseWriter,
 	ctx, cancel := context.WithTimeout(request.Context(), 10*time.Second)
 	defer cancel()
 
-	hostName := strings.TrimSpace(body.HostName)
-	authHeader := strings.TrimSpace(request.Header.Get("Authorization"))
-	if authHeader != "" {
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) == 2 && strings.EqualFold(parts[0], "Bearer") {
-			if authUserID, tokenErr := auth.ValidateToken(strings.TrimSpace(parts[1])); tokenErr == nil {
-				if hostName == "" && serverConfig.UserStore != nil {
-					if u, userErr := serverConfig.UserStore.GetUserByID(ctx, authUserID); userErr == nil && u != nil {
-						hostName = strings.TrimSpace(u.Username)
-					}
-				}
-				lobby, err := serverConfig.Store.CreateLobbyForHost(ctx, mode, authUserID, hostName)
-				if err != nil {
-					http.Error(responseWriter, "unable to create lobby", http.StatusInternalServerError)
-					return
-				}
+	authUserID, ok := userIDFromContext(request.Context())
+	if !ok {
+		http.Error(responseWriter, "unauthorized", http.StatusUnauthorized)
+		return
+	}
 
-				responseWriter.Header().Set("Content-Type", "application/json")
-				responseWriter.WriteHeader(http.StatusCreated)
-				_ = json.NewEncoder(responseWriter).Encode(lobby)
-				return
-			}
+	hostName := strings.TrimSpace(body.HostName)
+	if hostName == "" && serverConfig.UserStore != nil {
+		if u, userErr := serverConfig.UserStore.GetUserByID(ctx, authUserID); userErr == nil && u != nil {
+			hostName = strings.TrimSpace(u.Username)
 		}
 	}
 
-	lobby, err := serverConfig.Store.CreateLobby(ctx, mode, hostName)
+	lobby, err := serverConfig.Store.CreateLobbyForHost(ctx, mode, authUserID, hostName)
 	if err != nil {
 		http.Error(responseWriter, "unable to create lobby", http.StatusInternalServerError)
 		return

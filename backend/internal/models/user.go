@@ -10,7 +10,6 @@ type User struct {
 	ID             uuid.UUID `json:"id"`
 	Username       string    `json:"username"`
 	Email          string    `json:"email"`
-	PasswordHash   string    `json:"-"`
 	GamesPlayed    int       `json:"games_played"`
 	GamesWon       int       `json:"games_won"`
 	GamesLost      int       `json:"games_lost"`

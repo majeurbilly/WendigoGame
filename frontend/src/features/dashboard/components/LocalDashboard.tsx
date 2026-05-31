@@ -1,20 +1,72 @@
 import ActionPanel from '@/features/dashboard/components/ActionPanel'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import SecretRoleCard from '@/features/dashboard/components/SecretRoleCard'
 import { isGameOverPhase } from '@/lib/gamePhase'
+import { useLocalTimer } from '@/hooks/useLocalTimer'
+import { Trans, t } from '@/lib/lingui'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
+import { isVoiceChatGameMode, type LobbyState } from '@/api/game'
+import { samePlayerId } from '@/lib/samePlayerId'
 import type { ComponentProps } from 'react'
 import { useMemo } from 'react'
+import {
+  Armchair,
+  Flame,
+  Moon,
+  Skull,
+  Sparkles,
+  Sun,
+  Sunrise,
+} from 'lucide-react'
 
-const roleStyles: Record<string, string> = {
-  WENDIGO: 'border-rose-500/40 bg-rose-950/40 text-rose-200',
-  VILLAGER: 'border-slate-500/40 bg-slate-900/80 text-slate-200',
-  SEER: 'border-sky-500/40 bg-sky-950/40 text-sky-200',
+const overlayChrome =
+  'rounded-xl border border-amber-500/50 bg-[#14100c]/82 text-amber-50 shadow-lg shadow-black/40'
+
+const hudBadge =
+  'rounded-md border border-amber-600/50 bg-[#1c1814]/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#f5ecd8] shadow-[inset_0_1px_0_rgba(255,215,160,0.08)]'
+
+const modeLabel = (mode: string | undefined): string =>
+  isVoiceChatGameMode(mode) ? t`Online` : t`In person`
+
+const modeBadgeClass = (mode: string | undefined): string =>
+  isVoiceChatGameMode(mode)
+    ? 'border-sky-500/45 bg-sky-950/35 text-sky-100'
+    : 'border-amber-600/50 bg-[#2a2118]/90 text-amber-100'
+
+const formatTimer = (seconds: number): string => {
+  const safeSeconds = Math.max(0, Math.floor(seconds))
+  const minutesPart = Math.floor(safeSeconds / 60)
+  const secondsPart = safeSeconds % 60
+  return `${String(minutesPart).padStart(2, '0')}:${String(secondsPart).padStart(2, '0')}`
 }
 
-const getRoleContainerClasses = (role: string | null): string => {
-  if (!role) return 'border-slate-700 bg-slate-900/80 text-slate-200'
-  return roleStyles[role.toUpperCase()] ?? 'border-violet-500/40 bg-violet-950/30 text-violet-200'
+const phaseProgressTotal = (lobby: LobbyState, phaseLabel: string): number => {
+  if (phaseLabel === 'DAY' && (lobby.socialPhaseTotalTime ?? 0) > 0) {
+    return lobby.socialPhaseTotalTime as number
+  }
+  const total = lobby.phaseTotalSeconds ?? 0
+  return total > 0 ? total : 0
+}
+
+function PhaseGlyph({ phase }: { phase: string }) {
+  const p = phase.toUpperCase()
+  const cls = 'h-3.5 w-3.5 shrink-0 text-amber-200/95'
+  if (p === 'DAY') return <Sun className={cls} aria-hidden />
+  if (p === 'NIGHT') return <Moon className={cls} aria-hidden />
+  if (p === 'MORNING') return <Sunrise className={cls} aria-hidden />
+  if (p === 'STAKE') return <Flame className={cls} aria-hidden />
+  if (p === 'CHAIR_SELECTION') return <Armchair className={cls} aria-hidden />
+  if (p === 'NO_COUNCIL') return <Sparkles className={cls} aria-hidden />
+  if (
+    p === 'COUNCIL_START' ||
+    p === 'ACCUSATION' ||
+    p === 'COUNCIL_SUMMARY' ||
+    p === 'COUNCIL_VOTE' ||
+    p === 'PLEADINGS'
+  ) {
+    return <Skull className={cls} aria-hidden />
+  }
+  return <Sparkles className={cls} aria-hidden />
 }
 
 interface LocalDashboardProps {
@@ -25,55 +77,140 @@ export default function LocalDashboard({ sendMessage }: LocalDashboardProps) {
   const user = useAuthStore((state) => state.user)
   const lobby = useGameStore((state) => state.lobby)
 
+  const getPhaseHint = useMemo(() => {
+    const hints: Record<string, string> = {
+      CHAIR_SELECTION: t`Choose your seat at the council.`,
+      NIGHT: t`Night: act before the hourglass runs out.`,
+      DAY: t`Day: prepare for the village vote.`,
+      MORNING: t`Dawn reveals what happened overnight.`,
+      NO_COUNCIL: t`No council — the day continues.`,
+      COUNCIL_START: t`The council opens.`,
+      ACCUSATION: t`Accuse someone or pass your turn.`,
+      COUNCIL_SUMMARY: t`Summary of accusations.`,
+      PLEADINGS: t`Speak up: defend yourself or listen.`,
+      COUNCIL_VOTE: t`Vote on the suspect's fate.`,
+      STAKE: t`Final decision at the stake.`,
+    }
+    return (phase: string) => hints[phase.toUpperCase()] ?? ''
+  }, [])
+
   const currentPlayer = useMemo(
-    () => lobby?.players.find((player) => player.id === user?.id) ?? null,
+    () => lobby?.players.find((player) => samePlayerId(player.id, user?.id)) ?? null,
     [lobby?.players, user?.id]
   )
 
   const phaseUpper = lobby?.phase?.toUpperCase() ?? ''
+  const gameOver = lobby ? isGameOverPhase(lobby.phase) : false
   const showActionPanel = Boolean(
     lobby &&
-      currentPlayer?.isAlive &&
-      !isGameOverPhase(lobby.phase) &&
+      (currentPlayer?.isAlive || phaseUpper === 'STAKE' || phaseUpper === 'MORNING' || phaseUpper === 'NO_COUNCIL') &&
+      !gameOver &&
       [
         'CHAIR_SELECTION',
         'NIGHT',
         'DAY',
+        'MORNING',
+        'NO_COUNCIL',
+        'COUNCIL_START',
         'ACCUSATION',
+        'COUNCIL_SUMMARY',
         'PLEADINGS',
         'COUNCIL_VOTE',
+        'STAKE',
       ].includes(phaseUpper)
   )
 
+  const localTime = useLocalTimer(lobby?.timeRemaining ?? 0)
+  const displayedTime = lobby?.isPaused ? (lobby?.timeRemaining ?? 0) : localTime
+
   if (!lobby || !currentPlayer) return null
 
+  const phaseLabel = lobby.phase.toUpperCase()
+  const isInitialChairSelectionWait =
+    phaseLabel === 'CHAIR_SELECTION' && lobby.chairPromptTriggered !== true
+  const total = isInitialChairSelectionWait ? 0 : phaseProgressTotal(lobby, phaseLabel)
+  const progress = total > 0 ? Math.min(1, Math.max(0, displayedTime / total)) : 0
+  const showChronoBar =
+    !isInitialChairSelectionWait &&
+    total > 0 &&
+    phaseLabel !== 'LOBBY' &&
+    phaseLabel !== 'GAME_OVER' &&
+    phaseLabel !== 'ENDED'
+
+  const phaseHint = getPhaseHint(phaseUpper)
+
   return (
-    <div className="flex flex-col items-center justify-center space-y-8 py-20 duration-700 animate-in fade-in">
-      <div className="space-y-2 text-center">
-        <h1 className="text-3xl font-bold tracking-wider text-slate-100 uppercase">Phase: {lobby.phase}</h1>
-        <p className="text-slate-400">La partie a commencé.</p>
-      </div>
+    <div className="relative min-h-[100dvh] w-full">
+      <header
+        className="pointer-events-auto fixed left-0 right-0 top-0 z-30 flex flex-col items-stretch gap-2 px-3 pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-4"
+      >
+        {lobby.isPaused ? (
+          <div
+            className={`mx-auto w-fit px-4 py-2 text-center text-[11px] font-bold uppercase tracking-[0.22em] ${overlayChrome}`}
+          >
+            <Trans>Game paused</Trans>
+          </div>
+        ) : null}
+
+        <div className="flex w-full flex-wrap items-start gap-2 sm:items-center">
+          <div className="pointer-events-none flex min-w-0 flex-1 flex-col items-start gap-1.5 pl-0 sm:max-w-[85%]">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`${hudBadge} ${modeBadgeClass(lobby.mode)}`}>{modeLabel(lobby.mode)}</span>
+              <span className={`flex items-center gap-1.5 ${hudBadge} border-amber-500/45 bg-[#231c16]/95`}>
+                <PhaseGlyph phase={phaseLabel} />
+                <span className="font-mono text-[10px] tracking-wider text-[#f5ecd8]">{phaseLabel}</span>
+              </span>
+            </div>
+
+            <div className={`min-w-[9.5rem] w-fit max-w-full ${overlayChrome} px-4 py-2.5`}>
+              {isInitialChairSelectionWait ? (
+                <p className="max-w-[14rem] text-left text-[10px] font-medium leading-tight text-amber-100/85">
+                  <Trans>Waiting for players…</Trans>
+                </p>
+              ) : (
+                <>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-amber-200/75">
+                    <Trans>Time</Trans>
+                  </p>
+                  <p className="font-mono text-xl font-bold tabular-nums tracking-tight text-amber-300 drop-shadow-[0_0_14px_rgba(251,191,36,0.45)] sm:text-2xl sm:text-amber-200">
+                    {formatTimer(displayedTime)}
+                  </p>
+                </>
+              )}
+              {showChronoBar ? (
+                <div className="mt-1.5 h-1.5 w-[min(100%,7.5rem)] overflow-hidden rounded-full bg-black/55">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-amber-400/90 to-amber-700/90 transition-[width] duration-1000 ease-linear"
+                    style={{ width: `${progress * 100}%` }}
+                  />
+                </div>
+              ) : null}
+            </div>
+
+            <p className="font-mono text-lg font-black tracking-[0.42em] text-[#f5ecd8] drop-shadow-[0_2px_0_rgba(0,0,0,0.85)] sm:text-xl">
+              {lobby.code}
+            </p>
+          </div>
+        </div>
+      </header>
 
       <div
-        className={`w-full max-w-md rounded-xl border-2 p-10 text-center shadow-2xl ${getRoleContainerClasses(currentPlayer.role)}`}
+        className="pointer-events-auto fixed z-30"
+        style={{
+          left: 'max(0.75rem, env(safe-area-inset-left))',
+          bottom: 'calc(1rem + env(safe-area-inset-bottom) + min(38vh, 14rem))',
+        }}
       >
-        <p className="mb-4 text-sm tracking-[0.2em] uppercase opacity-80">Votre Rôle Secret</p>
-        <p className="text-5xl font-black tracking-wide drop-shadow-md">
-          {(currentPlayer.role ?? 'INCONNU').toUpperCase()}
-        </p>
+        <SecretRoleCard role={currentPlayer.role} />
       </div>
 
-      <p className="animate-pulse text-sm text-slate-500">Ne montrez cet écran à personne...</p>
-
       {showActionPanel ? (
-        <Card className="w-full max-w-lg border-slate-800 bg-slate-900/60 text-slate-100">
-          <CardHeader>
-            <CardTitle>Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ActionPanel lobby={lobby} currentPlayer={currentPlayer} sendMessage={sendMessage} />
-          </CardContent>
-        </Card>
+        <ActionPanel
+          lobby={lobby}
+          currentPlayer={currentPlayer}
+          sendMessage={sendMessage}
+          phaseHint={phaseHint}
+        />
       ) : null}
     </div>
   )

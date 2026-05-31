@@ -69,7 +69,8 @@ const selectVoteTarget = async (page: Page, targetName: string) => {
   })
 }
 
-test('simulation E2E: 5 joueurs démarrent une partie online', async ({ browser }) => {
+// TODO(Authentik) : réécrire après OIDC (inscription locale supprimée).
+test.skip('simulation E2E: 5 joueurs démarrent une partie online', async ({ browser }) => {
   const seed = Date.now().toString()
   const host = await createIsolatedPlayer(browser)
   const guests = await Promise.all([

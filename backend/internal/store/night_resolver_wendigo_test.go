@@ -21,6 +21,7 @@ func TestResolveNight_WendigoTallyUniqueVictim(t *testing.T) {
 			w1.String(): v.String(),
 			w2.String(): v.String(),
 		},
+		Prayers: map[string]string{},
 	}
 	dead, _ := ResolveNight(lobby)
 	if len(dead) != 1 || dead[0] != v.String() {
@@ -44,6 +45,7 @@ func TestResolveNight_WendigoTieNoKill(t *testing.T) {
 			w1.String(): a.String(),
 			w2.String(): b.String(),
 		},
+		Prayers: map[string]string{},
 	}
 	dead, _ := ResolveNight(lobby)
 	if len(dead) != 0 {
@@ -66,7 +68,9 @@ func TestResolveNight_PrayerProtects(t *testing.T) {
 			{ID: p3, Name: "P3", IsAlive: true, Role: "VILLAGER"},
 		},
 		NightActions: map[string]string{
-			w.String():  v.String(),
+			w.String(): v.String(),
+		},
+		Prayers: map[string]string{
 			p1.String(): v.String(),
 			p2.String(): v.String(),
 			p3.String(): v.String(),
@@ -75,5 +79,24 @@ func TestResolveNight_PrayerProtects(t *testing.T) {
 	dead, _ := ResolveNight(lobby)
 	if len(dead) != 0 {
 		t.Fatalf("expected protection, got %v", dead)
+	}
+}
+
+func TestResolveNight_NoPrayerNoProtection(t *testing.T) {
+	w := uuid.New()
+	v := uuid.New()
+	lobby := &models.Lobby{
+		Players: []models.Player{
+			{ID: w, Name: "W", IsAlive: true, Role: "WENDIGO"},
+			{ID: v, Name: "V", IsAlive: true, Role: "VILLAGER"},
+		},
+		NightActions: map[string]string{
+			w.String(): v.String(),
+		},
+		Prayers: map[string]string{},
+	}
+	dead, _ := ResolveNight(lobby)
+	if len(dead) != 1 || dead[0] != v.String() {
+		t.Fatalf("expected villager to die without prayers, got %v", dead)
 	}
 }

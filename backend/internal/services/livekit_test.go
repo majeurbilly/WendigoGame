@@ -33,12 +33,28 @@ func TestResolveAudioPublishPolicy_DayCouncilForAliveOnly(t *testing.T) {
 		t.Fatalf("profile: got %q, want %q", profileAlive, "Council Token")
 	}
 
+	canPublishCouncilStart, profileCouncilStart := resolveAudioPublishPolicy(models.GamePhaseCouncilStart, true)
+	if !canPublishCouncilStart {
+		t.Fatal("alive player should publish during COUNCIL_START")
+	}
+	if profileCouncilStart != "Council Token" {
+		t.Fatalf("profile: got %q, want %q", profileCouncilStart, "Council Token")
+	}
+
 	canPublishAliveAccusation, profileAliveAccusation := resolveAudioPublishPolicy(models.GamePhaseAccusation, true)
 	if !canPublishAliveAccusation {
 		t.Fatal("alive player should publish during ACCUSATION")
 	}
 	if profileAliveAccusation != "Council Token" {
 		t.Fatalf("profile: got %q, want %q", profileAliveAccusation, "Council Token")
+	}
+
+	canPublishCouncilSummary, profileCouncilSummary := resolveAudioPublishPolicy(models.GamePhaseCouncilSummary, true)
+	if !canPublishCouncilSummary {
+		t.Fatal("alive player should publish during COUNCIL_SUMMARY")
+	}
+	if profileCouncilSummary != "Council Token" {
+		t.Fatalf("profile: got %q, want %q", profileCouncilSummary, "Council Token")
 	}
 
 	canPublishPleadings, profilePleadings := resolveAudioPublishPolicy(models.GamePhasePleadings, true)

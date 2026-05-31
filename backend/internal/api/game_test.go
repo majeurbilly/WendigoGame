@@ -68,9 +68,11 @@ func TestStartGame_OKUpdatesPhaseInValkey(t *testing.T) {
 	st, handler := newGameTestRouter(t)
 	ctx := context.Background()
 
+	hostUUID := uuid.New()
 	createBody := `{"mode":"local","host_name":"Alice"}`
 	createReq := httptest.NewRequest(http.MethodPost, "/lobbies", strings.NewReader(createBody))
 	createReq.Header.Set("Content-Type", "application/json")
+	createReq.Header.Set("Authorization", "Bearer "+auth.MustTestAccessToken(hostUUID))
 	createRec := httptest.NewRecorder()
 	handler.ServeHTTP(createRec, createReq)
 	if createRec.Code != http.StatusCreated {
@@ -122,9 +124,11 @@ func TestStartGame_OKUpdatesPhaseInValkey(t *testing.T) {
 func TestStartGame_WrongHostForbidden(t *testing.T) {
 	_, handler := newGameTestRouter(t)
 
+	hostUUID := uuid.New()
 	createBody := `{"mode":"local","host_name":"Bob"}`
 	createReq := httptest.NewRequest(http.MethodPost, "/lobbies", strings.NewReader(createBody))
 	createReq.Header.Set("Content-Type", "application/json")
+	createReq.Header.Set("Authorization", "Bearer "+auth.MustTestAccessToken(hostUUID))
 	createRec := httptest.NewRecorder()
 	handler.ServeHTTP(createRec, createReq)
 	if createRec.Code != http.StatusCreated {
@@ -148,10 +152,7 @@ func TestStartGame_WrongHostForbidden(t *testing.T) {
 func TestCreateLobby_WithJWT_UsesAuthenticatedUserIDAsHost(t *testing.T) {
 	_, handler := newGameTestRouter(t)
 	fixedUserID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
-	token, err := auth.GenerateToken(fixedUserID)
-	if err != nil {
-		t.Fatalf("GenerateToken: %v", err)
-	}
+	token := auth.MustTestAccessToken(fixedUserID)
 
 	// Keep host_name explicit here because this test router has no UserStore.
 	// The behavior under test is ID mapping (JWT user ID -> lobby host player ID).
@@ -186,23 +187,15 @@ func TestCreateLobby_WithJWT_FallbackToDBHostName(t *testing.T) {
 	const expectedUsername = "WendigoMaster"
 	const expectedEmail = "wendigo.master@example.com"
 
-	passwordHash, err := auth.HashPassword("Password123!")
-	if err != nil {
-		t.Fatalf("HashPassword: %v", err)
-	}
-
-	_, err = dbPool.Exec(ctx, `
+	_, err := dbPool.Exec(ctx, `
 		INSERT INTO users (id, username, email, password_hash)
-		VALUES ($1, $2, $3, $4)
-	`, fixedUserID, expectedUsername, expectedEmail, passwordHash)
+		VALUES ($1, $2, $3, 'legacy-placeholder')
+	`, fixedUserID, expectedUsername, expectedEmail)
 	if err != nil {
 		t.Fatalf("insert users fixture: %v", err)
 	}
 
-	token, err := auth.GenerateToken(fixedUserID)
-	if err != nil {
-		t.Fatalf("GenerateToken: %v", err)
-	}
+	token := auth.MustTestAccessToken(fixedUserID)
 
 	// host_name intentionally omitted to validate backend fallback via UserStore (Postgres).
 	createReq := httptest.NewRequest(http.MethodPost, "/lobbies", strings.NewReader(`{"mode":"online"}`))
@@ -227,5 +220,50 @@ func TestCreateLobby_WithJWT_FallbackToDBHostName(t *testing.T) {
 	}
 	if created.Players[0].Name != expectedUsername {
 		t.Fatalf("host name fallback mismatch: got %q, want %q", created.Players[0].Name, expectedUsername)
+	}
+}
+
+func TestCreateLobby_OIDCUpsertCreatesUserAndUsesPreferredUsername(t *testing.T) {
+	_, handler, dbPool := newGameTestRouterWithPostgresUserStore(t)
+	ctx := context.Background()
+
+	fixedUserID := uuid.MustParse("33333333-3333-3333-3333-333333333333")
+	const wantName = "AuthentikHost"
+	const wantEmail = "authentik.host@example.com"
+	token := auth.MustTestAccessTokenWithOIDCClaims(fixedUserID, wantName, wantEmail)
+
+	createReq := httptest.NewRequest(http.MethodPost, "/lobbies", strings.NewReader(`{"mode":"online"}`))
+	createReq.Header.Set("Content-Type", "application/json")
+	createReq.Header.Set("Authorization", "Bearer "+token)
+	createRec := httptest.NewRecorder()
+	handler.ServeHTTP(createRec, createReq)
+	if createRec.Code != http.StatusCreated && createRec.Code != http.StatusOK {
+		t.Fatalf("CreateLobby HTTP: status %d, body %q", createRec.Code, createRec.Body.String())
+	}
+
+	var created models.Lobby
+	if err := json.Unmarshal(createRec.Body.Bytes(), &created); err != nil {
+		t.Fatalf("JSON lobby: %v", err)
+	}
+	if len(created.Players) == 0 {
+		t.Fatalf("expected at least one player, got 0: %+v", created)
+	}
+	if created.Players[0].ID != fixedUserID {
+		t.Fatalf("host id mismatch: got %s, want %s", created.Players[0].ID, fixedUserID)
+	}
+	if created.Players[0].Name != wantName {
+		t.Fatalf("host name: got %q, want %q", created.Players[0].Name, wantName)
+	}
+
+	userStore := database.NewUserStore(dbPool)
+	u, err := userStore.GetUserByID(ctx, fixedUserID)
+	if err != nil {
+		t.Fatalf("GetUserByID after upsert: %v", err)
+	}
+	if u.Username != wantName {
+		t.Fatalf("db username: got %q, want %q", u.Username, wantName)
+	}
+	if u.Email != wantEmail {
+		t.Fatalf("db email: got %q, want %q", u.Email, wantEmail)
 	}
 }

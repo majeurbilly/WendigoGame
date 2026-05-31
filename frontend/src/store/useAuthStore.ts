@@ -1,10 +1,15 @@
+import type { User } from 'oidc-client-ts'
 import { create } from 'zustand'
-import { getMeAPI } from '@/api/auth'
+import { apiClient } from '@/api/axios'
+import { oidcUserManager } from '@/auth/oidcUserManager'
+import { internalUserIdFromOidcSub } from '@/lib/internalUserIdFromOidcSub'
+import { safeTrim } from '@/lib/safeTrim'
 
 export interface UserProfile {
   id: string
   email: string
   username: string
+  picture?: string
   games_played?: number
   games_won?: number
   games_lost?: number
@@ -14,80 +19,151 @@ export interface UserProfile {
   updated_at?: string
 }
 
-interface AuthState {
-  token: string | null
-  user: UserProfile | null
+/** Snapshot minimal depuis react-oidc-context (évite les cycles de rendu sur l’objet `auth`). */
+export interface OidcAuthSyncInput {
+  isLoading: boolean
   isAuthenticated: boolean
-  isInitializing: boolean
-  setToken: (token: string | null) => void
-  setUser: (user: UserProfile | null) => void
-  logout: () => void
-  initAuth: () => Promise<void>
+  accessToken: string | null
+  oidcUser: User | null | undefined
 }
 
-const initialToken = localStorage.getItem('token')
+function userProfileFromOidcUser(oidcUser: User | null | undefined): UserProfile | null {
+  if (!oidcUser?.profile || typeof oidcUser.profile !== 'object') {
+    return null
+  }
+  const p = oidcUser.profile as Record<string, unknown>
+  const rawSub = safeTrim(p.sub)
+  if (!rawSub) {
+    return null
+  }
+  const id = internalUserIdFromOidcSub(rawSub)
+  if (!id) {
+    return null
+  }
+  const email = safeTrim(p.email)
+  const localPart = email.includes('@') ? safeTrim(email.split('@')[0]) : ''
+  const username =
+    safeTrim(p.preferred_username) ||
+    safeTrim(p.name) ||
+    safeTrim(p.nickname) ||
+    localPart ||
+    id
+
+  const picture =
+    safeTrim(p.picture) || safeTrim(p.avatar) || safeTrim(p.avatar_url) || undefined
+
+  return {
+    id,
+    email,
+    username: safeTrim(username) || id,
+    picture,
+  }
+}
+
+function mergeUserProfile(current: UserProfile | null, incoming: UserProfile): UserProfile {
+  const id = safeTrim(incoming.id) || safeTrim(current?.id) || 'unknown'
+  return {
+    ...current,
+    ...incoming,
+    id,
+    email: safeTrim(incoming.email) || safeTrim(current?.email) || '',
+    username: safeTrim(incoming.username) || safeTrim(current?.username) || id,
+    picture: current?.picture ?? incoming.picture,
+  }
+}
+
+interface AuthState {
+  /** Copie du access_token OIDC pour les hooks qui ne lisent pas encore UserManager (ex. WebSocket). */
+  token: string | null
+  user: UserProfile | null
+  isInitializing: boolean
+  setUser: (user: UserProfile | null) => void
+  logout: () => void
+  /** Synchrone : profil issu des claims OIDC (Authentik / Google). */
+  syncFromOidc: (input: OidcAuthSyncInput) => void
+  /** Charge pseudo, email et statistiques depuis GET /auth/me (fusionne avec le profil OIDC). */
+  fetchMeProfile: () => Promise<void>
+}
 
 export const useAuthStore = create<AuthState>((set, get) => ({
-  token: initialToken,
+  token: null,
   user: null,
-  isAuthenticated: false,
   isInitializing: true,
-  setToken: (token) => {
-    if (token) {
-      localStorage.setItem('token', token)
-    } else {
-      localStorage.removeItem('token')
+  setUser: (user) => {
+    if (user == null) {
+      set({ user: null })
+      return
     }
-
+    const id = safeTrim(user.id) || 'unknown'
+    const picture = safeTrim(user.picture) || undefined
     set({
-      token,
-      isAuthenticated: Boolean(token),
+      user: {
+        ...user,
+        id,
+        email: safeTrim(user.email),
+        username: safeTrim(user.username) || id,
+        picture,
+      },
     })
   },
-  setUser: (user) => {
-    set({ user })
-  },
   logout: () => {
-    localStorage.removeItem('token')
     set({
       token: null,
       user: null,
-      isAuthenticated: false,
     })
   },
-  initAuth: async () => {
-    const token = localStorage.getItem('token')
-    set({ token })
+  syncFromOidc: ({ isLoading, isAuthenticated, accessToken, oidcUser }) => {
+    if (isLoading) {
+      set({ isInitializing: true })
+      return
+    }
 
-    if (!token) {
+    if (!isAuthenticated || !accessToken) {
       set({
+        token: null,
+        user: null,
         isInitializing: false,
-        isAuthenticated: false,
       })
       return
     }
 
-    try {
-      const me = await getMeAPI()
+    if (!oidcUser?.profile) {
       set({
-        user: {
-          id: me.id,
-          username: me.username,
-          email: me.email,
-          games_played: me.games_played,
-          games_won: me.games_won,
-          games_lost: me.games_lost,
-          wins_as_wendigo: me.wins_as_wendigo,
-          wins_as_villager: me.wins_as_villager,
-          created_at: me.created_at,
-          updated_at: me.updated_at,
-        },
-        isAuthenticated: true,
+        token: accessToken,
+        user: null,
+        isInitializing: true,
+      })
+      return
+    }
+
+    const profile = userProfileFromOidcUser(oidcUser)
+    if (!profile) {
+      void oidcUserManager.removeUser()
+      set({
+        token: null,
+        user: null,
         isInitializing: false,
       })
-    } catch {
-      get().logout()
-      set({ isInitializing: false })
+      return
+    }
+
+    set((state) => ({
+      token: accessToken,
+      user: mergeUserProfile(state.user, profile),
+      isInitializing: false,
+    }))
+  },
+  fetchMeProfile: async () => {
+    if (!safeTrim(get().token)) {
+      return
+    }
+    try {
+      const { data } = await apiClient.get<UserProfile>('/auth/me')
+      set((state) => ({
+        user: state.user ? mergeUserProfile(state.user, data) : data,
+      }))
+    } catch (error) {
+      console.error('fetchMeProfile failed:', error)
     }
   },
 }))

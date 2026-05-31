@@ -63,8 +63,9 @@ func TestProcessGameTick_DayChairRecallAtOneThirdRemaining(t *testing.T) {
 	if !got.ChairPromptTriggered {
 		t.Fatal("expected ChairPromptTriggered true after recall")
 	}
-	if got.TimeRemaining != models.ChairSelectionPhaseSeconds {
-		t.Fatalf("time_remaining: got %d, want %d", got.TimeRemaining, models.ChairSelectionPhaseSeconds)
+	wantChair := models.DefaultPhaseSettings().ChairSelectionSeconds
+	if got.TimeRemaining != wantChair {
+		t.Fatalf("time_remaining: got %d, want %d", got.TimeRemaining, wantChair)
 	}
 	for i := range got.Players {
 		if !got.Players[i].IsAlive {
@@ -114,16 +115,73 @@ func TestAdvanceFromChairSelection_CouncilPathSanctionsUnseated(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetLobby after tick: %v", err)
 	}
-	if got.Phase != models.GamePhaseAccusation {
-		t.Fatalf("phase: got %q, want %q", got.Phase, models.GamePhaseAccusation)
+	if got.Phase != models.GamePhaseCouncilStart {
+		t.Fatalf("phase: got %q, want %q", got.Phase, models.GamePhaseCouncilStart)
 	}
-	if got.TimeRemaining != models.PostChairCouncilAccusationSeconds {
-		t.Fatalf("accusation timer: got %d, want %d", got.TimeRemaining, models.PostChairCouncilAccusationSeconds)
+	wantCouncilStart := models.DefaultPhaseSettings().CouncilStartSeconds
+	if got.TimeRemaining != wantCouncilStart {
+		t.Fatalf("council start timer: got %d, want %d", got.TimeRemaining, wantCouncilStart)
 	}
 	if !got.Players[1].IsExcludedFromCouncil {
 		t.Fatal("expected guest excluded from council (unseated)")
 	}
 	if got.Players[0].IsExcludedFromCouncil {
 		t.Fatal("expected host not excluded (seated)")
+	}
+}
+
+func TestAdvanceFromChairSelection_SkipCouncilIfEmpty(t *testing.T) {
+	miniredisServer := miniredis.RunT(t)
+	redisClient := redis.NewClient(&redis.Options{Addr: miniredisServer.Addr()})
+	t.Cleanup(func() { _ = redisClient.Close() })
+
+	st := store.NewForTesting(redisClient)
+	ctx := context.Background()
+
+	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "A")
+	if err != nil {
+		t.Fatalf("CreateLobby: %v", err)
+	}
+	b := models.Player{ID: uuid.New(), Name: "B", IsHost: false, IsAlive: true, ChairID: models.UnseatedChair}
+	if _, err := st.AppendPlayer(ctx, lobby.Code, b); err != nil {
+		t.Fatalf("AppendPlayer: %v", err)
+	}
+
+	lobby, err = st.GetLobby(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobby: %v", err)
+	}
+	lobby.Phase = models.GamePhaseChairSelection
+	lobby.ChairPromptTriggered = true
+	for i := range lobby.Players {
+		lobby.Players[i].ChairID = models.UnseatedChair
+	}
+	lobby.CouncilAccusations = map[string]string{"x": "y"}
+	lobby.Votes = map[string]string{"voter": "target"}
+	lobby.TimeRemaining = 0
+	if err := st.SaveLobby(ctx, lobby); err != nil {
+		t.Fatalf("SaveLobby: %v", err)
+	}
+
+	if _, err := st.ProcessGameTick(ctx, lobby.Code); err != nil {
+		t.Fatalf("ProcessGameTick: %v", err)
+	}
+
+	got, err := st.GetLobby(ctx, lobby.Code)
+	if err != nil {
+		t.Fatalf("GetLobby after tick: %v", err)
+	}
+	if got.Phase != models.GamePhaseNoCouncil {
+		t.Fatalf("phase: got %q, want %q", got.Phase, models.GamePhaseNoCouncil)
+	}
+	wantNoCouncil := models.DefaultPhaseSettings().NoCouncilSeconds
+	if got.TimeRemaining != wantNoCouncil {
+		t.Fatalf("no council timer: got %d, want %d", got.TimeRemaining, wantNoCouncil)
+	}
+	if len(got.CouncilAccusations) != 0 {
+		t.Fatalf("expected CouncilAccusations cleared, got=%v", got.CouncilAccusations)
+	}
+	if len(got.Votes) != 0 {
+		t.Fatalf("expected Votes cleared, got=%v", got.Votes)
 	}
 }

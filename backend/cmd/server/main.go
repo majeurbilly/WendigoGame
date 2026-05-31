@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/majeurbilly/wendigogame/internal/api"
+	"github.com/majeurbilly/wendigogame/internal/auth"
 	"github.com/majeurbilly/wendigogame/internal/database"
 	"github.com/majeurbilly/wendigogame/internal/services"
 	"github.com/majeurbilly/wendigogame/internal/store"
@@ -55,9 +56,23 @@ func main() {
 	}
 
 	connectionHub := api.NewHub(lobbyStore, liveKitService)
-	router := api.NewRouter(api.Config{Store: lobbyStore, UserStore: userStore, Hub: connectionHub})
+
+	tokenParser, err := auth.NewTokenParser(context.Background())
+	if err != nil {
+		log.Fatalf("auth jwks: %v", err)
+	}
+	defer tokenParser.Close()
+
+	router := api.NewRouter(api.Config{
+		Store:             lobbyStore,
+		UserStore:         userStore,
+		Hub:               connectionHub,
+		AccessTokenParser: tokenParser,
+	})
 	// CORS wraps the entire router: this handler is the one passed to http.Server (ListenAndServe).
+	// Ordre d'exécution : CORSMiddleware d'abord (OPTIONS, en-têtes), puis le mux ; AuthMiddleware n'est appelé que sur les routes qui l'enveloppent (voir NewRouter).
 	handler := api.CORSMiddleware(router)
+	log.Printf("api: main — handler racine = CORSMiddleware(router), routes auth dans internal/api/health.go (NewRouter)")
 	server := newServer(":8080", handler)
 
 	go func() {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http/httptest"
+	"net/url"
 	"strconv"
 	"strings"
 	"sync"
@@ -12,12 +13,21 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/majeurbilly/wendigogame/internal/api"
+	"github.com/majeurbilly/wendigogame/internal/auth"
 	"github.com/majeurbilly/wendigogame/internal/models"
 	"github.com/majeurbilly/wendigogame/internal/store"
 	"github.com/redis/go-redis/v9"
 )
+
+// testWSURL builds a WebSocket URL with a bearer token (required since Ticket 2).
+func testWSURL(baseHTTP, lobbyCode, displayName string, playerID uuid.UUID) string {
+	base := strings.Replace(baseHTTP, "http", "ws", 1)
+	tok := auth.MustTestAccessToken(playerID)
+	return base + "/ws?code=" + lobbyCode + "&token=" + url.QueryEscape(tok) + "&name=" + url.QueryEscape(displayName)
+}
 
 func TestWSAddsPlayerThenDisconnectKeepsHostInValkey(t *testing.T) {
 	miniredisServer := miniredis.RunT(t)
@@ -40,7 +50,8 @@ func TestWSAddsPlayerThenDisconnectKeepsHostInValkey(t *testing.T) {
 		time.Sleep(150 * time.Millisecond)
 	})
 
-	wsURL := strings.Replace(httpServer.URL, "http", "ws", 1) + "/ws?code=" + lobby.Code + "&name=Gaston"
+	guestID := uuid.New()
+	wsURL := testWSURL(httpServer.URL, lobby.Code, "Gaston", guestID)
 	wsConn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 	if err != nil {
 		t.Fatalf("Dial WebSocket: %v", err)
@@ -140,7 +151,8 @@ func TestWS_FiveSimultaneousConnections(t *testing.T) {
 	for i := range 5 {
 		go func(idx int) {
 			defer dialWait.Done()
-			wsURL := baseWS + "&name=Guest" + strconv.Itoa(idx+1)
+			pid := uuid.New()
+			wsURL := baseWS + "&token=" + url.QueryEscape(auth.MustTestAccessToken(pid)) + "&name=" + url.QueryEscape("Guest"+strconv.Itoa(idx+1))
 			c, _, e := websocket.DefaultDialer.Dial(wsURL, nil)
 			if e != nil {
 				dialErrs <- e
@@ -255,8 +267,7 @@ func TestWS_LobbyDestroyedWhenEmpty(t *testing.T) {
 		time.Sleep(150 * time.Millisecond)
 	})
 
-	wsURL := strings.Replace(httpServer.URL, "http", "ws", 1) +
-		"/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID.String()
+	wsURL := testWSURL(httpServer.URL, lobby.Code, "Host", hostID)
 	wsConn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 	if err != nil {
 		t.Fatalf("Dial host WebSocket: %v", err)
@@ -319,9 +330,8 @@ func TestWS_ReceivesBroadcastOnJoin(t *testing.T) {
 		httpServer.Close()
 		time.Sleep(150 * time.Millisecond)
 	})
-	baseWS := strings.Replace(httpServer.URL, "http", "ws", 1)
 
-	hostURL := baseWS + "/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID.String()
+	hostURL := testWSURL(httpServer.URL, lobby.Code, "Host", hostID)
 	hostConn, _, err := websocket.DefaultDialer.Dial(hostURL, nil)
 	if err != nil {
 		t.Fatalf("Dial host: %v", err)
@@ -337,7 +347,7 @@ func TestWS_ReceivesBroadcastOnJoin(t *testing.T) {
 		t.Fatalf("first type: got %q, want %q", first.Type, models.MessageTypeLobbySync)
 	}
 
-	guestURL := baseWS + "/ws?code=" + lobby.Code + "&name=Guest"
+	guestURL := testWSURL(httpServer.URL, lobby.Code, "Guest", uuid.New())
 	guestConn, _, err := websocket.DefaultDialer.Dial(guestURL, nil)
 	if err != nil {
 		t.Fatalf("Dial guest: %v", err)
@@ -385,16 +395,14 @@ func TestWS_RoleFiltering(t *testing.T) {
 		httpServer.Close()
 		time.Sleep(150 * time.Millisecond)
 	})
-	baseWS := strings.Replace(httpServer.URL, "http", "ws", 1)
-
-	hostURL := baseWS + "/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID.String()
+	hostURL := testWSURL(httpServer.URL, lobby.Code, "Host", hostID)
 	hostConn, _, err := websocket.DefaultDialer.Dial(hostURL, nil)
 	if err != nil {
 		t.Fatalf("Dial host: %v", err)
 	}
 	defer func() { _ = hostConn.Close() }()
 
-	guestURL := baseWS + "/ws?code=" + lobby.Code + "&name=Guest"
+	guestURL := testWSURL(httpServer.URL, lobby.Code, "Guest", uuid.New())
 	guestConn, _, err := websocket.DefaultDialer.Dial(guestURL, nil)
 	if err != nil {
 		t.Fatalf("Dial guest: %v", err)
@@ -543,23 +551,22 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 		httpServer.Close()
 		time.Sleep(150 * time.Millisecond)
 	})
-	baseWS := strings.Replace(httpServer.URL, "http", "ws", 1)
 
-	hostURL := baseWS + "/ws?code=" + lobby.Code + "&name=Host&player_id=" + hostID.String()
+	hostURL := testWSURL(httpServer.URL, lobby.Code, "Host", hostID)
 	hostConn, _, err := websocket.DefaultDialer.Dial(hostURL, nil)
 	if err != nil {
 		t.Fatalf("Dial host: %v", err)
 	}
 	defer func() { _ = hostConn.Close() }()
 
-	guest1URL := baseWS + "/ws?code=" + lobby.Code + "&name=Guest1"
+	guest1URL := testWSURL(httpServer.URL, lobby.Code, "Guest1", uuid.New())
 	guest1Conn, _, err := websocket.DefaultDialer.Dial(guest1URL, nil)
 	if err != nil {
 		t.Fatalf("Dial guest1: %v", err)
 	}
 	defer func() { _ = guest1Conn.Close() }()
 
-	guest2URL := baseWS + "/ws?code=" + lobby.Code + "&name=Guest2"
+	guest2URL := testWSURL(httpServer.URL, lobby.Code, "Guest2", uuid.New())
 	guest2Conn, _, err := websocket.DefaultDialer.Dial(guest2URL, nil)
 	if err != nil {
 		t.Fatalf("Dial guest2: %v", err)
@@ -608,6 +615,7 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 
 		currentLobby.Phase = models.GamePhaseNight
 		currentLobby.TimeRemaining = 1
+		currentLobby.PhaseSettings.MorningSeconds = 1
 		currentLobby.DefendantID = ""
 		currentLobby.Votes = make(map[string]string)
 		currentLobby.NightActions = make(map[string]string)
@@ -626,19 +634,19 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 		}
 	}
 
-	waitForDayOrGameOver := func() *models.Lobby {
+	waitForMorningOrGameOver := func() *models.Lobby {
 		deadline := time.Now().Add(4 * time.Second)
 		for time.Now().Before(deadline) {
 			currentLobby, getErr := lobbyStore.GetLobby(ctx, lobby.Code)
 			if getErr != nil {
 				t.Fatalf("GetLobby waitForDay: %v", getErr)
 			}
-			if currentLobby.Phase == models.GamePhaseDay || currentLobby.Phase == models.PhaseGameOver {
+			if currentLobby.Phase == models.GamePhaseMorning || currentLobby.Phase == models.PhaseGameOver {
 				return currentLobby
 			}
 			time.Sleep(20 * time.Millisecond)
 		}
-		t.Fatal("timeout waiting for DAY/GAME_OVER phase")
+		t.Fatal("timeout waiting for MORNING/GAME_OVER phase")
 		return nil
 	}
 
@@ -657,13 +665,20 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 		sendNightAction(guest2Conn, "PRAY", guest1ID)
 		sendNightAction(hostConn, "KILL", guest1ID)
 
-		dayLobby := waitForDayOrGameOver()
-		if dayLobby.Phase != models.GamePhaseDay {
-			t.Fatalf("expected phase DAY for shield case, got %s", dayLobby.Phase)
+		morningLobby := waitForMorningOrGameOver()
+		if morningLobby.Phase != models.GamePhaseMorning {
+			t.Fatalf("expected phase MORNING for shield case, got %s", morningLobby.Phase)
 		}
-		for i := range dayLobby.Players {
-			if !dayLobby.Players[i].IsAlive {
-				t.Fatalf("expected all players alive in shield case, got dead player %s", dayLobby.Players[i].ID)
+		if morningLobby.LastNightVictimID != "" || !morningLobby.LastNightSavedByPrayer {
+			t.Fatalf(
+				"expected prayer save fields (victim empty, saved=true), got victim=%q saved=%v",
+				morningLobby.LastNightVictimID,
+				morningLobby.LastNightSavedByPrayer,
+			)
+		}
+		for i := range morningLobby.Players {
+			if !morningLobby.Players[i].IsAlive {
+				t.Fatalf("expected all players alive in shield case, got dead player %s", morningLobby.Players[i].ID)
 			}
 		}
 	})
@@ -675,10 +690,10 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 		sendNightAction(guest2Conn, "PRAY", guest2ID)
 		sendNightAction(hostConn, "KILL", guest1ID)
 
-		dayLobby := waitForDayOrGameOver()
+		morningLobby := waitForMorningOrGameOver()
 		aliveByID := make(map[string]bool)
-		for i := range dayLobby.Players {
-			aliveByID[dayLobby.Players[i].ID.String()] = dayLobby.Players[i].IsAlive
+		for i := range morningLobby.Players {
+			aliveByID[morningLobby.Players[i].ID.String()] = morningLobby.Players[i].IsAlive
 		}
 
 		if aliveByID[guest1ID] {
@@ -687,11 +702,16 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 		if !aliveByID[guest2ID] || !aliveByID[hostID.String()] {
 			t.Fatalf("unexpected extra death: host=%v guest2=%v", aliveByID[hostID.String()], aliveByID[guest2ID])
 		}
-		if dayLobby.Phase != models.PhaseGameOver {
-			t.Fatalf("expected GAME_OVER after parity, got %s", dayLobby.Phase)
+		if morningLobby.Phase == models.PhaseGameOver {
+			t.Fatalf("expected game to continue (no absolute win), got %s winner=%s", morningLobby.Phase, morningLobby.WinnerTeam)
 		}
-		if dayLobby.WinnerTeam != store.VictoryTeamWendigos {
-			t.Fatalf("winner team: got %q, want %q", dayLobby.WinnerTeam, store.VictoryTeamWendigos)
+		if morningLobby.LastNightVictimID != guest1ID || morningLobby.LastNightSavedByPrayer {
+			t.Fatalf(
+				"expected night victim fields (victim=%q saved=false), got victim=%q saved=%v",
+				guest1ID,
+				morningLobby.LastNightVictimID,
+				morningLobby.LastNightSavedByPrayer,
+			)
 		}
 	})
 }

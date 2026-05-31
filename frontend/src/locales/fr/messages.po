@@ -1,0 +1,851 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-05-16 12:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: fr\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#. placeholder {0}: player.name
+#: src/features/dashboard/components/game/PlayerAvatarGrid.tsx:159
+msgid "{0} (you)"
+msgstr "{0} (vous)"
+
+#. placeholder {0}: lobby.players.length
+#. placeholder {1}: lobby.maxPlayers != null ? ` / ${lobby.maxPlayers}` : ''
+#: src/features/dashboard/components/WaitingRoom.tsx:268
+msgid "{0}{1} councillors"
+msgstr "{0}{1} conseillers"
+
+#: src/features/dashboard/components/ActionPanel.tsx:748
+msgid "A night without a victim."
+msgstr "Une nuit sans victime."
+
+#: src/features/dashboard/components/WaitingRoom.tsx:71
+msgid "Accusation after chair recall (s)"
+msgstr "Accusation après rappel des sièges (s)"
+
+#: src/features/dashboard/components/ActionPanel.tsx:235
+msgid "Accusation sent."
+msgstr "Accusation envoyée."
+
+#: src/features/dashboard/components/ActionPanel.tsx:303
+msgid "Accusation tally: the village listens."
+msgstr "Décompte des accusations : le village écoute."
+
+#: src/features/dashboard/components/ActionPanel.tsx:652
+msgid "Accusations"
+msgstr "Accusations"
+
+#: src/features/dashboard/components/ActionPanel.tsx:824
+msgid "Accuse in council"
+msgstr "Accuser au conseil"
+
+#: src/features/dashboard/components/LocalDashboard.tsx:88
+msgid "Accuse someone or pass your turn."
+msgstr "Accusez quelqu'un ou passez votre tour."
+
+#: src/features/dashboard/components/ActionPanel.tsx:396
+msgid "Action locked: {lockedActionMessage}"
+msgstr "Action verrouillée : {lockedActionMessage}"
+
+#: src/features/dashboard/components/ActionPanel.tsx:178
+msgid "Action submitted."
+msgstr "Action envoyée."
+
+#: src/features/dashboard/components/ActionPanel.tsx:315
+msgid "An eerily calm night. No one perished."
+msgstr "Une nuit étrangement calme. Personne n'est mort."
+
+#: src/pages/SettingsPage.tsx:39
+msgid "Audio"
+msgstr "Audio"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:226
+#: src/features/dashboard/components/WaitingRoom.tsx:231
+msgid "BACK"
+msgstr "RETOUR"
+
+#: src/pages/ProfilePage.tsx:128
+#: src/pages/SettingsPage.tsx:93
+msgid "Back to menu"
+msgstr "Retour au menu"
+
+#: src/features/dashboard/components/EndedScreen.tsx:130
+msgid "BLAZING VICTORY"
+msgstr "VICTOIRE ÉCLATANTE"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:126
+msgid "Blitz"
+msgstr "Blitz"
+
+#: src/features/dashboard/components/ActionPanel.tsx:478
+msgid "Camouflage: prayer"
+msgstr "Camouflage : prière"
+
+#: src/pages/DashboardPage.tsx:155
+msgid "Cancel"
+msgstr "Annuler"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:66
+msgid "Chair selection (s)"
+msgstr "Choix des sièges (s)"
+
+#: src/features/dashboard/components/game/PlayerAvatarGrid.tsx:148
+msgid "Choose a player"
+msgstr "Choisir un joueur"
+
+#. placeholder {0}: chairId + 1
+#: src/features/dashboard/components/ChairPicker.tsx:77
+msgid "Choose seat {0}"
+msgstr "Choisir le siège {0}"
+
+#: src/features/dashboard/components/LocalDashboard.tsx:82
+msgid "Choose your seat at the council."
+msgstr "Choisissez votre siège au conseil."
+
+#: src/features/dashboard/components/ActionPanel.tsx:290
+msgid "Choose your seat by the fire. When everyone is seated, day breaks."
+msgstr "Choisissez votre siège près du feu. Quand tout le monde est assis, le jour se lève."
+
+#: src/features/dashboard/components/game/PlayerAvatarGrid.tsx:151
+msgid "Clear selection"
+msgstr "Effacer la sélection"
+
+#: src/features/dashboard/components/game/PlayerAvatarGrid.tsx:94
+msgid "Clear target"
+msgstr "Effacer la cible"
+
+#: src/pages/DashboardPage.tsx:89
+msgid "Coming soon"
+msgstr "Bientôt disponible"
+
+#: src/features/dashboard/components/ActionPanel.tsx:472
+msgid "Confirm kill"
+msgstr "Confirmer la mise à mort"
+
+#: src/pages/LobbyPage.tsx:288
+msgid "Connecting to server…"
+msgstr "Connexion au serveur…"
+
+#: src/features/dashboard/components/ActionPanel.tsx:174
+#: src/features/dashboard/components/ActionPanel.tsx:199
+#: src/features/dashboard/components/ActionPanel.tsx:210
+#: src/features/dashboard/components/ActionPanel.tsx:222
+#: src/features/dashboard/components/ActionPanel.tsx:231
+#: src/features/dashboard/components/ActionPanel.tsx:243
+msgid "Connection is not ready. Please try again."
+msgstr "La connexion n'est pas prête. Réessayez."
+
+#: src/features/dashboard/components/ChairPicker.tsx:42
+msgid "Connection unavailable."
+msgstr "Connexion indisponible."
+
+#: src/features/dashboard/components/ActionPanel.tsx:351
+#: src/features/dashboard/components/WaitingRoom.tsx:103
+#: src/features/dashboard/components/WaitingRoom.tsx:205
+#: src/pages/LobbyPage.tsx:260
+#: src/pages/LobbyPage.tsx:263
+#: src/pages/LobbyPage.tsx:266
+msgid "Connection unavailable. Please try again."
+msgstr "Connexion indisponible. Réessayez."
+
+#: src/features/dashboard/components/ActionPanel.tsx:762
+msgid "Council cancelled"
+msgstr "Conseil annulé"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:69
+msgid "Council cancelled (s)"
+msgstr "Conseil annulé (s)"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:70
+msgid "Council start (s)"
+msgstr "Ouverture du conseil (s)"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:73
+msgid "Council summary (s)"
+msgstr "Résumé du conseil (s)"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:75
+msgid "Council vote (s)"
+msgstr "Vote du conseil (s)"
+
+#. placeholder {0}: findAlivePlayerName(targetId)
+#: src/features/dashboard/components/ActionPanel.tsx:215
+msgid "Council vote: {0}"
+msgstr "Vote du conseil : {0}"
+
+#: src/features/dashboard/components/LobbyManager.tsx:45
+msgid "Create Game"
+msgstr "Créer une partie"
+
+#: src/features/dashboard/components/LobbyManager.tsx:81
+msgid "Create Lobby"
+msgstr "Créer un lobby"
+
+#: src/pages/DashboardPage.tsx:86
+msgid "Create Lobby (Local)"
+msgstr "Créer un lobby (local)"
+
+#: src/pages/DashboardPage.tsx:90
+msgid "Create Lobby (Online)"
+msgstr "Créer un lobby (en ligne)"
+
+#: src/features/dashboard/components/LobbyManager.tsx:81
+msgid "Creating..."
+msgstr "Création..."
+
+#: src/pages/DashboardPage.tsx:86
+msgid "Creating…"
+msgstr "Création…"
+
+#: src/features/dashboard/components/ActionPanel.tsx:312
+msgid "Dawn reveals tragedy around {morningVictimName}…"
+msgstr "L'aube révèle la tragédie autour de {morningVictimName}…"
+
+#: src/features/dashboard/components/LocalDashboard.tsx:85
+msgid "Dawn reveals what happened overnight."
+msgstr "L'aube révèle ce qui s'est passé cette nuit."
+
+#: src/features/dashboard/components/ActionPanel.tsx:752
+msgid "Day breaks…"
+msgstr "Le jour se lève…"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:78
+msgid "Day segment after night (s)"
+msgstr "Journée après la nuit (s)"
+
+#: src/features/dashboard/components/LocalDashboard.tsx:84
+msgid "Day: prepare for the village vote."
+msgstr "Jour : préparez le vote du village."
+
+#: src/features/dashboard/components/WaitingRoom.tsx:229
+msgid "DURATIONS"
+msgstr "DURÉES"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:171
+msgid "Durations engraved by the host"
+msgstr "Durées gravées par l'hôte"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:106
+msgid "Durations sent to the server."
+msgstr "Durées envoyées au serveur."
+
+#: src/features/dashboard/components/ActionPanel.tsx:502
+#: src/features/dashboard/components/ActionPanel.tsx:551
+msgid "Echo of prayers"
+msgstr "Écho des prières"
+
+#: src/features/dashboard/components/EndedScreen.tsx:71
+msgid "Eliminated"
+msgstr "Éliminé"
+
+#: src/pages/ProfilePage.tsx:97
+msgid "Email"
+msgstr "Email"
+
+#: src/features/dashboard/components/ActionPanel.tsx:765
+msgid "Empty seats already whisper of night…"
+msgstr "Les sièges vides murmurent déjà la nuit…"
+
+#: src/features/dashboard/components/ActionPanel.tsx:369
+msgid "End the game?"
+msgstr "Terminer la partie ?"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:72
+msgid "End-of-day accusation (s)"
+msgstr "Accusation de fin de journée (s)"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:156
+msgid "Engrave durations"
+msgstr "Graver les durées"
+
+#: src/pages/DashboardPage.tsx:38
+msgid "Enter a lobby code."
+msgstr "Entrez un code de lobby."
+
+#: src/pages/DashboardPage.tsx:137
+msgid "Enter the 4-character code shown by the host."
+msgstr "Saisissez le code à 4 caractères affiché par l'hôte."
+
+#: src/pages/LoginPage.tsx:38
+msgid "Enter the Council"
+msgstr "Entrer dans le Conseil"
+
+#: src/features/dashboard/components/EndedScreen.tsx:95
+msgid "Every Wendigo has been unmasked or brought down. The village still stands; the embers are not yet cold."
+msgstr "Chaque Wendigo a été démasqué ou abattu. Le village tient encore debout ; les braises ne sont pas encore éteintes."
+
+#: src/features/dashboard/components/ActionPanel.tsx:778
+msgid "Excluded from council (missed your seat)."
+msgstr "Exclu du conseil (siège manqué)."
+
+#: src/features/dashboard/components/ActionPanel.tsx:320
+msgid "Excluded from council for missing your seat."
+msgstr "Exclu du conseil : siège non pris."
+
+#: src/features/dashboard/components/LocalDashboard.tsx:92
+msgid "Final decision at the stake."
+msgstr "Verdict final au bûcher."
+
+#: src/features/dashboard/components/EndedScreen.tsx:126
+msgid "Final verdict"
+msgstr "Verdict final"
+
+#: src/components/layouts/MainLayout.tsx:86
+msgid "Force end"
+msgstr "Forcer la fin"
+
+#: src/features/dashboard/components/LobbyManager.tsx:51
+msgid "Game mode"
+msgstr "Mode de jeu"
+
+#: src/features/dashboard/components/GameHeader.tsx:74
+#: src/features/dashboard/components/LocalDashboard.tsx:151
+msgid "Game paused"
+msgstr "Partie en pause"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:121
+msgid "Game rhythm"
+msgstr "Rythme de la partie"
+
+#: src/pages/ProfilePage.tsx:61
+msgid "Games"
+msgstr "Parties"
+
+#: src/features/dashboard/components/GlobalAudioToggle.tsx:21
+#: src/pages/SettingsPage.tsx:62
+msgid "Global volume"
+msgstr "Volume global"
+
+#: src/pages/SettingsPage.tsx:43
+msgid "Global volume: {volumePercent}%"
+msgstr "Volume global : {volumePercent}%"
+
+#: src/features/dashboard/components/SecretRoleCard.tsx:107
+msgid "Hold to reveal your secret role"
+msgstr "Maintenir pour révéler votre rôle secret"
+
+#: src/components/layouts/MainLayout.tsx:58
+#: src/features/dashboard/components/EndedScreen.tsx:65
+msgid "Host"
+msgstr "Hôte"
+
+#: src/components/layouts/MainLayout.tsx:46
+msgid "Host settings"
+msgstr "Réglages hôte"
+
+#: src/features/dashboard/components/GameHeader.tsx:28
+#: src/features/dashboard/components/LocalDashboard.tsx:29
+#: src/features/dashboard/components/WaitingRoom.tsx:35
+msgid "In person"
+msgstr "En présentiel"
+
+#: src/features/dashboard/components/ActionPanel.tsx:192
+msgid "Inspecting {targetName}"
+msgstr "Inspection de {targetName}"
+
+#: src/features/dashboard/components/ActionPanel.tsx:425
+msgid "Intentions"
+msgstr "Intentions"
+
+#: src/features/dashboard/components/LobbyManager.tsx:101
+#: src/pages/DashboardPage.tsx:152
+msgid "Join"
+msgstr "Rejoindre"
+
+#: src/features/dashboard/components/LobbyManager.tsx:89
+msgid "Join Game"
+msgstr "Rejoindre une partie"
+
+#: src/pages/DashboardPage.tsx:102
+msgid "Join Lobby"
+msgstr "Rejoindre un lobby"
+
+#: src/pages/SettingsPage.tsx:68
+msgid "Language"
+msgstr "Langue"
+
+#: src/features/dashboard/components/EndedScreen.tsx:174
+#: src/features/dashboard/components/WaitingRoom.tsx:241
+#: src/features/dashboard/components/WaitingRoom.tsx:242
+msgid "Leave lobby"
+msgstr "Quitter le lobby"
+
+#: src/features/dashboard/components/ActionPanel.tsx:852
+msgid "Listening to {speakerNameP}."
+msgstr "Écoute de {speakerNameP}."
+
+#: src/pages/LoginPage.tsx:14
+msgid "Loading…"
+msgstr "Chargement…"
+
+#: src/features/dashboard/components/GameHeader.tsx:81
+msgid "Lobby"
+msgstr "Lobby"
+
+#: src/features/dashboard/components/LobbyManager.tsx:96
+#: src/features/dashboard/components/WaitingRoom.tsx:256
+#: src/pages/DashboardPage.tsx:149
+msgid "Lobby code"
+msgstr "Code du lobby"
+
+#: src/features/dashboard/components/LobbyManager.tsx:63
+msgid "Local (in person)"
+msgstr "Local (en présentiel)"
+
+#: src/pages/DashboardPage.tsx:125
+msgid "Log out"
+msgstr "Déconnexion"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:132
+msgid "Long"
+msgstr "Long"
+
+#: src/pages/ProfilePage.tsx:69
+msgid "Losses"
+msgstr "Défaites"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:305
+msgid "Master of the fire"
+msgstr "Maître du feu"
+
+#: src/features/dashboard/components/ActionPanel.tsx:731
+msgid "Morning"
+msgstr "Matin"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:68
+msgid "Morning (s)"
+msgstr "Matin (s)"
+
+#: src/features/dashboard/components/GlobalAudioToggle.tsx:36
+#: src/pages/SettingsPage.tsx:51
+msgid "Mute"
+msgstr "Muet"
+
+#: src/pages/ProfilePage.tsx:110
+msgid "New password"
+msgstr "Nouveau mot de passe"
+
+#: src/features/dashboard/components/ActionPanel.tsx:288
+msgid "Night falls. Tap a villager to send your immunity prayer."
+msgstr "La nuit tombe. Touchez un villageois pour envoyer votre prière d'immunité."
+
+#: src/features/dashboard/components/WaitingRoom.tsx:77
+msgid "Night phase (s)"
+msgstr "Phase de nuit (s)"
+
+#: src/features/dashboard/components/LocalDashboard.tsx:83
+msgid "Night: act before the hourglass runs out."
+msgstr "Nuit : agissez avant la fin du sablier."
+
+#: src/features/dashboard/components/ActionPanel.tsx:376
+msgid "No"
+msgstr "Non"
+
+#: src/features/dashboard/components/ActionPanel.tsx:302
+msgid "No accusations today. The village moves to open voting."
+msgstr "Aucune accusation aujourd'hui. Le village passe au vote ouvert."
+
+#: src/features/dashboard/components/LocalDashboard.tsx:86
+msgid "No council — the day continues."
+msgstr "Pas de conseil — la journée se poursuit."
+
+#: src/features/dashboard/components/game/PlayerAvatarGrid.tsx:172
+msgid "No eligible players"
+msgstr "Aucun joueur éligible"
+
+#: src/features/dashboard/components/ActionPanel.tsx:308
+msgid "No one burns tonight. Night is falling…"
+msgstr "Personne ne brûle ce soir. La nuit tombe…"
+
+#: src/features/dashboard/components/ActionPanel.tsx:691
+msgid "No one goes to the stake tonight."
+msgstr "Personne ne monte au bûcher ce soir."
+
+#: src/features/dashboard/components/ChairPicker.tsx:51
+msgid "No seats to display."
+msgstr "Aucun siège à afficher."
+
+#: src/features/dashboard/components/ActionPanel.tsx:701
+msgid "No votes recorded."
+msgstr "Aucun vote enregistré."
+
+#: src/features/dashboard/components/WaitingRoom.tsx:129
+msgid "Normal"
+msgstr "Normal"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:52
+msgid "Not ready"
+msgstr "Pas prêt"
+
+#: src/features/dashboard/components/ActionPanel.tsx:321
+msgid "One voice, one target. Choose who to accuse at the fire."
+msgstr "Une voix, une cible. Choisissez qui accuser au feu."
+
+#: src/features/dashboard/components/GameHeader.tsx:26
+#: src/features/dashboard/components/LobbyManager.tsx:75
+#: src/features/dashboard/components/LocalDashboard.tsx:29
+#: src/features/dashboard/components/WaitingRoom.tsx:35
+msgid "Online"
+msgstr "En ligne"
+
+#: src/features/dashboard/components/ActionPanel.tsx:592
+msgid "Open discussion — get ready for what comes next."
+msgstr "Discussion ouverte — préparez-vous à la suite."
+
+#: src/components/layouts/MainLayout.tsx:61
+msgid "Pause"
+msgstr "Pause"
+
+#: src/features/dashboard/components/ActionPanel.tsx:609
+msgid "Penalty: excluded from council — no vote or speech."
+msgstr "Sanction : exclu du conseil — pas de vote ni de parole."
+
+#: src/features/dashboard/components/WaitingRoom.tsx:74
+msgid "Pleading speech time (s)"
+msgstr "Temps de plaidoirie (s)"
+
+#: src/features/dashboard/components/ActionPanel.tsx:323
+msgid "Pleadings — now speaking: {speakerName}."
+msgstr "Plaidoiries — à la parole : {speakerName}."
+
+#: src/features/dashboard/components/LobbyManager.tsx:33
+msgid "Please enter a lobby code."
+msgstr "Veuillez saisir un code de lobby."
+
+#: src/features/dashboard/components/ActionPanel.tsx:495
+#: src/features/dashboard/components/ActionPanel.tsx:546
+msgid "Pray for this player"
+msgstr "Prier pour ce joueur"
+
+#. placeholder {0}: findAlivePlayerName(targetId)
+#: src/features/dashboard/components/ActionPanel.tsx:202
+msgid "Prayer sent for {0}."
+msgstr "Prière envoyée pour {0}."
+
+#: src/features/dashboard/components/ActionPanel.tsx:314
+msgid "Prayers held back the night. The village breathes."
+msgstr "Les prières ont retenu la nuit. Le village respire."
+
+#: src/features/dashboard/components/ActionPanel.tsx:744
+msgid "Prayers held through the night."
+msgstr "Les prières ont tenu toute la nuit."
+
+#: src/features/dashboard/components/ActionPanel.tsx:180
+msgid "Praying"
+msgstr "En prière"
+
+#. placeholder {0}: findAlivePlayerName(targetId)
+#: src/features/dashboard/components/ActionPanel.tsx:203
+msgid "Praying for {0}"
+msgstr "Prière pour {0}"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:136
+msgid "Presets fill the draft; press “Engrave durations” to send them to the server."
+msgstr "Les préréglages remplissent le brouillon ; appuyez sur « Graver les durées » pour les envoyer au serveur."
+
+#: src/pages/DashboardPage.tsx:112
+#: src/pages/ProfilePage.tsx:43
+msgid "Profile"
+msgstr "Profil"
+
+#: src/pages/ProfilePage.tsx:33
+msgid "Profile update: coming soon."
+msgstr "Mise à jour du profil : bientôt disponible."
+
+#: src/features/dashboard/components/WaitingRoom.tsx:52
+msgid "Ready"
+msgstr "Prêt"
+
+#: src/features/dashboard/components/EndedScreen.tsx:163
+msgid "Restart game"
+msgstr "Recommencer la partie"
+
+#: src/components/layouts/MainLayout.tsx:61
+msgid "Resume"
+msgstr "Reprendre"
+
+#. placeholder {0}: chairId + 1
+#: src/features/dashboard/components/ChairPicker.tsx:45
+msgid "Seat {0} requested."
+msgstr "Siège {0} demandé."
+
+#: src/pages/DashboardPage.tsx:121
+#: src/pages/SettingsPage.tsx:34
+msgid "Settings"
+msgstr "Réglages"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:224
+msgid "SETTINGS"
+msgstr "RÉGLAGES"
+
+#: src/pages/LoginPage.tsx:30
+msgid "Sign-in configuration error. Please contact the administrator."
+msgstr "Erreur de configuration de la connexion. Veuillez contacter l'administrateur."
+
+#: src/features/dashboard/components/ActionPanel.tsx:644
+msgid "Silence in the village…"
+msgstr "Silence dans le village…"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:67
+msgid "Social day / discussion (s)"
+msgstr "Journée sociale / discussion (s)"
+
+#: src/features/dashboard/components/ActionPanel.tsx:292
+msgid "Social phase: discuss and watch the hourglass before the chair rush."
+msgstr "Phase sociale : discutez et surveillez le sablier avant la ruée vers les sièges."
+
+#: src/features/dashboard/components/EndedScreen.tsx:144
+msgid "Souls accounted for"
+msgstr "Âmes comptées"
+
+#: src/pages/SettingsPage.tsx:51
+msgid "Sound"
+msgstr "Son"
+
+#: src/features/dashboard/components/LocalDashboard.tsx:90
+msgid "Speak up: defend yourself or listen."
+msgstr "Prenez la parole : défendez-vous ou écoutez."
+
+#: src/features/dashboard/components/WaitingRoom.tsx:327
+msgid "Start game"
+msgstr "Lancer la partie"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:208
+msgid "Start request sent to the server."
+msgstr "Demande de lancement envoyée au serveur."
+
+#: src/features/dashboard/components/GameHeader.tsx:101
+msgid "Status"
+msgstr "Statut"
+
+#: src/features/dashboard/components/LocalDashboard.tsx:89
+msgid "Summary of accusations."
+msgstr "Résumé des accusations."
+
+#: src/components/layouts/MainLayout.tsx:75
+msgid "Surrender"
+msgstr "Abandon"
+
+#: src/features/dashboard/components/ActionPanel.tsx:366
+msgid "Surrender vote proposed"
+msgstr "Vote d'abandon proposé"
+
+#: src/features/dashboard/components/ActionPanel.tsx:354
+msgid "Surrender vote recorded."
+msgstr "Vote d'abandon enregistré."
+
+#: src/features/dashboard/components/EndedScreen.tsx:71
+msgid "Survivor"
+msgstr "Survivant"
+
+#: src/features/dashboard/components/ActionPanel.tsx:868
+msgid "Take the floor"
+msgstr "Prendre la parole"
+
+#: src/features/dashboard/components/ChairPicker.tsx:74
+msgid "Taken"
+msgstr "Occupé"
+
+#: src/features/dashboard/components/ActionPanel.tsx:187
+msgid "Targeting {targetName} for a kill"
+msgstr "Cible {targetName} pour une mise à mort"
+
+#: src/features/dashboard/components/ActionPanel.tsx:298
+msgid "The council deliberates. Choose who to eliminate."
+msgstr "Le conseil délibère. Choisissez qui éliminer."
+
+#: src/features/dashboard/components/ActionPanel.tsx:600
+msgid "The council fire burns. Eyes meet…"
+msgstr "Le feu du conseil brûle. Les regards se croisent…"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:198
+msgid "The council gathers around the engraved code. Wait for the host to start the game."
+msgstr "Le conseil se rassemble autour du code gravé. Attendez que l'hôte lance la partie."
+
+#: src/features/dashboard/components/LocalDashboard.tsx:87
+msgid "The council opens."
+msgstr "Le conseil s'ouvre."
+
+#: src/features/dashboard/components/ActionPanel.tsx:317
+msgid "The council stands empty… The village slides toward night."
+msgstr "Le conseil reste vide… Le village glisse vers la nuit."
+
+#: src/features/dashboard/components/ActionPanel.tsx:287
+msgid "The pack coordinates. Tap a target for your intent, then confirm the kill."
+msgstr "La meute se coordonne. Touchez une cible pour votre intention, puis confirmez la mise à mort."
+
+#: src/features/dashboard/components/ActionPanel.tsx:678
+msgid "The stake"
+msgstr "Le bûcher"
+
+#: src/features/dashboard/components/WaitingRoom.tsx:76
+msgid "The Stake (s)"
+msgstr "Le bûcher (s)"
+
+#: src/features/dashboard/components/ActionPanel.tsx:307
+msgid "The stake awaits {stakeVictimName}."
+msgstr "Le bûcher attend {stakeVictimName}."
+
+#: src/features/dashboard/components/ActionPanel.tsx:684
+msgid "The village condemns <0>{victimName}</0>."
+msgstr "Le village condamne <0>{victimName}</0>."
+
+#: src/features/dashboard/components/ActionPanel.tsx:294
+msgid "The village council opens. Who do you suspect?"
+msgstr "Le conseil du village s'ouvre. Qui suspectez-vous ?"
+
+#: src/features/dashboard/components/ActionPanel.tsx:737
+msgid "The village learns the fate of <0>{victimName}</0>."
+msgstr "Le village apprend le sort de <0>{victimName}</0>."
+
+#: src/features/dashboard/components/EndedScreen.tsx:136
+msgid "The village prevailed"
+msgstr "Le village a triomphé"
+
+#: src/features/dashboard/components/EndedScreen.tsx:96
+msgid "The Wendigos claimed the village. The shadows drank their fear, and night closes its jaws on the last survivors."
+msgstr "Les Wendigos ont conquis le village. Les ombres ont bu leur peur, et la nuit referme ses mâchoires sur les derniers survivants."
+
+#: src/features/dashboard/components/EndedScreen.tsx:136
+msgid "The Wendigos rule the night"
+msgstr "Les Wendigos règnent sur la nuit"
+
+#: src/features/dashboard/components/LocalDashboard.tsx:173
+msgid "Time"
+msgstr "Temps"
+
+#: src/features/dashboard/components/GameHeader.tsx:110
+msgid "Time remaining"
+msgstr "Temps restant"
+
+#. placeholder {0}: lobby.timeRemaining
+#: src/features/dashboard/components/ActionPanel.tsx:857
+msgid "Time: {0}s"
+msgstr "Temps : {0}s"
+
+#: src/features/dashboard/components/ActionPanel.tsx:246
+msgid "Timer started."
+msgstr "Chronomètre lancé."
+
+#: src/features/dashboard/components/ActionPanel.tsx:164
+#: src/features/dashboard/components/ActionPanel.tsx:167
+msgid "Unknown target"
+msgstr "Cible inconnue"
+
+#: src/features/dashboard/components/GlobalAudioToggle.tsx:36
+msgid "Unmute"
+msgstr "Réactiver le son"
+
+#: src/pages/ProfilePage.tsx:123
+msgid "Update"
+msgstr "Mettre à jour"
+
+#: src/pages/ProfilePage.tsx:84
+msgid "Username"
+msgstr "Pseudo"
+
+#: src/App.tsx:45
+#: src/App.tsx:257
+msgid "Validating the Council seals…"
+msgstr "Validation des sceaux du Conseil…"
+
+#: src/pages/ProfilePage.tsx:77
+msgid "Village"
+msgstr "Village"
+
+#: src/features/dashboard/components/GlobalAudioToggle.tsx:58
+msgid "Volume settings"
+msgstr "Réglages du volume"
+
+#: src/features/dashboard/components/ActionPanel.tsx:633
+msgid "Vote in council"
+msgstr "Voter au conseil"
+
+#: src/features/dashboard/components/LocalDashboard.tsx:91
+msgid "Vote on the suspect's fate."
+msgstr "Votez sur le sort du suspect."
+
+#: src/features/dashboard/components/ActionPanel.tsx:214
+msgid "Vote recorded."
+msgstr "Vote enregistré."
+
+#: src/features/dashboard/components/ActionPanel.tsx:697
+msgid "Votes"
+msgstr "Votes"
+
+#: src/features/dashboard/components/ActionPanel.tsx:717
+msgid "Waiting for night."
+msgstr "En attente de la nuit."
+
+#: src/features/dashboard/components/ActionPanel.tsx:400
+msgid "Waiting for phase to end…"
+msgstr "En attente de la fin de phase…"
+
+#: src/features/dashboard/components/GameHeader.tsx:104
+#: src/features/dashboard/components/LocalDashboard.tsx:168
+msgid "Waiting for players…"
+msgstr "En attente des joueurs…"
+
+#: src/pages/DashboardPage.tsx:73
+msgid "Welcome"
+msgstr "Bienvenue"
+
+#. placeholder {0}: user.username
+#: src/pages/DashboardPage.tsx:71
+msgid "Welcome, {0}"
+msgstr "Bienvenue, {0}"
+
+#: src/pages/ProfilePage.tsx:73
+msgid "Wendigo"
+msgstr "Wendigo"
+
+#: src/features/dashboard/components/EndedScreen.tsx:132
+msgid "WENDIGO VICTORY"
+msgstr "VICTOIRE WENDIGO"
+
+#: src/pages/ProfilePage.tsx:65
+msgid "Wins"
+msgstr "Victoires"
+
+#: src/features/dashboard/components/ActionPanel.tsx:373
+msgid "Yes"
+msgstr "Oui"
+
+#. placeholder {0}: findTargetName(targetId)
+#: src/features/dashboard/components/ActionPanel.tsx:236
+msgid "You accuse {0}"
+msgstr "Vous accusez {0}"
+
+#: src/features/dashboard/components/ChairPicker.tsx:76
+msgid "You already have a seat"
+msgstr "Vous avez déjà un siège"
+
+#: src/features/dashboard/components/ActionPanel.tsx:297
+msgid "You are excluded from council: no vote or speech."
+msgstr "Vous êtes exclu du conseil : pas de vote ni de parole."
+
+#: src/features/dashboard/components/ActionPanel.tsx:582
+msgid "You are seated — waiting for others."
+msgstr "Vous êtes assis — en attente des autres."
+
+#: src/features/dashboard/components/WaitingRoom.tsx:197
+msgid "You preside over the council: adjust phase rhythm, then light the fire when the seats are ready."
+msgstr "Vous présidez le conseil : ajustez le rythme des phases, puis allumez le feu quand les sièges sont prêts."
+
+#. placeholder {0}: lobby.phaseSettings.pleadingSpeechSeconds
+#: src/features/dashboard/components/ActionPanel.tsx:850
+msgid "You will speak soon ({0}s once started)."
+msgstr "Vous parlerez bientôt ({0} s une fois commencé)."
+
+#: src/features/dashboard/components/ActionPanel.tsx:279
+msgid "Your action is recorded. Wait until the phase ends."
+msgstr "Votre action est enregistrée. Attendez la fin de la phase."

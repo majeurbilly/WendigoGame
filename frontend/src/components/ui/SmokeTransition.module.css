@@ -1,0 +1,50 @@
+@keyframes smokeInvasion {
+  0% {
+    transform: translateX(-50%) scale(0.1) translateY(0);
+    opacity: 0;
+  }
+
+  40% {
+    transform: translateX(-50%) scale(25) translateY(-20%);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(-50%) scale(1) translateY(-100%);
+    opacity: 0;
+  }
+}
+
+.root {
+  position: fixed;
+  inset: 0;
+  /* Au-dessus des overlays lobby (ex. vidéo cinématique z-100) pour une transition visible. */
+  z-index: 110;
+  pointer-events: none;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  visibility: hidden;
+}
+
+.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.smokeImage {
+  position: absolute;
+  bottom: -5%;
+  left: 50%;
+  width: 600px;
+  height: auto;
+
+  /* Test visibilité : laisser à 1 pour vérifier le chargement. */
+  opacity: 1;
+  transform: translateX(-50%) scale(0.1) translateY(0);
+}
+
+.active .smokeImage {
+  animation: smokeInvasion 1s linear both;
+}
+
