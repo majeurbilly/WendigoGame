@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/majeurbilly/wendigogame/internal/auth"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // healthResponse is the minimal payload for GET /health probes (load balancer, k8s, etc.).
@@ -28,12 +29,13 @@ func NewRouter(serverConfig Config) *http.ServeMux {
 
 	httpServeMux := http.NewServeMux()
 	httpServeMux.HandleFunc("/health", healthHandler)
+	httpServeMux.Handle("GET /metrics", promhttp.Handler())
 	httpServeMux.Handle("GET /auth/me", cfg.AuthMiddleware(http.HandlerFunc(cfg.handleMe)))
 	httpServeMux.Handle("POST /lobbies", cfg.AuthMiddleware(http.HandlerFunc(cfg.handleCreateLobby)))
 	httpServeMux.HandleFunc("POST /lobbies/{code}/start", cfg.handleStartGame)
 	httpServeMux.HandleFunc("POST /lobbies/{code}/seat", cfg.handleSelectSeat)
 	httpServeMux.HandleFunc("GET /ws", cfg.handleWebSocket)
-	log.Printf("api: router — ordre global: CORSMiddleware (main) puis ServeMux ; AuthMiddleware sur GET /auth/me et POST /lobbies ; GET /health sans auth")
+	log.Printf("api: router — ordre global: CORSMiddleware (main) puis ServeMux ; AuthMiddleware sur GET /auth/me et POST /lobbies ; GET /health et GET /metrics sans auth")
 	return httpServeMux
 }
 

@@ -121,8 +121,8 @@ export function deploy() {
       evaluationIntervalSeconds: 15,
       scrapeJobs: [
         { name: 'prometheus', targets: ['localhost:9090'] },
-        // Uncomment when the backend exposes GET /metrics:
-        // { name: 'wendigo-backend', targets: ['backend:8080'], metricsPath: '/metrics' },
+        { name: 'cadvisor', targets: ['cadvisor:8080'], metricsPath: '/metrics' },
+        { name: 'backend', targets: ['backend:8080'], metricsPath: '/metrics' },
       ],
     }),
   });

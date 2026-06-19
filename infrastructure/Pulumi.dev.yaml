@@ -14,4 +14,4 @@ config:
   grafana:adminPassword:
     secure: v1:9JB78RrdWSFOEtM3:HckEPkuUAM4XaMb4McCXiVeHR30h
   authentik:token:
-    secure: v1:3CO5Ws9Tf1wbJ9IJ:7Pz7x2nonImbGngbtPMDu+vKInxNZZhSuKKwLg/KXjqFOMWCFnM7tN6ulgDY+HxMEzwPj2ruh3S0CBuwfEispvEkdnpkygGRgMJHWA==
+    secure: v1:MTsj8Nlgo9/TgY3b:S/0Fg11OSwD4hw0ii8NRAOtsrsG2w60/jQiTVAimUaeZ8i80IboW0blixblEVlSHbtlrCZsBnJ0L0Y4gZNadElFSr8/+jIy3KHTO2A==

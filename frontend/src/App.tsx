@@ -21,6 +21,7 @@ import ProfilePage from './pages/ProfilePage'
 import SettingsPage from './pages/SettingsPage'
 import LobbyPage from './pages/LobbyPage'
 import LoginPage from './pages/LoginPage'
+import OnlineLobby from '@/features/online-lobby/OnlineLobby'
 import GlobalAudioToggle from './features/dashboard/components/GlobalAudioToggle'
 import { Toaster } from './components/ui/sonner'
 import { isGameOverPhase, isLobbyWaitingPhase } from './lib/gamePhase'
@@ -60,6 +61,7 @@ const AppShell = () => {
   const isInitializing = useAuthStore((state) => state.isInitializing)
   const syncFromOidc = useAuthStore((state) => state.syncFromOidc)
   const location = useLocation()
+  const isSandboxOnlineLobby = location.pathname === '/sandbox/online-lobby'
   const lobby = useGameStore((state) => state.lobby)
   const isCinematicPlaying = useGameStore((state) => state.isCinematicPlaying)
   const globalVolume = useGameStore((state) => state.globalVolume)
@@ -243,22 +245,31 @@ const AppShell = () => {
   return (
     <SmokeTransitionContext.Provider value={transitionValue}>
       <div className="relative min-h-screen">
-        <div className="fixed inset-0 z-[-1] overflow-hidden">
-          <LobbyPanorama fillParent />
-        </div>
+        {!isSandboxOnlineLobby ? (
+          <div className="fixed inset-0 z-[-1] overflow-hidden">
+            <LobbyPanorama fillParent />
+          </div>
+        ) : null}
 
         <SmokeTransition isActive={isTransitioning} />
 
         <GlobalAudioToggle />
 
         {oidcCallbackPending(auth) || isInitializing ? (
-          <div className="flex h-screen items-center justify-center text-slate-200">
-            <div className="rounded-xl border border-slate-700/60 bg-black/40 px-6 py-4 backdrop-blur-sm">
-              <Trans>Validating the Council seals…</Trans>
+          isSandboxOnlineLobby ? (
+            <Routes>
+              <Route path="/sandbox/online-lobby" element={<OnlineLobby />} />
+            </Routes>
+          ) : (
+            <div className="flex h-screen items-center justify-center text-slate-200">
+              <div className="rounded-xl border border-slate-700/60 bg-black/40 px-6 py-4 backdrop-blur-sm">
+                <Trans>Validating the Council seals…</Trans>
+              </div>
             </div>
-          </div>
+          )
         ) : (
           <Routes>
+            <Route path="/sandbox/online-lobby" element={<OnlineLobby />} />
             <Route
               path="/"
               element={

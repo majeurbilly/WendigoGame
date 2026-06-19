@@ -150,6 +150,9 @@ services:
       - prometheus_data:/prometheus
     ports:
       - "9090:9090"
+    depends_on:
+      cadvisor:
+        condition: service_healthy
     networks:
       - wendigame_network
 
@@ -165,6 +168,54 @@ services:
     networks:
       - wendigame_network
 
+  cadvisor:
+    profiles: [observability]
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    restart: unless-stopped
+    privileged: true
+    cgroup: host
+    command:
+      - --docker_only=true
+      - --store_container_labels=true
+      - --whitelisted_container_labels=com.docker.compose.service,com.docker.compose.project,com.docker.compose.container-number
+      - --housekeeping_interval=15s
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/sys:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+      - /etc/machine-id:/etc/machine-id:ro
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    ports:
+      - "8088:8080"
+    networks:
+      - wendigame_network
+
+  promtail:
+    profiles: [observability]
+    image: grafana/promtail:3.3.2
+    restart: unless-stopped
+    command: ["-config.file=/etc/promtail/config.yml"]
+    volumes:
+      - ./deploy/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - promtail_positions:/tmp
+    depends_on:
+      - loki
+    networks:
+      - wendigame_network
+
   grafana:
     profiles: [observability]
     image: grafana/grafana:11.3.1
@@ -175,11 +226,14 @@ services:
       GF_USERS_DEFAULT_THEME: dark
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
     ports:
       - "${GRAFANA_HTTP_PORT:-3000}:3000"
     depends_on:
       - prometheus
       - loki
+      - promtail
+      - cadvisor
     networks:
       - wendigame_network
 
@@ -239,3 +293,4 @@ volumes:
   prometheus_data:
   loki_data:
   grafana_data:
+  promtail_positions:
