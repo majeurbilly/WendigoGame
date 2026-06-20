@@ -250,6 +250,8 @@ services:
         condition: service_started
       redis:
         condition: service_healthy
+      authentik-server:
+        condition: service_started
     environment:
       DATABASE_URL: postgres://wendigo:${WENDIGO_PG_PASSWORD:-wendigo}@db:5432/wendigogame?sslmode=disable
       REDIS_URL: redis://redis:6379
@@ -270,7 +272,7 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
         VITE_LIVEKIT_URL: ${VITE_LIVEKIT_URL:-ws://localhost:7880}
-        VITE_AUTHENTIK_URL: ${VITE_AUTHENTIK_URL:-http://localhost:9000/application/o/wendigo}
+        VITE_AUTHENTIK_URL: ${VITE_AUTHENTIK_URL:-http://localhost:9000/application/o/wendigo/}
         VITE_AUTHENTIK_CLIENT_ID: ${VITE_AUTHENTIK_CLIENT_ID:-wendigo-dev}
     depends_on:
       - backend

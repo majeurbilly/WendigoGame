@@ -4,6 +4,24 @@ export interface InputState {
   right: boolean
 }
 
+export interface PlayerSkin {
+  id: string
+  color: string
+}
+
+export const PLAYER_SKINS: readonly PlayerSkin[] = [
+  { id: 'amber', color: '#f59e0b' },
+  { id: 'red', color: '#ef4444' },
+  { id: 'blue', color: '#3b82f6' },
+  { id: 'green', color: '#22c55e' },
+] as const
+
+export const DEFAULT_SKIN_ID = PLAYER_SKINS[0].id
+
+export function getSkinById(skinId: string): PlayerSkin {
+  return PLAYER_SKINS.find((skin) => skin.id === skinId) ?? PLAYER_SKINS[0]
+}
+
 export interface PlayerPhysics {
   x: number
   y: number
@@ -12,6 +30,7 @@ export interface PlayerPhysics {
   vx: number
   vy: number
   onGround: boolean
+  currentSkinId: string
 }
 
 /** Monde logique (ratio fixe) + joueur + inputs. */
@@ -49,6 +68,7 @@ export function createInitialGameState(): GameState {
       vx: 0,
       vy: 0,
       onGround: false,
+      currentSkinId: DEFAULT_SKIN_ID,
     },
     inputs: {
       left: false,

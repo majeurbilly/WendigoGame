@@ -34,6 +34,12 @@ const (
 	MessageTypeSubmitSurrenderVote = "SUBMIT_SURRENDER_VOTE"
 	// MessageTypeRestartGame lets the host reset the lobby to LOBBY after GAME_OVER.
 	MessageTypeRestartGame = "RESTART_GAME"
+	// MessageTypeUpdatePhysics is the inbound WebSocket message for sandbox position updates.
+	MessageTypeUpdatePhysics = "UPDATE_PHYSICS"
+	// MessageTypeUpdateSkin is the inbound WebSocket message for sandbox skin selection.
+	MessageTypeUpdateSkin = "UPDATE_SKIN"
+	// MessageTypePhysicsTick broadcasts ephemeral physics state to all lobby connections.
+	MessageTypePhysicsTick = "PHYSICS_TICK"
 )
 
 // WSMessage is the JSON format sent over WebSockets.

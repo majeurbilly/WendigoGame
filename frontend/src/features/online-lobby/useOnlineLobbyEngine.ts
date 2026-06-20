@@ -2,11 +2,10 @@ import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import {
   GRAVITY,
   MOVE_SPEED,
+  getSkinById,
   type GameState,
   createInitialGameState,
 } from './types'
-
-const PLAYER_COLOR = '#f59e0b'
 const FLOOR_COLOR = '#2d261f'
 const FLOOR_TOP_COLOR = '#4a3f35'
 const SKY_COLOR = '#0f1419'
@@ -94,9 +93,10 @@ function drawFrame(
   ctx.fillRect(0, state.floorY, state.worldWidth, 6)
 
   const { player } = state
-  ctx.fillStyle = PLAYER_COLOR
+  const skin = getSkinById(player.currentSkinId)
+  ctx.fillStyle = skin.color
   ctx.fillRect(player.x, player.y, player.width, player.height)
-  ctx.strokeStyle = '#fcd34d'
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)'
   ctx.lineWidth = 2
   ctx.strokeRect(player.x, player.y, player.width, player.height)
 }
@@ -104,6 +104,7 @@ function drawFrame(
 export interface OnlineLobbyEngineControls {
   setInputLeft: (pressed: boolean) => void
   setInputRight: (pressed: boolean) => void
+  setCurrentSkinId: (skinId: string) => void
 }
 
 export function useOnlineLobbyEngine(
@@ -119,6 +120,10 @@ export function useOnlineLobbyEngine(
 
   const setInputRight = useCallback((pressed: boolean) => {
     gameStateRef.current.inputs.right = pressed
+  }, [])
+
+  const setCurrentSkinId = useCallback((skinId: string) => {
+    gameStateRef.current.player.currentSkinId = skinId
   }, [])
 
   useEffect(() => {
@@ -212,5 +217,5 @@ export function useOnlineLobbyEngine(
     }
   }, [canvasRef])
 
-  return { setInputLeft, setInputRight }
+  return { setInputLeft, setInputRight, setCurrentSkinId }
 }

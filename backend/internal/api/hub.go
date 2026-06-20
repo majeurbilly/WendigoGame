@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/majeurbilly/wendigogame/internal/models"
 	"github.com/majeurbilly/wendigogame/internal/services"
@@ -30,13 +31,18 @@ type liveKitCachedToken struct {
 	isAlive bool
 }
 
+const physicsTickInterval = time.Second / 15
+
 type Hub struct {
 	hubMutex               sync.RWMutex
 	broadcastMu            sync.Mutex // Serializes WriteJSON (gorilla/websocket is not concurrent-safe for writes).
 	liveKitCacheMu         sync.Mutex // liveKitCache only; never take hubMutex while holding broadcastMu (see Unregister vs BroadcastState).
+	physicsStateMu         sync.RWMutex
 	connectionsByLobbyCode map[string]map[*websocket.Conn]struct{}
 	sessionByConnection    map[*websocket.Conn]websocketSession
 	liveKitCache           map[string]liveKitCachedToken // key: lobbyCode|playerID
+	physicsStateByLobby    map[string]map[uuid.UUID]*models.PlayerPhysicsState
+	physicsDirtyLobbies    map[string]struct{}
 	lobbyStore             *store.Store
 	liveKitService         *services.LiveKitService
 }
@@ -46,13 +52,17 @@ func NewHub(lobbyStore *store.Store, optionalLiveKitService ...*services.LiveKit
 	if len(optionalLiveKitService) > 0 {
 		liveKitService = optionalLiveKitService[0]
 	}
-	return &Hub{
+	hub := &Hub{
 		connectionsByLobbyCode: make(map[string]map[*websocket.Conn]struct{}),
 		sessionByConnection:    make(map[*websocket.Conn]websocketSession),
 		liveKitCache:           make(map[string]liveKitCachedToken),
+		physicsStateByLobby:    make(map[string]map[uuid.UUID]*models.PlayerPhysicsState),
+		physicsDirtyLobbies:    make(map[string]struct{}),
 		lobbyStore:             lobbyStore,
 		liveKitService:         liveKitService,
 	}
+	go hub.runPhysicsTicker()
+	return hub
 }
 
 func liveKitCacheKey(lobbyCode, playerID string) string {
@@ -175,15 +185,24 @@ func (h *Hub) Unregister(websocketConn *websocket.Conn) {
 	delete(h.sessionByConnection, websocketConn)
 
 	connections, foundLobby := h.connectionsByLobbyCode[session.lobbyCode]
+	lobbyEmpty := false
 	if foundLobby {
 		delete(connections, websocketConn)
 		if len(connections) == 0 {
 			delete(h.connectionsByLobbyCode, session.lobbyCode)
+			lobbyEmpty = true
 		}
 	}
 	h.hubMutex.Unlock()
 
 	h.evictLiveKitCache(session.lobbyCode, session.playerID)
+	if !lobbyEmpty {
+		if playerUUID, ok := parsePlayerUUID(session.playerID); ok {
+			h.removePhysicsPlayer(session.lobbyCode, playerUUID)
+		}
+	} else {
+		h.clearLobbyPhysics(session.lobbyCode)
+	}
 	// Do not RemovePlayerByID here: a tab refresh closes the socket but the player should stay
 	// in the lobby (roles preserved). Explicit leave uses LEAVE_LOBBY before disconnect.
 }
@@ -442,6 +461,13 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 			VoteYes bool `json:"vote_yes"`
 		}
 		var phaseSettingsBody models.PhaseSettings
+		var updatePhysicsBody struct {
+			X float64 `json:"x"`
+			Y float64 `json:"y"`
+		}
+		var updateSkinBody struct {
+			SkinID string `json:"skin_id"`
+		}
 		switch inbound.Type {
 		case models.MessageTypeVoteDay:
 			if err := json.Unmarshal(inbound.Payload, &voteBody); err != nil {
@@ -760,6 +786,11 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 				continue
 			}
 		case models.MessageTypeLeaveLobby:
+			if serverConfig.Hub != nil {
+				if playerUUID, ok := parsePlayerUUID(playerID); ok {
+					serverConfig.Hub.removePhysicsPlayer(lobbyCode, playerUUID)
+				}
+			}
 			if serverConfig.Store == nil {
 				return
 			}
@@ -777,6 +808,30 @@ func (serverConfig Config) handleWebSocket(responseWriter http.ResponseWriter, r
 				leaveSyncCancel()
 			}
 			return
+		case models.MessageTypeUpdatePhysics:
+			if serverConfig.Hub == nil {
+				continue
+			}
+			if err := json.Unmarshal(inbound.Payload, &updatePhysicsBody); err != nil {
+				log.Printf("websocket: invalid UPDATE_PHYSICS payload from player %s: %v", playerID, err)
+				continue
+			}
+			if playerUUID, ok := parsePlayerUUID(playerID); ok {
+				serverConfig.Hub.updatePlayerPhysics(lobbyCode, playerUUID, updatePhysicsBody.X, updatePhysicsBody.Y)
+			}
+			continue
+		case models.MessageTypeUpdateSkin:
+			if serverConfig.Hub == nil {
+				continue
+			}
+			if err := json.Unmarshal(inbound.Payload, &updateSkinBody); err != nil {
+				log.Printf("websocket: invalid UPDATE_SKIN payload from player %s: %v", playerID, err)
+				continue
+			}
+			if playerUUID, ok := parsePlayerUUID(playerID); ok {
+				serverConfig.Hub.updatePlayerSkin(lobbyCode, playerUUID, updateSkinBody.SkinID)
+			}
+			continue
 		default:
 			continue
 		}

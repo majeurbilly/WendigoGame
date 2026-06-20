@@ -19,7 +19,7 @@ export const googleClientSecret = wendigoConfig.requireSecret('googleClientSecre
 export const applicationName = 'Wendigo';
 export const applicationSlug = 'wendigo';
 export const oidcIncludePropertyMappings =
-  wendigoConfig.getBoolean('oidcIncludePropertyMappings') ?? false;
+  wendigoConfig.getBoolean('oidcIncludePropertyMappings') ?? true;
 
 export function parseRedirectUris(raw: string): { matchingMode: string; url: string }[] {
   return raw

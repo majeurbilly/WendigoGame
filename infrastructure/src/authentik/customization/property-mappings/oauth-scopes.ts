@@ -1,7 +1,10 @@
 ﻿import * as authentik from '@pulumi/authentik';
 import * as pulumi from '@pulumi/pulumi';
-import { akOpts } from '../../../utils';
+import { akInvokeOpts, akOpts } from '../../../utils';
 import type { SystemReferences } from '../../system/references';
+
+const MANAGED_SCOPE_OPENID = 'goauthentik.io/providers/oauth2/scope-openid';
+const MANAGED_SCOPE_EMAIL = 'goauthentik.io/providers/oauth2/scope-email';
 
 const PROFILE_SCOPE_EXPRESSION = `return {
     "name": request.user.name,
@@ -20,6 +23,17 @@ const PROFILE_SCOPE_EXPRESSION = `return {
 `;
 
 export function createOidcScopeMappings(system: SystemReferences, provider: authentik.Provider) {
+  void system;
+
+  const openidScope = authentik.getPropertyMappingProviderScopeOutput(
+    { managed: MANAGED_SCOPE_OPENID },
+    akInvokeOpts(provider),
+  );
+  const emailScope = authentik.getPropertyMappingProviderScopeOutput(
+    { managed: MANAGED_SCOPE_EMAIL },
+    akInvokeOpts(provider),
+  );
+
   const profileScopeMapping = new authentik.PropertyMappingProviderScope(
     'wendigo-profile-scope',
     {
@@ -31,12 +45,11 @@ export function createOidcScopeMappings(system: SystemReferences, provider: auth
     akOpts(provider),
   );
 
-  // Deterministic: only attach Wendigo-managed scopes. Avoid lookups of Authentik-managed default scopes.
   const oidcPropertyMappingIds = pulumi
-    .all([profileScopeMapping.id])
-    .apply(([profileId]) => [profileId]);
+    .all([openidScope.id, emailScope.id, profileScopeMapping.id])
+    .apply(([openidId, emailId, profileId]) => [openidId, emailId, profileId]);
 
-  return { profileScopeMapping, oidcPropertyMappingIds };
+  return { openidScope, emailScope, profileScopeMapping, oidcPropertyMappingIds };
 }
 
 export type OidcScopeMappingsResult = ReturnType<typeof createOidcScopeMappings>;

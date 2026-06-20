@@ -99,9 +99,10 @@ func NewTokenParser(ctx context.Context) (*TokenParser, error) {
 
 	jwks, err := keyfunc.Get(jwksURL, keyfunc.Options{
 		Ctx:                 jwksCtx,
-		RefreshInterval:     time.Hour,
+		RefreshInterval:     5 * time.Minute,
 		RefreshTimeout:      30 * time.Second,
-		RefreshRateLimit:    5 * time.Minute,
+		RefreshRateLimit:    time.Minute,
+		RefreshUnknownKID:   true,
 		RefreshErrorHandler: func(err error) {
 			log.Printf("auth: JWKS refresh error: %v", err)
 		},
@@ -148,8 +149,32 @@ func (p *TokenParser) parsedClaimsFromAccessToken(ctx context.Context, raw strin
 		return nil, errors.New("jwks client not initialized")
 	}
 
+	claims, err := p.parseAccessTokenClaims(raw)
+	if err == nil {
+		return claims, nil
+	}
+
+	// Après un `pulumi up` Authentik, le backend peut encore avoir d'anciennes clés JWKS en cache.
+	refreshCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	if refreshErr := p.jwks.Refresh(refreshCtx, keyfunc.RefreshOptions{IgnoreRateLimit: true}); refreshErr != nil {
+		log.Printf("auth: JWKS refresh after parse failure: %v", refreshErr)
+		return nil, err
+	}
+	log.Printf("auth: JWT parse failed (%v) — JWKS refreshed, retrying once", err)
+	claims, retryErr := p.parseAccessTokenClaims(raw)
+	if retryErr != nil {
+		return nil, retryErr
+	}
+	return claims, nil
+}
+
+func (p *TokenParser) parseAccessTokenClaims(raw string) (jwt.MapClaims, error) {
 	claims := jwt.MapClaims{}
-	parserOpts := []jwt.ParserOption{jwt.WithValidMethods(oidcValidMethods)}
+	parserOpts := []jwt.ParserOption{
+		jwt.WithValidMethods(oidcValidMethods),
+		jwt.WithLeeway(2 * time.Minute),
+	}
 	if skipRegisteredClaimsValidation() {
 		log.Printf("auth: WENDIGO_JWT_SKIP_REGISTERED_CLAIM_VALIDATION — validation des claims enregistrés (exp, nbf, …) désactivée (diagnostic)")
 		parserOpts = append(parserOpts, jwt.WithoutClaimsValidation())
@@ -163,7 +188,7 @@ func (p *TokenParser) parsedClaimsFromAccessToken(ctx context.Context, raw strin
 	if p.expectedIss != "" {
 		rawIss, ok := claims["iss"].(string)
 		if !ok || normalizeIssuer(rawIss) != p.expectedIss {
-			issErr := fmt.Errorf("invalid or missing iss claim (expected %q, normalized)", p.expectedIss)
+			issErr := fmt.Errorf("invalid or missing iss claim (expected %q, got %q)", p.expectedIss, rawIss)
 			log.Printf("auth: Erreur de validation JWT (iss): %v", issErr)
 			return nil, issErr
 		}

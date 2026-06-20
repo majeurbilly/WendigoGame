@@ -8,14 +8,11 @@ export function flowUuidFromLookup(flow: FlowLookup): pulumi.Output<string> {
   return flow.id;
 }
 
-const MANAGED_SCOPE_OPENID = 'goauthentik.io/providers/oauth2/scope-openid';
-const MANAGED_SCOPE_EMAIL = 'goauthentik.io/providers/oauth2/scope-email';
-const MANAGED_SCOPE_OFFLINE = 'goauthentik.io/providers/oauth2/scope-offline_access';
-
 export function createSystemReferences(provider: authentik.Provider) {
   // Avoid invoking (looking up) Authentik "default-*" flows by slug, which can vary by Authentik version.
   // Instead, manage our own provider flows deterministically.
   const flows = {
+    // Implicit consent: no stages (same as Authentik default-provider-authorization-implicit-consent).
     authorization: new authentik.Flow(
       'wendigo-provider-authorization-flow',
       {
@@ -23,7 +20,7 @@ export function createSystemReferences(provider: authentik.Provider) {
         slug: 'wendigo-provider-authorization',
         title: 'Wendigo: Consent',
         designation: 'authorization',
-        authentication: 'none',
+        authentication: 'require_authenticated',
       },
       akOpts(provider),
     ),
@@ -46,7 +43,7 @@ export function createSystemReferences(provider: authentik.Provider) {
         slug: 'wendigo-source-authentication',
         title: 'Wendigo: Continue',
         designation: 'authentication',
-        authentication: 'none',
+        authentication: 'require_unauthenticated',
       },
       akOpts(provider),
     ),

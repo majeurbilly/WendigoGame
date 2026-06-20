@@ -2,16 +2,17 @@ encryptionsalt: v1:FNCdHH+8ZCo=:v1:HW42hgYYAhjRbkKW:TTX4G+aRDKDApPysVdWSl7MjVMTz
 config:
   wendigo:googleClientId: 276321618988-c9gn61hqql7fspuva25g9lam4jh25mvg.apps.googleusercontent.com
   wendigo:googleClientSecret:
-    secure: v1:3kyF3/qmBzwdptW5:kv4072hegAGNxnge1Qy3vbDoMS0uR7GO0fRyK9UAYeGY2+/24YsqDiyJ6e0ZzAtSg0KO
+    secure: v1:azTibjLElFzpsQIU:sV6EWGUdFTq0985Kgnqqc8Ad9wUU0eneLG9WfRt91H2xkkaFKYQvSnmwA89NoJ2ebqYh
   wendigo:authentikSecretKey:
-    secure: v1:BZ1RXTvUmfaakGyi:snuxGttXgUfmQ9ioAjlC8xoS51hfP8ryqOTx0ivesF/ms5tPNB9uhq46nq/kADqhTnnb2WHk1aGbKe8mvMjkB9y1bVUA6lww9g==
+    secure: v1:ez3Q1qKY90qNah2x:2rcfcZXHABCdNOibuxH2Flt4WacTfOrmJms3SjCEl+IHqkhYTbynvpenX6DkIfLsl6fNsaRVIr3YdecZleuf4W+Zr1Vh0K4erA==
   wendigo:authentikPgPass:
-    secure: v1:rJyhydtIW5NSMXtY:vbi9glNLaOlnuahRxaJbEqK2NpiB+3UCAQ==
+    secure: v1:9UzizHuhBuMzMges:dSZpJnepKxJoOy9QVaRFocSTOj55QpHnPQ==
   wendigo:authentikBootstrapPassword:
-    secure: v1:3NZLvopCGqwxhtGi:2rgguz4GWdReFbhbgQ6lkzGGebqIzaGgTU6rDGidGRyvC8IGJYGkqKBHC/al9Wekgg==
+    secure: v1:EN7FsABhZbkvD6WT:2z6SEHoXB5tSO7UZNfgRhN5SsS+5k2IC5XvsRZHmUxVWS9GeMyAItoKH8UqsYouQTA==
   wendigo:pgPassword:
-    secure: v1:P6e1ILvHnMwI6EOO:wXxfof9MosYCOtBUFvab/BGOYFANap1E
+    secure: v1:PfppNrXTfNHUv2rz:9oJKH0ZU4a12hxca3ViXxU0rZNhoberZ
+  wendigo:oidcIncludePropertyMappings: "true"
   grafana:adminPassword:
-    secure: v1:9JB78RrdWSFOEtM3:HckEPkuUAM4XaMb4McCXiVeHR30h
+    secure: v1:nd9X4UmfyCGT88nQ:55KD27UTGtJDVqUp3w71wSBi5TDF
   authentik:token:
-    secure: v1:MTsj8Nlgo9/TgY3b:S/0Fg11OSwD4hw0ii8NRAOtsrsG2w60/jQiTVAimUaeZ8i80IboW0blixblEVlSHbtlrCZsBnJ0L0Y4gZNadElFSr8/+jIy3KHTO2A==
+    secure: v1:qGdf/KJngnQOh0Pk:TBv889MnWA43zRWoN0yfSe+kPvy75HVHhQWdatuKdBwBUSkeONBUIZV0dGnX5w9FMy34Tj2FMzFzDow01cUlqchLG+bhvPrs+Lfc+g==

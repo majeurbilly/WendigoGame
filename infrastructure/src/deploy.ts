@@ -1,11 +1,13 @@
 import type * as pulumi from '@pulumi/pulumi';
 import { oidcIncludePropertyMappings } from './config';
 import { createWendigoOidcProvider } from './authentik/applications/providers/wendigo-oidc';
+import { createWendigoApplication } from './authentik/applications/applications/wendigo-app';
 import { createGoogleEnrollmentPolicies } from './authentik/customization/policies/google-enrollment';
 import { createGoogleProfileMapping } from './authentik/customization/property-mappings/google-profile';
 import { createOidcScopeMappings } from './authentik/customization/property-mappings/oauth-scopes';
 import { createGoogleSource } from './authentik/federation/sources/google-oauth';
 import { bindGoogleEnrollmentFlow } from './authentik/flows-and-stages/bindings/google-enrollment-bindings';
+import { bindSourceAuthenticationFlow } from './authentik/flows-and-stages/bindings/source-authentication-bindings';
 import { bindWendigoAuthenticationFlow } from './authentik/flows-and-stages/bindings/wendigo-authentication-bindings';
 import { createGoogleEnrollmentFlow } from './authentik/flows-and-stages/flows/google-enrollment';
 import { createWendigoAuthenticationFlow } from './authentik/flows-and-stages/flows/wendigo-authentication';
@@ -13,6 +15,7 @@ import { createGoogleEnrollmentPromptStage } from './authentik/flows-and-stages/
 import { createWendigoIdentificationStage } from './authentik/flows-and-stages/stages/google-identification';
 import {
   createGoogleEnrollmentUserLoginStage,
+  createGoogleSourceAuthUserLoginStage,
   createWendigoAuthUserLoginStage,
 } from './authentik/flows-and-stages/stages/user-login';
 import { createGoogleEnrollmentUserWriteStage } from './authentik/flows-and-stages/stages/user-write';
@@ -35,6 +38,13 @@ export function deploy() {
   // Authentik
   const authentikProvider = createAuthentikProvider();
   const system = createSystemReferences(authentikProvider);
+
+  const sourceAuthUserLogin = createGoogleSourceAuthUserLoginStage(authentikProvider);
+  const sourceAuthenticationBindings = bindSourceAuthenticationFlow({
+    provider: authentikProvider,
+    system,
+    userLogin: sourceAuthUserLogin,
+  });
 
   const scopeMappings = oidcIncludePropertyMappings
     ? createOidcScopeMappings(system, authentikProvider)
@@ -66,6 +76,9 @@ export function deploy() {
     {
       dependsOn: [
         system.flows.sourceAuthentication,
+        sourceAuthUserLogin.stage,
+        sourceAuthenticationBindings.loginBinding,
+        sourceAuthenticationBindings.ssoPolicy,
         googleEnrollment.flow,
         enrollmentPrompt.stage,
         enrollmentUserWrite.stage,
@@ -109,6 +122,11 @@ export function deploy() {
     { dependsOn: oidcDependsOn },
   );
 
+  const wendigoApp = createWendigoApplication(
+    { provider: authentikProvider, oidc },
+    { dependsOn: [oidc.provider] },
+  );
+
   // Observability
   const grafanaProvider = createGrafanaProvider();
   const datasources = createDatasources(grafanaProvider);
@@ -142,6 +160,7 @@ export function deploy() {
     wendigoIdentification,
     authBindings,
     oidc,
+    wendigoApp,
     googleCallbackUri: google.source.callbackUri,
     googleSourceId: google.source.id,
     datasources,

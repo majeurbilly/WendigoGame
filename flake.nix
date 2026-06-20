@@ -67,12 +67,26 @@
             # Important: in flake-based shells, `toString ./.` resolves to a /nix/store path (read-only).
             # Compute paths at runtime from the user's current checkout instead.
             _repo="$(pwd)"
+            if [ -f "$_repo/package.json" ] && [ -d "$_repo/sdks" ] && [ ! -f "$_repo/docker-compose.yml" ]; then
+              _repo="$(cd "$_repo/.." && pwd)"
+            fi
             _infra="$_repo/infrastructure"
             export PULUMI_BACKEND_URL="file://$_infra"
 
             if [ ! -d "$_infra/node_modules" ]; then
               echo "Installing infrastructure npm dependencies..."
-              (cd "$_infra" && npm install --silent)
+              (cd "$_infra" && pnpm install --ignore-scripts 2>/dev/null || npm install --silent)
+            fi
+
+            _sdk="$_infra/sdks/authentik"
+            if [ ! -f "$_sdk/bin/package.json" ]; then
+              echo "Building Authentik SDK..."
+              (cd "$_sdk" && { [ -d node_modules ] || npm install --ignore-scripts; } && node scripts/postinstall.js)
+            fi
+            _ak_bin=$(find "$_infra/node_modules" -path '*/@pulumi/authentik/bin' -type d 2>/dev/null | head -1)
+            if [ -n "$_ak_bin" ] && [ ! -f "$_ak_bin/package.json" ] && [ -d "$_sdk/bin" ]; then
+              mkdir -p "$_ak_bin"
+              cp -a "$_sdk/bin/." "$_ak_bin/"
             fi
 
             if [ ! -f "$_infra/.pulumi/stacks/wendigo-authentik/dev.json" ]; then

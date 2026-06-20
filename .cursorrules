@@ -26,3 +26,12 @@ Tu dois toujours répondre en français. Tes réponses doivent être concises, d
 # Instructions de Génération de Code
 - Produis uniquement le code demandé, sans explications superflues, sauf si une décision architecturale nécessite une justification.
 - Pense aux cas limites (Edge cases) et gère le nettoyage (cleanup) de la mémoire, particulièrement pour les WebSockets (LiveKit) et le Canvas.
+
+# 📝 Gestion de la Documentation & Évolution (Mandatoire)
+À CHAQUE modification de code, ajout de fonctionnalité ou refactoring, tu dois obligatoirement créer ou mettre à jour un fichier Markdown (`.md`) dans le dossier `./docs` selon les règles suivantes :
+1. **Principe 1 Changement = 1 Doc** : Si tu modifies le moteur de rendu, mets à jour `./docs/engine.md`. Si tu ajoutes un endpoint ou une métrique Go, mets à jour ou crée la doc backend associée (ex: `./docs/metrics.md` ou `./docs/architecture.md`).
+2. **Structure des fichiers de doc** : Chaque fichier doit être concis et contenir :
+   - L'état actuel de la fonctionnalité/architecture.
+   - Les choix techniques marquants (ex: pourquoi un `useRef` à cet endroit, quelle métrique Prometheus a été ajoutée).
+   - Les impacts sur les autres composants (ex: impact du backend sur le frontend ou l'infra).
+3. **Livraison** : Présente toujours la mise à jour du fichier de documentation dans `./docs` en même temps que le code généré.

@@ -10,6 +10,7 @@ import {
 } from '../../../config';
 import type { OidcScopeMappingsResult } from '../../customization/property-mappings/oauth-scopes';
 import type { WendigoAuthenticationFlowResult } from '../../flows-and-stages/flows/wendigo-authentication';
+import { lookupAuthentikSelfSignedCertificate } from '../../system/signing-certificate';
 import type { SystemReferences } from '../../system/references';
 import { OidcProviderResource } from './oidc-provider-resource';
 
@@ -22,6 +23,8 @@ export function createWendigoOidcProvider(
   },
   opts?: pulumi.CustomResourceOptions,
 ) {
+  const signingCertificate = lookupAuthentikSelfSignedCertificate(deps.provider);
+
   const args: ConstructorParameters<typeof OidcProviderResource>[1] = {
     authentikUrl: authentikBaseUrl,
     authentikToken,
@@ -31,6 +34,7 @@ export function createWendigoOidcProvider(
     authorizationFlow: deps.system.flows.authorization.uuid,
     invalidationFlow: deps.system.flows.invalidation.uuid,
     authenticationFlow: deps.authentication.flow.uuid,
+    signingKey: signingCertificate.id,
     redirectUris: allowedRedirectUris,
     issuerMode: 'per_provider',
     subMode: 'user_uuid',

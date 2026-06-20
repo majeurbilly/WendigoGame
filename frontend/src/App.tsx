@@ -8,7 +8,9 @@ import {
   useLocation,
   useNavigate,
 } from 'react-router-dom'
-import { oidcUserManager } from '@/auth/oidcUserManager'
+import { toast } from 'sonner'
+import { formatOidcError, oidcLoginFailedMessage } from '@/auth/oidcErrors'
+import { oidcUserManager, resetOidcSession } from '@/auth/oidcUserManager'
 import AuthLayout from './components/layouts/AuthLayout'
 import LobbyPanorama from './components/lobby/LobbyPanorama'
 import SmokeTransition from './components/ui/SmokeTransition'
@@ -33,7 +35,7 @@ import { useGameStore } from './store/useGameStore'
 const WENDIGO_THEME_SRC = '/assets/musiques/wendigo_theme.mp3'
 
 const oidcCallbackPending = (auth: { isLoading: boolean; activeNavigator?: string }) =>
-  auth.isLoading || auth.activeNavigator !== undefined || hasAuthParams()
+  auth.isLoading || auth.activeNavigator !== undefined
 
 const ProtectedRoute = ({ children }: { children: ReactElement }) => {
   const auth = useAuth()
@@ -60,6 +62,7 @@ const AppShell = () => {
   const auth = useAuth()
   const isInitializing = useAuthStore((state) => state.isInitializing)
   const syncFromOidc = useAuthStore((state) => state.syncFromOidc)
+  const fetchMeProfile = useAuthStore((state) => state.fetchMeProfile)
   const location = useLocation()
   const isSandboxOnlineLobby = location.pathname === '/sandbox/online-lobby'
   const lobby = useGameStore((state) => state.lobby)
@@ -75,6 +78,22 @@ const AppShell = () => {
   const clearTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
+    if (!hasAuthParams() || auth.isLoading) {
+      return
+    }
+    if (auth.isAuthenticated) {
+      return
+    }
+    window.history.replaceState({}, document.title, window.location.pathname)
+    if (auth.error) {
+      console.error('OIDC callback failed:', auth.error)
+      toast.error(oidcLoginFailedMessage(formatOidcError(auth.error)))
+      void resetOidcSession()
+      navigate('/login', { replace: true })
+    }
+  }, [auth.isLoading, auth.isAuthenticated, auth.error, navigate])
+
+  useEffect(() => {
     syncFromOidc({
       isLoading: auth.isLoading,
       isAuthenticated: auth.isAuthenticated,
@@ -82,6 +101,13 @@ const AppShell = () => {
       oidcUser: auth.user,
     })
   }, [auth.isLoading, auth.isAuthenticated, auth.user, syncFromOidc])
+
+  useEffect(() => {
+    if (auth.isLoading || !auth.isAuthenticated) {
+      return
+    }
+    void fetchMeProfile()
+  }, [auth.isLoading, auth.isAuthenticated, fetchMeProfile])
 
   const transitionTo = useCallback(
     (to: string) => {
@@ -313,7 +339,7 @@ const AppShell = () => {
 }
 
 const onSigninCallback = () => {
-  window.history.replaceState({}, document.title, window.location.pathname)
+  window.history.replaceState({}, document.title, '/login')
 }
 
 function App() {
