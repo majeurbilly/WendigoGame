@@ -25,17 +25,6 @@ services:
     networks:
       - wendigame_network
 
-  livekit:
-    image: livekit/livekit-server:latest
-    command: ["--dev"]
-    restart: unless-stopped
-    ports:
-      - "7880:7880"
-      - "7881:7881/tcp"
-      - "7881:7881/udp"
-    networks:
-      - wendigame_network
-
   redis:
     image: ghcr.io/valkey-io/valkey:8-alpine
     command: ["valkey-server", "--appendonly", "yes"]
@@ -246,8 +235,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      livekit:
-        condition: service_started
       redis:
         condition: service_healthy
       authentik-server:
@@ -258,8 +245,6 @@ services:
       OIDC_ISSUER_URL: ${OIDC_ISSUER_URL:-http://authentik-server:9000/application/o/wendigo/}
       OIDC_EXPECTED_ISSUER: ${OIDC_EXPECTED_ISSUER:-http://localhost:9000/application/o/wendigo/}
       AUTHENTIK_JWKS_URL: ${AUTHENTIK_JWKS_URL:-http://authentik-server:9000/application/o/wendigo/jwks/}
-      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:-devkey}
-      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:-secret}
     ports:
       - "8080:8080"
     networks:
@@ -271,7 +256,6 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
-        VITE_LIVEKIT_URL: ${VITE_LIVEKIT_URL:-ws://localhost:7880}
         VITE_AUTHENTIK_URL: ${VITE_AUTHENTIK_URL:-http://localhost:9000/application/o/wendigo/}
         VITE_AUTHENTIK_CLIENT_ID: ${VITE_AUTHENTIK_CLIENT_ID:-wendigo-dev}
     depends_on:

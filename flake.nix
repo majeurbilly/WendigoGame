@@ -10,34 +10,6 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-
-        playwrightLinuxLibs = with pkgs; [
-          glib
-          nss
-          nspr
-          dbus
-          atk
-          cups
-          libdrm
-          gtk3
-          pango
-          cairo
-          alsa-lib
-          mesa
-          libx11
-          libxcomposite
-          libxdamage
-          libxext
-          libxfixes
-          libxrandr
-          libxcb
-          libxkbcommon
-          libxi
-          libxrender
-          libxtst
-          libxcursor
-          libxinerama
-        ];
       in
       {
         devShells.default = pkgs.mkShell {
@@ -60,8 +32,6 @@
           ];
 
           shellHook = ''
-            export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
-            export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath playwrightLinuxLibs}:''${LD_LIBRARY_PATH:-}"
             export PULUMI_CONFIG_PASSPHRASE="''${PULUMI_CONFIG_PASSPHRASE:-}"
 
             # Important: in flake-based shells, `toString ./.` resolves to a /nix/store path (read-only).

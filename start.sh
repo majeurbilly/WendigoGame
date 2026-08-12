@@ -33,7 +33,6 @@ export_vite_build_env() {
     set +a
   fi
   [[ -n "${VITE_API_URL:-}" ]] || export VITE_API_URL="http://localhost:8080"
-  [[ -n "${VITE_LIVEKIT_URL:-}" ]] || export VITE_LIVEKIT_URL="ws://localhost:7880"
   [[ -n "${VITE_AUTHENTIK_CLIENT_ID:-}" ]] || export VITE_AUTHENTIK_CLIENT_ID="wendigo-dev"
   export VITE_AUTHENTIK_URL="$(normalize_vite_oidc_url "${VITE_AUTHENTIK_URL:-}")"
 }
@@ -197,7 +196,6 @@ rebuild_frontend() {
   log "  VITE_AUTHENTIK_CLIENT_ID=$VITE_AUTHENTIK_CLIENT_ID"
   "${DC[@]}" build --no-cache \
     --build-arg "VITE_API_URL=${VITE_API_URL}" \
-    --build-arg "VITE_LIVEKIT_URL=${VITE_LIVEKIT_URL}" \
     --build-arg "VITE_AUTHENTIK_URL=${VITE_AUTHENTIK_URL}" \
     --build-arg "VITE_AUTHENTIK_CLIENT_ID=${VITE_AUTHENTIK_CLIENT_ID}" \
     frontend

@@ -1,4 +1,3 @@
-import { isVoiceChatGameMode } from '@/api/game'
 import MainLayout, { type GameOverlayHostMenuProps } from '@/components/layouts/MainLayout'
 import { useSmokeTransition } from '@/contexts/smokeTransitionContext'
 import EndedScreen from '@/features/dashboard/components/EndedScreen'
@@ -12,11 +11,9 @@ import { samePlayerId } from '@/lib/samePlayerId'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
 import { Trans, t } from '@/lib/lingui'
-import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
-
-const GameAudioRoom = lazy(() => import('@/features/dashboard/components/GameAudioRoom'))
 
 export default function LobbyPage() {
   const { code } = useParams<{ code: string }>()
@@ -25,7 +22,6 @@ export default function LobbyPage() {
 
   const lobby = useGameStore((state) => state.lobby)
   const isConnected = useGameStore((state) => state.isConnected)
-  const livekitToken = useGameStore((state) => state.livekitToken)
   const isCinematicPlaying = useGameStore((state) => state.isCinematicPlaying)
   const setCinematicPlaying = useGameStore((state) => state.setCinematicPlaying)
 
@@ -230,8 +226,6 @@ export default function LobbyPage() {
   }, [isCinematicPlaying, startMedia])
 
   const isEndedPhase = Boolean(lobby && isGameOverPhase(lobby.phase))
-  const voiceRoomToken =
-    livekitToken && lobby && isVoiceChatGameMode(lobby.mode) && !isEndedPhase ? livekitToken : null
   const isWaitingInLobby = Boolean(lobby && isLobbyWaitingPhase(lobby.phase))
   const showLobbyWaitingLayout = isWaitingInLobby || isCinematicPlaying
   /** Même chrome minimal qu’en partie (pas d’en-tête « dashboard ») — y compris écran de fin. */
@@ -297,17 +291,6 @@ export default function LobbyPage() {
           ) : (
             <LocalDashboard sendMessage={sendMessage} />
           )}
-          {voiceRoomToken ? (
-            <Suspense
-              fallback={
-                <div className="fixed right-4 bottom-4 z-50 flex animate-pulse items-center justify-center rounded-md border border-slate-800 bg-slate-900/50 p-4 text-sm text-slate-400">
-                  Initializing secure audio channel...
-                </div>
-              }
-            >
-              <GameAudioRoom token={voiceRoomToken} />
-            </Suspense>
-          ) : null}
         </MainLayout>
       </div>
 

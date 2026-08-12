@@ -1,0 +1,5 @@
+# Forcer Git à traiter tous les fichiers texte en LF (format Linux/Web)
+* text=auto eol=lf
+
+# (Optionnel) Si tu as des scripts purement Windows, tu peux les forcer en CRLF
+*.bat text eol=crlf

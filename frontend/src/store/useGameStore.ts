@@ -10,7 +10,6 @@ const isAppLocale = (value: string): value is AppLocale => value === 'en' || val
 interface GameState {
   lobby: LobbyState | null
   isConnected: boolean
-  livekitToken: string | null
   /** Verrou UI pendant la vidéo de transition lobby → jeu. */
   isCinematicPlaying: boolean
   /** Volume global 0–1 ; si muté, l’effet perçu est 0 mais la valeur du slider est conservée. */
@@ -19,7 +18,6 @@ interface GameState {
   language: AppLocale
   setLobby: (lobby: LobbyState | null) => void
   setConnected: (status: boolean) => void
-  setLiveKitToken: (token: string | null) => void
   setCinematicPlaying: (playing: boolean) => void
   setGlobalVolume: (volume: number) => void
   toggleGlobalMute: () => void
@@ -32,14 +30,12 @@ export const useGameStore = create<GameState>()(
     (set) => ({
       lobby: null,
       isConnected: false,
-      livekitToken: null,
       isCinematicPlaying: false,
       globalVolume: 0.5,
       isMuted: false,
       language: defaultLocale,
       setLobby: (lobby) => set({ lobby }),
       setConnected: (status) => set({ isConnected: status }),
-      setLiveKitToken: (token) => set({ livekitToken: token }),
       setCinematicPlaying: (playing) => set({ isCinematicPlaying: playing }),
       setGlobalVolume: (volume) =>
         set(() => {
@@ -58,7 +54,6 @@ export const useGameStore = create<GameState>()(
         set({
           lobby: null,
           isConnected: false,
-          livekitToken: null,
           isCinematicPlaying: false,
         }),
     }),
@@ -68,7 +63,6 @@ export const useGameStore = create<GameState>()(
       // Ne pas persister isConnected : après F5 le WS n'est pas encore ouvert.
       partialize: (state) => ({
         lobby: state.lobby,
-        livekitToken: state.livekitToken,
         globalVolume: state.globalVolume,
         isMuted: state.isMuted,
         language: state.language,

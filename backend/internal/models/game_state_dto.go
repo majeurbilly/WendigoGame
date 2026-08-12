@@ -39,5 +39,4 @@ type GameStateDTO struct {
 	VoteCounts           map[string]int    `json:"vote_counts,omitempty"`
 	MyVote               string            `json:"my_vote,omitempty"`
 	NightInstruction     string            `json:"night_instruction,omitempty"`
-	LiveKitToken         string            `json:"livekit_token,omitempty"`
 }

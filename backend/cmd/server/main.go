@@ -13,7 +13,6 @@ import (
 	"github.com/majeurbilly/wendigogame/internal/api"
 	"github.com/majeurbilly/wendigogame/internal/auth"
 	"github.com/majeurbilly/wendigogame/internal/database"
-	"github.com/majeurbilly/wendigogame/internal/services"
 	"github.com/majeurbilly/wendigogame/internal/store"
 )
 
@@ -50,12 +49,7 @@ func main() {
 		}
 	}()
 
-	liveKitService, err := services.NewLiveKitServiceFromEnv()
-	if err != nil {
-		log.Fatalf("livekit: %v", err)
-	}
-
-	connectionHub := api.NewHub(lobbyStore, liveKitService)
+	connectionHub := api.NewHub(lobbyStore)
 
 	tokenParser, err := auth.NewTokenParser(context.Background())
 	if err != nil {

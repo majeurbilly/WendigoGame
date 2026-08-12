@@ -25,7 +25,7 @@ Tu dois toujours répondre en français. Tes réponses doivent être concises, d
 
 # Instructions de Génération de Code
 - Produis uniquement le code demandé, sans explications superflues, sauf si une décision architecturale nécessite une justification.
-- Pense aux cas limites (Edge cases) et gère le nettoyage (cleanup) de la mémoire, particulièrement pour les WebSockets (LiveKit) et le Canvas.
+- Pense aux cas limites (Edge cases) et gère le nettoyage (cleanup) de la mémoire, particulièrement pour les WebSockets.
 
 # 📝 Gestion de la Documentation & Évolution (Mandatoire)
 À CHAQUE modification de code, ajout de fonctionnalité ou refactoring, tu dois obligatoirement créer ou mettre à jour un fichier Markdown (`.md`) dans le dossier `./docs` selon les règles suivantes :

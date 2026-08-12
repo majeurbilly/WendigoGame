@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 import {
   defaultPhaseSettings,
-  isVoiceChatGameMode,
   type LobbyState,
   type PhaseSettings,
 } from '@/api/game'
@@ -115,12 +114,8 @@ interface RawLobbyPayload {
   min_players?: number
 }
 
-interface GameTickPayload extends RawLobbyPayload {
-  livekit_token?: string
-}
-
 type LobbySyncMessage = BaseSocketMessage<'LOBBY_SYNC', RawLobbyPayload>
-type GameTickMessage = BaseSocketMessage<'GAME_TICK', GameTickPayload>
+type GameTickMessage = BaseSocketMessage<'GAME_TICK', RawLobbyPayload>
 type ErrorMessage = BaseSocketMessage<'ERROR', { message?: string }>
 type IncomingSocketMessage =
   | LobbySyncMessage
@@ -249,7 +244,6 @@ export const useGameWebSocket = (
   const reconnectTimerRef = useRef<number | null>(null)
   const setLobby = useGameStore((state) => state.setLobby)
   const setConnected = useGameStore((state) => state.setConnected)
-  const setLiveKitToken = useGameStore((state) => state.setLiveKitToken)
   const resetGame = useGameStore((state) => state.resetGame)
   const onInvalidLobby = options?.onInvalidLobby
   const notifyInvalidLobby = useCallback(
@@ -295,35 +289,9 @@ export const useGameWebSocket = (
         }
         try {
           const message = JSON.parse(event.data) as IncomingSocketMessage
-          if (isLobbySyncMessage(message)) {
+          if (isLobbySyncMessage(message) || isGameTickMessage(message)) {
             didReceiveLobbySyncRef.current = true
-            const nextLobby = normalizeLobbyPayload(message.payload)
-            setLobby(nextLobby)
-            if (!isVoiceChatGameMode(nextLobby.mode)) {
-              const currentToken = useGameStore.getState().livekitToken
-              if (currentToken !== null) {
-                setLiveKitToken(null)
-              }
-            }
-            return
-          }
-
-          if (isGameTickMessage(message)) {
-            didReceiveLobbySyncRef.current = true
-            const nextLobby = normalizeLobbyPayload(message.payload)
-            setLobby(nextLobby)
-            if (!isVoiceChatGameMode(nextLobby.mode)) {
-              const currentToken = useGameStore.getState().livekitToken
-              if (currentToken !== null) {
-                setLiveKitToken(null)
-              }
-              return
-            }
-            const nextToken = message.payload.livekit_token ?? null
-            const currentToken = useGameStore.getState().livekitToken
-            if (nextToken !== currentToken) {
-              setLiveKitToken(nextToken)
-            }
+            setLobby(normalizeLobbyPayload(message.payload))
             return
           }
 
@@ -392,7 +360,6 @@ export const useGameWebSocket = (
     notifyInvalidLobby,
     resetGame,
     setConnected,
-    setLiveKitToken,
     setLobby,
   ])
 
