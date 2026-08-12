@@ -25,17 +25,6 @@ services:
     networks:
       - wendigame_network
 
-  livekit:
-    image: livekit/livekit-server:latest
-    command: ["--dev"]
-    restart: unless-stopped
-    ports:
-      - "7880:7880"
-      - "7881:7881/tcp"
-      - "7881:7881/udp"
-    networks:
-      - wendigame_network
-
   redis:
     image: ghcr.io/valkey-io/valkey:8-alpine
     command: ["valkey-server", "--appendonly", "yes"]
@@ -150,6 +139,9 @@ services:
       - prometheus_data:/prometheus
     ports:
       - "9090:9090"
+    depends_on:
+      cadvisor:
+        condition: service_healthy
     networks:
       - wendigame_network
 
@@ -165,6 +157,54 @@ services:
     networks:
       - wendigame_network
 
+  cadvisor:
+    profiles: [observability]
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    restart: unless-stopped
+    privileged: true
+    cgroup: host
+    command:
+      - --docker_only=true
+      - --store_container_labels=true
+      - --whitelisted_container_labels=com.docker.compose.service,com.docker.compose.project,com.docker.compose.container-number
+      - --housekeeping_interval=15s
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys:/sys:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+      - /etc/machine-id:/etc/machine-id:ro
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    ports:
+      - "8088:8080"
+    networks:
+      - wendigame_network
+
+  promtail:
+    profiles: [observability]
+    image: grafana/promtail:3.3.2
+    restart: unless-stopped
+    command: ["-config.file=/etc/promtail/config.yml"]
+    volumes:
+      - ./deploy/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - promtail_positions:/tmp
+    depends_on:
+      - loki
+    networks:
+      - wendigame_network
+
   grafana:
     profiles: [observability]
     image: grafana/grafana:11.3.1
@@ -175,11 +215,14 @@ services:
       GF_USERS_DEFAULT_THEME: dark
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
     ports:
       - "${GRAFANA_HTTP_PORT:-3000}:3000"
     depends_on:
       - prometheus
       - loki
+      - promtail
+      - cadvisor
     networks:
       - wendigame_network
 
@@ -192,18 +235,16 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      livekit:
-        condition: service_started
       redis:
         condition: service_healthy
+      authentik-server:
+        condition: service_started
     environment:
       DATABASE_URL: postgres://wendigo:${WENDIGO_PG_PASSWORD:-wendigo}@db:5432/wendigogame?sslmode=disable
       REDIS_URL: redis://redis:6379
       OIDC_ISSUER_URL: ${OIDC_ISSUER_URL:-http://authentik-server:9000/application/o/wendigo/}
       OIDC_EXPECTED_ISSUER: ${OIDC_EXPECTED_ISSUER:-http://localhost:9000/application/o/wendigo/}
       AUTHENTIK_JWKS_URL: ${AUTHENTIK_JWKS_URL:-http://authentik-server:9000/application/o/wendigo/jwks/}
-      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:-devkey}
-      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:-secret}
     ports:
       - "8080:8080"
     networks:
@@ -215,8 +256,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
-        VITE_LIVEKIT_URL: ${VITE_LIVEKIT_URL:-ws://localhost:7880}
-        VITE_AUTHENTIK_URL: ${VITE_AUTHENTIK_URL:-http://localhost:9000/application/o/wendigo}
+        VITE_AUTHENTIK_URL: ${VITE_AUTHENTIK_URL:-http://localhost:9000/application/o/wendigo/}
         VITE_AUTHENTIK_CLIENT_ID: ${VITE_AUTHENTIK_CLIENT_ID:-wendigo-dev}
     depends_on:
       - backend
@@ -239,3 +279,4 @@ volumes:
   prometheus_data:
   loki_data:
   grafana_data:
+  promtail_positions:

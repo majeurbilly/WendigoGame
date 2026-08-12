@@ -81,7 +81,6 @@ Une fois que le terminal s'arrête de défiler frénétiquement :
 Si tu es un développeur et que tu te demandes comment ça marche :
 * **Backend :** Écrit en **Go** pur avec le framework réseau Gorilla WebSockets. Il agit comme un chef d'orchestre autoritaire (State Machine).
 * **Frontend :** Une interface ultra-réactive codée en **React / TypeScript**, stylisée avec Tailwind CSS.
-* **Audio en temps réel :** Propulsé par **LiveKit** pour gérer le chat vocal sans latence.
 * **Base de données :** **PostgreSQL** pour sauvegarder les joueurs et **Valkey/Redis** pour gérer les salons d'attente instantanés.
 
 ---

@@ -7,8 +7,16 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9090"]
 
-  # Décommenter lorsque le backend exposera GET /metrics (Ticket applicatif).
-  # - job_name: wendigo-backend
-  #   static_configs:
-  #     - targets: ["backend:8080"]
-  #   metrics_path: /metrics
+  - job_name: cadvisor
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["cadvisor:8080"]
+
+  - job_name: backend
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["backend:8080"]

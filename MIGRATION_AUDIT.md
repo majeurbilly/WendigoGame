@@ -33,7 +33,7 @@ Document de suivi technique. Dernière mise à jour : **Ticket 5 (OIDC frontend 
 - **API** : `loginAPI` / `registerAPI` supprimés de `api/auth.ts` ; **`getMeAPI`** et **`getApiErrorMessage`** conservés.
 - **Store** : plus d’appels login/register ; **Ticket 5** : session OIDC + `syncFromOidc` (plus de persistance token maison dans `localStorage`).
 - **Types** : `src/vite-env.d.ts` pour `VITE_AUTHENTIK_URL` ; `frontend/.env.example` documenté.
-- **E2E Playwright** : scénarios d’inscription **désactivés** (`test.describe.skip` / `test.skip`) jusqu’à réécriture OIDC.
+- **E2E Playwright** : **retiré** (party game présentiel uniquement ; voir `docs/party-game.md`).
 
 ---
 
@@ -51,7 +51,7 @@ Ce message vient du **registre** (souvent après trop de pulls anonymes ou de ma
 
 - **`docker login`** sur [hub.docker.com](https://hub.docker.com) puis relancer les pulls.
 - **`docker logout`** si des identifiants erronés bloquent l’IP, puis `docker login` avec les bons identifiants (ou pulls anonymes après délai).
-- **Observabilité** : Prometheus + Loki + Grafana sont derrière le profil Compose **`observability`** (images Grafana/Loki uniquement sur Docker Hub). Stack jeu + Authentik sans ce profil : moins de dépendance à Hub ; LiveKit reste sur Hub (`livekit/livekit-server`).
+- **Observabilité** : Prometheus + Loki + Grafana sont derrière le profil Compose **`observability`** (images Grafana/Loki uniquement sur Docker Hub). Stack jeu + Authentik sans ce profil : moins de dépendance à Hub.
 
 ---
 
@@ -71,7 +71,7 @@ Ce message vient du **registre** (souvent après trop de pulls anonymes ou de ma
 
 - Shell de dev : Go, Node 20, pnpm, Docker, docker-compose, go-task, gnumake.
 - **Ajouts Ticket 1 :** `skopeo`, `curl`, `jq`, `wget`, `bind.dnsutils` (dig, host, nslookup), `prometheus` (binaire + `promtool` pour valider les règles / usage local).
-- Playwright : inchangé (libs Linux + `shellHook`).
+- Playwright : **retiré** (plus de `playwrightLinuxLibs` ni d’exports dans le `shellHook`).
 
 ### Docker Compose racine (`docker-compose.yml`)
 
@@ -81,7 +81,6 @@ Réseau unique **`wendigame_network`** (équivalent à l’ancienne source de v�
 |---------|------|---------------------|
 | `db` | PostgreSQL **jeu** — image `public.ecr.aws/docker/library/postgres:15-alpine` | 5432 |
 | `redis` | Valkey **jeu** — image `ghcr.io/valkey-io/valkey:8-alpine` (AOF, healthcheck) | 6379 |
-| `livekit` | Serveur LiveKit `--dev` (`livekit/livekit-server`, Docker Hub) | 7880, 7881 tcp/udp |
 | `backend` | API Go (`wendigame-backend:dev`, `depends_on` db healthy + redis healthy) | 8080 |
 | `frontend` | Build Vite / nginx | 5173 → 80 |
 | `authentik-postgresql` | PostgreSQL **dédié Authentik** — `public.ecr.aws/docker/library/postgres:16-alpine` | — |

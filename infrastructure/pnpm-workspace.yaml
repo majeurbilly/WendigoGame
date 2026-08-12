@@ -1,2 +1,4 @@
+ignoredBuiltDependencies:
+  - '@pulumi/authentik'
 onlyBuiltDependencies:
   - protobufjs

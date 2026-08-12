@@ -5,7 +5,7 @@ import { useLocalTimer } from '@/hooks/useLocalTimer'
 import { Trans, t } from '@/lib/lingui'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useGameStore } from '@/store/useGameStore'
-import { isVoiceChatGameMode, type LobbyState } from '@/api/game'
+import type { LobbyState } from '@/api/game'
 import { samePlayerId } from '@/lib/samePlayerId'
 import type { ComponentProps } from 'react'
 import { useMemo } from 'react'
@@ -25,13 +25,17 @@ const overlayChrome =
 const hudBadge =
   'rounded-md border border-amber-600/50 bg-[#1c1814]/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#f5ecd8] shadow-[inset_0_1px_0_rgba(255,215,160,0.08)]'
 
-const modeLabel = (mode: string | undefined): string =>
-  isVoiceChatGameMode(mode) ? t`Online` : t`In person`
+const modeLabel = (mode: string | undefined): string => {
+  const m = (mode ?? 'local').toLowerCase()
+  return m === 'online' ? t`Online` : t`In person`
+}
 
-const modeBadgeClass = (mode: string | undefined): string =>
-  isVoiceChatGameMode(mode)
+const modeBadgeClass = (mode: string | undefined): string => {
+  const m = (mode ?? 'local').toLowerCase()
+  return m === 'online'
     ? 'border-sky-500/45 bg-sky-950/35 text-sky-100'
     : 'border-amber-600/50 bg-[#2a2118]/90 text-amber-100'
+}
 
 const formatTimer = (seconds: number): string => {
   const safeSeconds = Math.max(0, Math.floor(seconds))

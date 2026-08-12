@@ -24,3 +24,15 @@ export function createWendigoAuthUserLoginStage(provider: authentik.Provider) {
 
   return { stage };
 }
+
+export function createGoogleSourceAuthUserLoginStage(provider: authentik.Provider) {
+  const stage = new authentik.StageUserLogin(
+    'wendigo-google-source-auth-login',
+    {
+      name: 'Wendigo Google: post-source login',
+    },
+    akOpts(provider),
+  );
+
+  return { stage };
+}

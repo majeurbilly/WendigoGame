@@ -87,7 +87,7 @@ export function createDotEnv(): DotEnvResource {
         `AUTHENTIK_JWKS_URL=${authentikInternalBase}${oidcPath}/jwks/`,
         '',
         '# Frontend build args',
-        `VITE_AUTHENTIK_URL=${authentikBaseUrl}${oidcPath}`,
+        `VITE_AUTHENTIK_URL=${authentikBaseUrl}${oidcPath}/`,
         `VITE_AUTHENTIK_CLIENT_ID=wendigo-dev`,
       ].join('\n'),
     );

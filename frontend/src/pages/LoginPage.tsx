@@ -1,4 +1,6 @@
-import { Trans, t } from '@/lib/lingui'
+import { Trans } from '@/lib/lingui'
+import { formatOidcError, oidcLoginFailedMessage } from '@/auth/oidcErrors'
+import { resetOidcSession } from '@/auth/oidcUserManager'
 import { useAuth } from 'react-oidc-context'
 import { Navigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -23,12 +25,11 @@ const LoginPage = () => {
 
   const handleEnterCouncil = async () => {
     try {
+      await resetOidcSession()
       await auth.signinRedirect()
     } catch (error) {
       console.error('OIDC signinRedirect failed:', error)
-      toast.error(
-        t`Sign-in configuration error. Please contact the administrator.`,
-      )
+      toast.error(oidcLoginFailedMessage(formatOidcError(error)))
     }
   }
 

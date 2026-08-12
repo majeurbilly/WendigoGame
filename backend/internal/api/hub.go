@@ -13,7 +13,6 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/majeurbilly/wendigogame/internal/models"
-	"github.com/majeurbilly/wendigogame/internal/services"
 	"github.com/majeurbilly/wendigogame/internal/store"
 )
 
@@ -22,41 +21,20 @@ type websocketSession struct {
 	playerID  string
 }
 
-// liveKitCachedToken avoids regenerating JWTs on every GAME_TICK (each mint has a new iat),
-// which forced clients to reconnect LiveKit every second.
-type liveKitCachedToken struct {
-	token   string
-	phase   models.GamePhase
-	isAlive bool
-}
-
 type Hub struct {
 	hubMutex               sync.RWMutex
 	broadcastMu            sync.Mutex // Serializes WriteJSON (gorilla/websocket is not concurrent-safe for writes).
-	liveKitCacheMu         sync.Mutex // liveKitCache only; never take hubMutex while holding broadcastMu (see Unregister vs BroadcastState).
 	connectionsByLobbyCode map[string]map[*websocket.Conn]struct{}
 	sessionByConnection    map[*websocket.Conn]websocketSession
-	liveKitCache           map[string]liveKitCachedToken // key: lobbyCode|playerID
 	lobbyStore             *store.Store
-	liveKitService         *services.LiveKitService
 }
 
-func NewHub(lobbyStore *store.Store, optionalLiveKitService ...*services.LiveKitService) *Hub {
-	var liveKitService *services.LiveKitService
-	if len(optionalLiveKitService) > 0 {
-		liveKitService = optionalLiveKitService[0]
-	}
+func NewHub(lobbyStore *store.Store) *Hub {
 	return &Hub{
 		connectionsByLobbyCode: make(map[string]map[*websocket.Conn]struct{}),
 		sessionByConnection:    make(map[*websocket.Conn]websocketSession),
-		liveKitCache:           make(map[string]liveKitCachedToken),
 		lobbyStore:             lobbyStore,
-		liveKitService:         liveKitService,
 	}
-}
-
-func liveKitCacheKey(lobbyCode, playerID string) string {
-	return strings.ToUpper(strings.TrimSpace(lobbyCode)) + "|" + strings.TrimSpace(playerID)
 }
 
 func isGameplayActionBlockedByPause(messageType string) bool {
@@ -77,16 +55,6 @@ func isGameplayActionBlockedByPause(messageType string) bool {
 	default:
 		return false
 	}
-}
-
-func (h *Hub) evictLiveKitCache(lobbyCode, playerID string) {
-	if h == nil {
-		return
-	}
-	k := liveKitCacheKey(lobbyCode, playerID)
-	h.liveKitCacheMu.Lock()
-	delete(h.liveKitCache, k)
-	h.liveKitCacheMu.Unlock()
 }
 
 func isWebSocketWriteClosed(err error) bool {
@@ -182,8 +150,6 @@ func (h *Hub) Unregister(websocketConn *websocket.Conn) {
 		}
 	}
 	h.hubMutex.Unlock()
-
-	h.evictLiveKitCache(session.lobbyCode, session.playerID)
 	// Do not RemovePlayerByID here: a tab refresh closes the socket but the player should stay
 	// in the lobby (roles preserved). Explicit leave uses LEAVE_LOBBY before disconnect.
 }
@@ -824,7 +790,6 @@ func (h *Hub) BroadcastState(ctx context.Context, gameTickProvider GameTickProvi
 	for _, connection := range connections {
 		session := sessionByConn[connection]
 		gameStateDTO := lobby.ToGameStateDTO(session.playerID)
-		gameStateDTO.LiveKitToken = h.generateLiveKitToken(lobby, session.playerID)
 		message := models.WSMessage{
 			Type:    models.MessageTypeGameTick,
 			Payload: gameStateDTO,
@@ -865,55 +830,4 @@ func (h *Hub) SyncLobbyConnections(ctx context.Context, gameTickProvider GameTic
 		return h.Broadcast(code, models.MessageTypeLobbySync, lobby)
 	}
 	return h.BroadcastState(ctx, gameTickProvider, code)
-}
-
-func (h *Hub) generateLiveKitToken(lobby *models.Lobby, playerID string) string {
-	if h == nil || h.liveKitService == nil || lobby == nil {
-		return ""
-	}
-	playerID = strings.TrimSpace(playerID)
-	if playerID == "" {
-		log.Printf("hub: LiveKit skip: empty playerID after trim (lobby=%s phase=%s)", lobby.Code, lobby.Phase)
-		return ""
-	}
-
-	var currentPlayer *models.Player
-	for i := range lobby.Players {
-		if lobby.Players[i].ID.String() == playerID {
-			currentPlayer = &lobby.Players[i]
-			break
-		}
-	}
-	if currentPlayer == nil {
-		log.Printf("hub: LiveKit skip: player %s not in lobby %s (players=%d phase=%s)", playerID, lobby.Code, len(lobby.Players), lobby.Phase)
-		return ""
-	}
-
-	cacheKey := liveKitCacheKey(lobby.Code, playerID)
-	h.liveKitCacheMu.Lock()
-	if cached, ok := h.liveKitCache[cacheKey]; ok {
-		if cached.phase == lobby.Phase && cached.isAlive == currentPlayer.IsAlive {
-			tok := cached.token
-			h.liveKitCacheMu.Unlock()
-			return tok
-		}
-	}
-	h.liveKitCacheMu.Unlock()
-
-	token, err := h.liveKitService.GenerateToken(lobby, playerID)
-	if err != nil {
-		log.Printf("hub: LiveKit token generation failed for lobby %s player %s phase=%s: %v", lobby.Code, playerID, lobby.Phase, err)
-		return ""
-	}
-
-	h.liveKitCacheMu.Lock()
-	h.liveKitCache[cacheKey] = liveKitCachedToken{
-		token:   token,
-		phase:   lobby.Phase,
-		isAlive: currentPlayer.IsAlive,
-	}
-	h.liveKitCacheMu.Unlock()
-
-	log.Printf("hub: LiveKit mint lobby=%s player=%s phase=%s alive=%v token_len=%d", lobby.Code, playerID, lobby.Phase, currentPlayer.IsAlive, len(token))
-	return token
 }
