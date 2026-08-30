@@ -6,7 +6,7 @@ Push sur **`dev`** ou **`workflow_dispatch`** → `.github/workflows/deploy.yml`
 
 1. Checkout
 2. Copie **optionnelle** de `/home/gaston/.env.wendigo` → `.env` (overrides prod ; absent = notice, pas d'échec)
-3. `bash ./start.sh` (Compose defaults → `pulumi up` génère `.env` à la racine)
+3. `bash ./start.sh` après `source` du profile Nix daemon (`/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh`) — le runner Actions n'hérite pas toujours de `nix` dans le PATH
 4. Smoke check + logs Docker si échec
 
 ## Choix techniques

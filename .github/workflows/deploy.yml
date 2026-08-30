@@ -30,7 +30,10 @@ jobs:
           fi
 
       - name: Deploy infrastructure (Docker + Pulumi)
-        run: bash ./start.sh
+        run: |
+          # On force le robot à charger l'environnement Nix
+          source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+          bash ./start.sh
 
       - name: Smoke check (Verify services)
         run: |
