@@ -1,0 +1,47 @@
+name: Local Deployment WendiGame
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch: # NOUVEAU: Permet de lancer le déploiement via un bouton sur GitHub
+
+concurrency:
+  group: wendigame-deploy-dev
+  cancel-in-progress: false # CORRIGÉ: Met en file d'attente au lieu de couper violemment
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    timeout-minutes: 45
+    environment: dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup environment file (.env)
+        run: |
+          if [ -f /home/gaston/.env.wendigo ]; then
+            cp /home/gaston/.env.wendigo .env
+            echo ".env file copied successfully."
+          else
+            echo "::error::No persistent .env file found at /home/gaston/.env.wendigo"
+            exit 1
+          fi
+
+      - name: Deploy infrastructure (Docker + Pulumi)
+        run: bash ./start.sh
+
+      - name: Smoke check (Verify services)
+        run: |
+          set -euo pipefail
+          echo "Vérification de l'API..."
+          curl -sf http://localhost:8080/metrics >/dev/null
+          echo "Vérification du Frontend..."
+          curl -sf http://localhost:5173/ >/dev/null
+          echo "Déploiement terminé avec succès ! Tous les services sont en ligne."
+
+      - name: Afficher les logs en cas d'échec
+        if: failure()
+        run: docker compose logs --tail=100 backend frontend
