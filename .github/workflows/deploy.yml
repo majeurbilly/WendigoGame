@@ -24,10 +24,9 @@ jobs:
         run: |
           if [ -f /home/gaston/.env.wendigo ]; then
             cp /home/gaston/.env.wendigo .env
-            echo ".env file copied successfully."
+            echo "Fichier d'override .env copié avec succès."
           else
-            echo "::error::No persistent .env file found at /home/gaston/.env.wendigo"
-            exit 1
+            echo "::notice::Pas de fichier .env persistant trouvé. Utilisation des valeurs par défaut et génération via Pulumi."
           fi
 
       - name: Deploy infrastructure (Docker + Pulumi)
