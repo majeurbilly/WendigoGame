@@ -61,7 +61,7 @@ wait_authentik() {
       printf '  … %ds (dernier code: %s)\n' "$i" "$code"
     fi
     sleep 1
-    ((i++))
+    i=$((i + 1))
   done
   die "Authentik pas prêt après ${MAX_WAIT}s"
 }
@@ -221,7 +221,7 @@ verify() {
       return 0
     fi
     sleep 1
-    ((i++))
+    i=$((i + 1))
   done
   warn "Backend pas encore up — logs: ${DC[*]} logs backend"
 }

@@ -19,6 +19,6 @@ Push sur **`dev`** ou **`workflow_dispatch`** → `.github/workflows/deploy.yml`
 
 | Composant | Impact |
 |-----------|--------|
-| `start.sh` | Inchangé ; `compose_up` avant `pulumi up`. |
+| `start.sh` | `wait_authentik` / `verify` : `i=$((i + 1))` au lieu de `((i++))` — sous `set -e`, `((i++))` avec `i=0` quitte avec code 1 (piège Bash, pas curl/502). |
 | Bootstrap serveur | Plus besoin de créer `.env.wendigo` pour le premier deploy. |
 | Overrides | Placer `/home/gaston/.env.wendigo` si besoin ; peut être partiellement écrasé par `pulumi up`. |
