@@ -31,9 +31,11 @@ jobs:
 
       - name: Deploy infrastructure (Docker + Pulumi)
         run: |
-          # On force le robot à charger l'environnement Nix
+          # On force le robot à charger la commande Nix
           source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-          bash ./start.sh
+
+          # On lance ton script À L'INTÉRIEUR de la bulle Nix (qui contient npm, Pulumi, etc.)
+          nix develop --command bash ./start.sh
 
       - name: Smoke check (Verify services)
         run: |

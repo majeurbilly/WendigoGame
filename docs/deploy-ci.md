@@ -6,7 +6,7 @@ Push sur **`dev`** ou **`workflow_dispatch`** → `.github/workflows/deploy.yml`
 
 1. Checkout
 2. Copie **optionnelle** de `/home/gaston/.env.wendigo` → `.env` (overrides prod ; absent = notice, pas d'échec)
-3. `bash ./start.sh` après `source` du profile Nix daemon (`/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh`) — le runner Actions n'hérite pas toujours de `nix` dans le PATH
+3. `nix develop --command bash ./start.sh` après `source` du profile Nix daemon — expose Node/npm/pnpm/Go/Pulumi au runner (évite `npm: command not found` hors flake)
 4. Smoke check + logs Docker si échec
 
 ## Choix techniques
