@@ -1,0 +1,188 @@
+#!/usr/bin/env python3
+"""Supprime la config Wendigo dans Authentik (orphelins hors état Pulumi).
+
+Usage: prune-wendigo-authentik.py --url http://localhost:9000 --token <API_TOKEN>
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+
+WENDIGO_FLOW_SLUGS = frozenset(
+    {
+        "wendigo-authentication",
+        "wendigo-google-enrollment",
+        "wendigo-provider-authorization",
+        "wendigo-provider-invalidation",
+        "wendigo-source-authentication",
+    }
+)
+
+
+class AuthentikClient:
+    def __init__(self, base_url: str, token: str) -> None:
+        self.base = base_url.rstrip("/")
+        self.headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json",
+        }
+
+    def _request(self, method: str, path: str) -> dict | list | None:
+        url = f"{self.base}{path}"
+        req = urllib.request.Request(url, headers=self.headers, method=method)
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                body = resp.read().decode()
+                return json.loads(body) if body else None
+        except urllib.error.HTTPError as err:
+            if err.code == 404:
+                return None
+            raise
+
+    def list_paginated(self, path: str) -> list[dict]:
+        items: list[dict] = []
+        next_url: str | None = f"{path}{'&' if '?' in path else '?'}page_size=100"
+        while next_url:
+            payload = self._request("GET", next_url)
+            if not isinstance(payload, dict):
+                break
+            items.extend(payload.get("results", []))
+            next_path = payload.get("next")
+            if not next_path:
+                break
+            next_url = next_path.replace(self.base, "", 1) if next_path.startswith(self.base) else next_path
+        return items
+
+    def delete(self, path: str) -> bool:
+        try:
+            self._request("DELETE", path)
+            return True
+        except urllib.error.HTTPError as err:
+            if err.code in (404, 204):
+                return False
+            raise
+
+
+def name_is_wendigo(name: str | None) -> bool:
+    return bool(name and name.startswith("Wendigo"))
+
+
+def slug_is_wendigo(slug: str | None) -> bool:
+    return bool(slug and (slug in WENDIGO_FLOW_SLUGS or slug.startswith("wendigo-")))
+
+
+def prune(client: AuthentikClient) -> dict[str, int]:
+    deleted: dict[str, int] = {}
+
+    def wipe(label: str, path: str, predicate) -> None:
+        count = 0
+        for item in client.list_paginated(path):
+            if predicate(item):
+                pk = item.get("pk")
+                if pk and client.delete(f"{path.rstrip('/')}/{pk}/"):
+                    count += 1
+        deleted[label] = count
+
+    flows = [
+        f
+        for f in client.list_paginated("/api/v3/flows/instances/")
+        if slug_is_wendigo(f.get("slug")) or name_is_wendigo(f.get("name"))
+    ]
+    flow_pks = {f["pk"] for f in flows if f.get("pk")}
+
+    # 1. Application + provider + source (ordre FK)
+    wipe(
+        "applications",
+        "/api/v3/core/applications/",
+        lambda i: i.get("slug") == "wendigo" or name_is_wendigo(i.get("name")),
+    )
+    wipe(
+        "providers_oauth2",
+        "/api/v3/providers/oauth2/",
+        lambda i: name_is_wendigo(i.get("name")),
+    )
+    wipe(
+        "sources_oauth",
+        "/api/v3/sources/oauth/",
+        lambda i: i.get("slug") == "google" or name_is_wendigo(i.get("name")),
+    )
+
+    # 2. Bindings liés aux flows Wendigo
+    wipe(
+        "flow_bindings",
+        "/api/v3/flows/bindings/",
+        lambda i: i.get("target") in flow_pks,
+    )
+    wipe(
+        "policy_bindings",
+        "/api/v3/policies/bindings/",
+        lambda i: i.get("target") in flow_pks,
+    )
+
+    # 3. Flows
+    for flow in flows:
+        pk = flow.get("pk")
+        if pk and client.delete(f"/api/v3/flows/instances/{pk}/"):
+            deleted["flows"] = deleted.get("flows", 0) + 1
+
+    # 4. Stages & policies
+    for label, path in (
+        ("stages_user_login", "/api/v3/stages/user_login/"),
+        ("stages_identification", "/api/v3/stages/identification/"),
+        ("stages_prompt", "/api/v3/stages/prompt/stages/"),
+        ("stages_user_write", "/api/v3/stages/user_write/"),
+        ("policies_expression", "/api/v3/policies/expression/"),
+    ):
+        wipe(label, path, lambda i: name_is_wendigo(i.get("name")))
+
+    wipe(
+        "prompt_fields",
+        "/api/v3/stages/prompt/prompts/",
+        lambda i: str(i.get("name", "")).startswith("wendigo-"),
+    )
+
+    # 5. Property mappings + certificats
+    wipe(
+        "scope_mappings",
+        "/api/v3/propertymappings/provider/scope/",
+        lambda i: name_is_wendigo(i.get("name")),
+    )
+    wipe(
+        "oauth_mappings",
+        "/api/v3/propertymappings/source/oauth/",
+        lambda i: name_is_wendigo(i.get("name")),
+    )
+    wipe(
+        "certificates",
+        "/api/v3/crypto/certificatekeypairs/",
+        lambda i: name_is_wendigo(i.get("name")),
+    )
+
+    return deleted
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--url", default="http://localhost:9000")
+    parser.add_argument("--token", required=True)
+    args = parser.parse_args()
+
+    client = AuthentikClient(args.url, args.token)
+    try:
+        counts = prune(client)
+    except urllib.error.URLError as err:
+        print(f"prune failed: {err}", file=sys.stderr)
+        return 1
+
+    total = sum(counts.values())
+    print(json.dumps({"pruned": counts, "total": total}))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

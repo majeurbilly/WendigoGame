@@ -14,14 +14,14 @@ Push sur **`dev`** ou **`workflow_dispatch`** → `.github/workflows/deploy.yml`
 - **`.env.wendigo` non bloquant** : sans fichier persistant, Compose utilise les defaults et Pulumi regénère `.env` via `docker-env.ts`.
 - **État Pulumi persistant** : `PULUMI_STATE_DIR` (défaut `$HOME/.pulumi-wendigo`) — non effacé par `git clean` du checkout CI. Les retries reprennent les ressources déjà créées.
 - **Un seul `nix develop`** : `run_pulumi()` appelle `pulumi` directement ; le `shellHook` ne redémarre plus Authentik si le healthcheck est déjà OK.
-- **Grafana** : datasources via provisioning YAML uniquement (pas Pulumi) — évite `409 data source with the same name already exists`.
+- **Réconciliation Authentik** : purge API Wendigo + `pulumi refresh` avant `up` — évite `400 stage with this name already exists` quand l'état Pulumi est neuf mais la DB Authentik contient des runs précédents.
 - **`concurrency`** : `cancel-in-progress: false` — file d'attente sur serveur unique.
 
 ## Impacts
 
 | Composant | Impact |
 |-----------|--------|
-| `start.sh` | `PULUMI_BACKEND_URL=file://$PULUMI_STATE_DIR`, `run_pulumi` simplifié, `--parallel 2` |
+| `start.sh` | `PULUMI_BACKEND_URL`, `prune-wendigo-authentik.py`, `pulumi refresh`, `pulumi up` |
 | `flake.nix` | Backend Pulumi hors repo ; shellHook Authentik conditionnel |
 | Bootstrap | Premier deploy sans `.env.wendigo` ; état Pulumi conservé entre runs |
 | Pulumi | Voir `docs/infrastructure.md` (scopes OIDC, cert RSA, pas de Grafana provider) |

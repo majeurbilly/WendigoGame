@@ -166,6 +166,16 @@ print('TOKEN:', t.key)
   log "Token Authentik enregistré"
 }
 
+prune_authentik_wendigo() {
+  log "Purge Authentik Wendigo (réconciliation API / état Pulumi)..."
+  local token url
+  token="$(cd "$INFRA" && pulumi config get authentik:token 2>/dev/null || true)"
+  url="$(cd "$INFRA" && pulumi config get authentik:url 2>/dev/null || echo 'http://localhost:9000')"
+  [[ -n "$token" ]] || { warn "Token Authentik absent — purge ignorée"; return 0; }
+  python3 "$INFRA/scripts/prune-wendigo-authentik.py" --url "$url" --token "$token" || \
+    warn "Purge Authentik partielle ou échouée — pulumi refresh tentera de réconcilier"
+}
+
 run_pulumi() {
   log "Pulumi up (état: $PULUMI_STATE_DIR)..."
   export PULUMI_CONFIG_PASSPHRASE="${PULUMI_CONFIG_PASSPHRASE:-}"
@@ -175,6 +185,8 @@ run_pulumi() {
   pulumi stack select dev 2>/dev/null || pulumi stack init dev --non-interactive
   wait_authentik
   refresh_authentik_token
+  prune_authentik_wendigo
+  pulumi refresh -y --parallel 2
   pulumi up -y --parallel 2
 }
 
