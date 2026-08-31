@@ -9,17 +9,14 @@ WORKDIR /app
 
 # Invalide uniquement quand les dépendances module changent (go.mod / go.sum).
 COPY go.mod go.sum ./
-RUN --mount=type=cache,target=/go/pkg/mod \
-    go mod download
+RUN go mod download
 
 # Invalide à chaque changement de code applicatif (hors tests via .dockerignore).
 COPY cmd/ cmd/
 COPY internal/ internal/
 
 # Output : binaire backend. Invalide si deps (couche précédente) ou sources changent.
-RUN --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o /out/backend ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o /out/backend ./cmd/server
 
 # ── runner ────────────────────────────────────────────────────────────────────
 # Image finale : ne contient pas le toolchain Go → surface d'attaque réduite.

@@ -21,6 +21,10 @@ done
 # Binaires locaux (tsc, etc.) — postinstall.js du SDK Authentik appelle `tsc` via /bin/sh.
 export PATH="$INFRA/node_modules/.bin:$SDK/node_modules/.bin:$ROOT/node_modules/.bin:${PATH:-}"
 
+# BuildKit optionnel (runner gaston : docker classique sans buildx).
+export DOCKER_BUILDKIT="${DOCKER_BUILDKIT:-0}"
+export COMPOSE_DOCKER_CLI_BUILD="${COMPOSE_DOCKER_CLI_BUILD:-0}"
+
 log()  { printf '\n▶ %s\n' "$*"; }
 warn() { printf '⚠ %s\n' "$*" >&2; }
 die()  { printf '✖ %s\n' "$*" >&2; exit 1; }

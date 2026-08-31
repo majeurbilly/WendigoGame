@@ -9,8 +9,7 @@ WORKDIR /app
 
 # Invalide uniquement quand les dépendances npm changent.
 COPY package.json package-lock.json .npmrc ./
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci
+RUN npm ci
 
 # Config outil de build : change rarement vs src/ → couche cache distincte.
 COPY tsconfig.json tsconfig.app.json tsconfig.node.json \

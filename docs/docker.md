@@ -2,7 +2,7 @@
 
 ## État actuel
 
-Deux Dockerfiles multi-stage (`builder` → `runner`) avec **ordre de layers orienté cache** et **cache mounts BuildKit** (`/go/pkg/mod`, `/root/.cache/go-build`, `/root/.npm`).
+Deux Dockerfiles multi-stage (`builder` → `runner`) avec **ordre de layers orienté cache**. Pas de `--mount=type=cache` : le runner `gaston` utilise Docker classique sans BuildKit/buildx.
 
 ## Choix techniques
 
