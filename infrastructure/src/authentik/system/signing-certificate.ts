@@ -18,7 +18,7 @@ export function createWendigoOidcSigningCertificate(provider: authentik.Provider
         organization: 'Wendigo',
       },
       validityPeriodHours: 87600,
-      allowedUses: ['keyEncipherment', 'digitalSignature'],
+      allowedUses: ['key_encipherment', 'digital_signature'],
     },
     { dependsOn: [privateKey] },
   );
