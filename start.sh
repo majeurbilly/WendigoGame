@@ -238,6 +238,7 @@ run_pulumi() {
   refresh_authentik_token
   import_authentik_orphans
   sync_authentik_provider
+  import_authentik_orphans
   pulumi refresh -y --parallel 2
   pulumi up -y --parallel 2
   log "Redémarrage backend (JWKS OIDC après pulumi up)..."
