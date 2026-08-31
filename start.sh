@@ -9,6 +9,9 @@ COMPOSE_FILE="$ROOT/docker-compose.yml"
 OBSERVABILITY="${OBSERVABILITY:-1}"
 MAX_WAIT="${MAX_WAIT:-360}"
 
+# Binaires locaux (tsc, etc.) — postinstall.js du SDK Authentik appelle `tsc` via /bin/sh.
+export PATH="$INFRA/node_modules/.bin:$SDK/node_modules/.bin:$ROOT/node_modules/.bin:${PATH:-}"
+
 log()  { printf '\n▶ %s\n' "$*"; }
 warn() { printf '⚠ %s\n' "$*" >&2; }
 die()  { printf '✖ %s\n' "$*" >&2; exit 1; }
@@ -91,6 +94,9 @@ build_authentik_sdk() {
     if [[ ! -d node_modules ]]; then
       npm install --ignore-scripts
     fi
+    # Après npm install : tsc est dans $SDK/node_modules/.bin (pas dans le PATH du runner).
+    export PATH="$SDK/node_modules/.bin:$INFRA/node_modules/.bin:${PATH:-}"
+    command -v tsc >/dev/null || die "tsc introuvable (installe typescript dans $SDK ou flake.nix)"
     node scripts/postinstall.js
   )
   [[ -f "$SDK/bin/package.json" ]] || die "SDK Authentik: bin/package.json manquant après build"

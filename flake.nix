@@ -17,6 +17,7 @@
             go
             nodejs_20
             pnpm
+            typescript
             docker
             docker-compose
             go-task
