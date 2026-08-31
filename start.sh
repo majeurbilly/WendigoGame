@@ -259,7 +259,9 @@ pulumi_up_with_retry() {
     if pulumi up -y --parallel 1; then
       return 0
     fi
-    warn "pulumi up tentative $attempt/3 échouée — attente Authentik..."
+    warn "pulumi up tentative $attempt/3 échouée — réconciliation Authentik..."
+    import_authentik_orphans
+    prune_authentik_wendigo_rest
     sleep 15
   done
   return 1
