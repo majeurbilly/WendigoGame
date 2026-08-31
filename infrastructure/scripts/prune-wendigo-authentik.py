@@ -253,21 +253,76 @@ def prune(client: AuthentikClient) -> dict[str, int]:
     return deleted
 
 
+def flow_pk_by_slug(client: AuthentikClient, slug: str) -> str | None:
+    payload = client._request("GET", f"/api/v3/flows/instances/?slug={slug}")
+    if not isinstance(payload, dict):
+        return None
+    results = payload.get("results") or []
+    if not results:
+        return None
+    pk = results[0].get("pk")
+    return str(pk) if pk else None
+
+
+def wendigo_oauth_provider_exists(client: AuthentikClient) -> bool:
+    for item in client.list_paginated("/api/v3/providers/oauth2/"):
+        if item.get("client_id") in ("wendigo-dev", "wendigo"):
+            return True
+        if name_is_wendigo(item.get("name")):
+            return True
+    return False
+
+
+def verify_wendigo_absent(client: AuthentikClient) -> list[str]:
+    remaining: list[str] = []
+    for slug in WENDIGO_FLOW_SLUGS:
+        if flow_pk_by_slug(client, slug):
+            remaining.append(f"flow:{slug}")
+    if wendigo_oauth_provider_exists(client):
+        remaining.append("provider:oauth2")
+    for item in client.list_paginated("/api/v3/core/applications/"):
+        if item.get("slug") == "wendigo" or name_is_wendigo(item.get("name")):
+            remaining.append("application:wendigo")
+            break
+    return remaining
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://localhost:9000")
     parser.add_argument("--token", required=True)
+    parser.add_argument(
+        "--verify-only",
+        action="store_true",
+        help="Vérifie l'absence de ressources Wendigo (exit 1 si orphelins)",
+    )
     args = parser.parse_args()
 
     client = AuthentikClient(args.url, args.token)
+    if args.verify_only:
+        try:
+            remaining = verify_wendigo_absent(client)
+        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as err:
+            print(f"verify failed: {err}", file=sys.stderr)
+            return 1
+        if remaining:
+            print(json.dumps({"remaining": remaining}))
+            return 1
+        print(json.dumps({"remaining": []}))
+        return 0
+
     try:
         counts = prune(client)
-    except (urllib.error.URLError, urllib.error.HTTPError) as err:
+        remaining = verify_wendigo_absent(client)
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as err:
         print(f"prune failed: {err}", file=sys.stderr)
         return 1
 
     total = sum(counts.values())
-    print(json.dumps({"pruned": counts, "total": total}))
+    print(json.dumps({"pruned": counts, "total": total, "remaining": remaining}))
+    if remaining:
+        print(f"purge incomplete: {remaining}", file=sys.stderr)
+        return 1
     return 0
 
 

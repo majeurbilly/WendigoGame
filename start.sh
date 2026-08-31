@@ -213,38 +213,54 @@ prune_authentik_wendigo_ak() {
   [[ -f "$prune_script" ]] || return 0
 
   log "Purge Authentik Wendigo (ak shell / ORM)..."
-  local prune_out
+  local prune_out rc=0
   "${DC[@]}" exec -T authentik-worker sh -c 'cat > /tmp/prune-wendigo-ak.py' < "$prune_script"
-  prune_out="$("${DC[@]}" exec -T authentik-worker ak shell -c "exec(open('/tmp/prune-wendigo-ak.py').read())" 2>&1 | grep -E '\{"pruned"' | tail -1 || true)"
-  if [[ -n "$prune_out" ]]; then
-    log "  $prune_out"
+  prune_out="$("${DC[@]}" exec -T authentik-worker ak shell -c "exec(open('/tmp/prune-wendigo-ak.py').read())" 2>&1)" || rc=$?
+  if [[ "$rc" -ne 0 ]]; then
+    warn "ak shell purge exit $rc"
+    printf '%s\n' "$prune_out" | tail -5 >&2
+    return 1
+  fi
+  local summary
+  summary="$(printf '%s\n' "$prune_out" | grep -E '\{"pruned"' | tail -1 || true)"
+  if [[ -n "$summary" ]]; then
+    log "  $summary"
   else
-    warn "Purge Authentik via ak shell sans résultat — complément REST..."
+    warn "Purge Authentik via ak shell sans JSON — complément REST..."
+    return 1
   fi
 }
 
+stabilize_authentik_api() {
+  log "Redémarrage Authentik (API stable avant purge)..."
+  "${DC[@]}" restart authentik-server authentik-worker 2>/dev/null || true
+  wait_authentik
+  sleep 15
+}
+
 prune_authentik_wendigo_rest() {
-  local token url attempt
+  local token url
   token="$(authentik_api_token)"
   url="$(authentik_url)"
-  [[ -n "$token" ]] || { warn "Token Authentik absent — purge REST ignorée"; return 0; }
+  [[ -n "$token" ]] || { warn "Token Authentik absent — purge REST ignorée"; return 1; }
 
   log "Purge Authentik Wendigo (API REST)..."
-  for attempt in 1 2 3 4 5; do
-    wait_authentik
-    if python3 "$INFRA/scripts/prune-wendigo-authentik.py" --url "$url" --token "$token"; then
-      return 0
-    fi
-    warn "Purge REST tentative $attempt/5 échouée — attente Authentik..."
-    sleep 15
-  done
-  return 1
+  python3 "$INFRA/scripts/prune-wendigo-authentik.py" --url "$url" --token "$token"
 }
 
 purge_authentik_wendigo() {
-  wait_authentik
-  prune_authentik_wendigo_ak
-  prune_authentik_wendigo_rest || die "Purge Authentik Wendigo incomplète — impossible de faire un clean deploy"
+  stabilize_authentik_api
+  local attempt
+  for attempt in 1 2 3; do
+    wait_authentik
+    prune_authentik_wendigo_ak || true
+    if prune_authentik_wendigo_rest; then
+      return 0
+    fi
+    warn "Purge Wendigo tentative $attempt/3 incomplète — redémarrage Authentik..."
+    stabilize_authentik_api
+  done
+  die "Purge Authentik Wendigo incomplète — slugs Wendigo encore présents"
 }
 
 reset_pulumi_state() {
