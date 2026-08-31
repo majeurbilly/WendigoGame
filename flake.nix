@@ -42,7 +42,9 @@
               _repo="$(cd "$_repo/.." && pwd)"
             fi
             _infra="$_repo/infrastructure"
-            export PULUMI_BACKEND_URL="file://$_infra"
+            _pulumi_state="''${PULUMI_STATE_DIR:-$HOME/.pulumi-wendigo}"
+            mkdir -p "$_pulumi_state"
+            export PULUMI_BACKEND_URL="file://$_pulumi_state"
 
             if [ ! -d "$_infra/node_modules" ]; then
               echo "Installing infrastructure npm dependencies..."
@@ -60,7 +62,7 @@
               cp -a "$_sdk/bin/." "$_ak_bin/"
             fi
 
-            if [ ! -f "$_infra/.pulumi/stacks/wendigo-authentik/dev.json" ]; then
+            if [ ! -f "$_pulumi_state/stacks/wendigo-authentik/dev.json" ]; then
               echo "Initializing Pulumi dev stack..."
               (cd "$_infra" && pulumi stack init dev --non-interactive 2>/dev/null)
             fi
@@ -77,27 +79,8 @@
             fi
 
             if [ "$_token_ok" = "false" ]; then
-              echo "Authentik token missing or invalid — starting services..."
-
-              _bootstrap_pw=$(cd "$_infra" && pulumi config get wendigo:authentikBootstrapPassword 2>/dev/null || echo "")
-              AUTHENTIK_BOOTSTRAP_PASSWORD="$_bootstrap_pw" \
-                docker compose -f "$_repo/docker-compose.yml" up -d \
-                  authentik-postgresql authentik-redis authentik-server authentik-worker \
-                  >/dev/null 2>&1
-
-              echo "Waiting for Authentik to be ready..."
-              _tries=0
-              until curl -sf -o /dev/null "$_ak_url/-/health/live/" 2>/dev/null; do
-                _tries=$((_tries + 1))
-                if [ "$_tries" -ge 60 ]; then
-                  echo "Authentik did not become ready in time — token not set."
-                  break
-                fi
-                sleep 2
-              done
-
-              if curl -sf -o /dev/null "$_ak_url/-/health/live/" 2>/dev/null; then
-                _new_token=$(docker compose -f "$_repo/docker-compose.yml" exec -T authentik-worker \
+              _fetch_token() {
+                docker compose -f "$_repo/docker-compose.yml" exec -T authentik-worker \
                   ak shell -c "
 from authentik.core.models import Token, TokenIntents, User
 admin = User.objects.get(username='akadmin')
@@ -106,14 +89,38 @@ t, _ = Token.objects.get_or_create(
     defaults=dict(user=admin, intent=TokenIntents.INTENT_API),
 )
 print('TOKEN:', t.key)
-" 2>/dev/null | grep "^TOKEN:" | cut -d' ' -f2)
+" 2>/dev/null | grep "^TOKEN:" | cut -d' ' -f2
+              }
 
-                if [ -n "$_new_token" ]; then
-                  (cd "$_infra" && pulumi config set --secret authentik:token "$_new_token" 2>/dev/null)
-                  echo "Authentik API token set."
-                else
-                  echo "Could not retrieve token — run: docker compose exec authentik-worker ak shell"
-                fi
+              if curl -sf -o /dev/null "$_ak_url/-/health/ready/" 2>/dev/null; then
+                echo "Authentik déjà prêt — rafraîchissement du token API (sans redémarrage)..."
+                _new_token=$(_fetch_token)
+              else
+                echo "Authentik token missing or invalid — starting services..."
+                _bootstrap_pw=$(cd "$_infra" && pulumi config get wendigo:authentikBootstrapPassword 2>/dev/null || echo "")
+                AUTHENTIK_BOOTSTRAP_PASSWORD="$_bootstrap_pw" \
+                  docker compose -f "$_repo/docker-compose.yml" up -d \
+                    authentik-postgresql authentik-redis authentik-server authentik-worker \
+                    >/dev/null 2>&1
+
+                echo "Waiting for Authentik to be ready..."
+                _tries=0
+                until curl -sf -o /dev/null "$_ak_url/-/health/ready/" 2>/dev/null; do
+                  _tries=$((_tries + 1))
+                  if [ "$_tries" -ge 60 ]; then
+                    echo "Authentik did not become ready in time — token not set."
+                    break
+                  fi
+                  sleep 2
+                done
+                _new_token=$(_fetch_token)
+              fi
+
+              if [ -n "$_new_token" ]; then
+                (cd "$_infra" && pulumi config set --secret authentik:token "$_new_token" 2>/dev/null)
+                echo "Authentik API token set."
+              else
+                echo "Could not retrieve token — run: docker compose exec authentik-worker ak shell"
               fi
             fi
           '';

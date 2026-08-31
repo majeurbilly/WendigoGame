@@ -8,6 +8,8 @@ SDK="$INFRA/sdks/authentik"
 COMPOSE_FILE="$ROOT/docker-compose.yml"
 OBSERVABILITY="${OBSERVABILITY:-1}"
 MAX_WAIT="${MAX_WAIT:-360}"
+PULUMI_STATE_DIR="${PULUMI_STATE_DIR:-$HOME/.pulumi-wendigo}"
+export PULUMI_BACKEND_URL="file://${PULUMI_STATE_DIR}"
 
 # Binaires locaux (tsc, etc.) — postinstall.js du SDK Authentik appelle `tsc` via /bin/sh.
 export PATH="$INFRA/node_modules/.bin:$SDK/node_modules/.bin:$ROOT/node_modules/.bin:${PATH:-}"
@@ -157,42 +159,23 @@ print('TOKEN:', t.key)
 " 2>/dev/null | grep '^TOKEN:' | cut -d' ' -f2)"
 
   [[ -n "$token" ]] || die "Impossible de récupérer le token Authentik"
-  pulumi config set --secret authentik:token "$token"
+  (
+    cd "$INFRA"
+    pulumi config set --secret authentik:token "$token"
+  )
   log "Token Authentik enregistré"
 }
 
 run_pulumi() {
-  log "Pulumi (nix develop)..."
-  cd "$ROOT"
+  log "Pulumi up (état: $PULUMI_STATE_DIR)..."
   export PULUMI_CONFIG_PASSPHRASE="${PULUMI_CONFIG_PASSPHRASE:-}"
-  export PULUMI_BACKEND_URL="file://$INFRA"
+  mkdir -p "$PULUMI_STATE_DIR"
 
-  nix develop "$ROOT" --command bash -lc "
-    set -euo pipefail
-    cd '$INFRA'
-    export PULUMI_CONFIG_PASSPHRASE='${PULUMI_CONFIG_PASSPHRASE:-}'
-    export PULUMI_BACKEND_URL='file://$INFRA'
-    if [[ ! -f '$SDK/bin/package.json' ]]; then
-      echo 'SDK bin/ manquant — rebuild...'
-      (cd '$SDK' && node scripts/postinstall.js)
-    fi
-    dest=\$(find node_modules -path '*/@pulumi/authentik/bin' -type d 2>/dev/null | head -1 || true)
-    if [[ -n \"\$dest\" && ! -f \"\$dest/package.json\" ]]; then
-      mkdir -p \"\$dest\"
-      cp -a '$SDK/bin/.' \"\$dest/\"
-    fi
-    # Init Pulumi : shellHook flake.nix + ensure_pulumi_deps() ont déjà installé deps/SDK/token.
-    pulumi stack select dev 2>/dev/null || pulumi stack init dev --non-interactive
-    token=\$($(printf '%q ' "${DC[@]}") exec -T authentik-worker ak shell -c \"
-from authentik.core.models import Token, TokenIntents, User
-admin = User.objects.get(username='akadmin')
-t, _ = Token.objects.get_or_create(identifier='pulumi-deploy', defaults=dict(user=admin, intent=TokenIntents.INTENT_API))
-print('TOKEN:', t.key)
-\" 2>/dev/null | grep '^TOKEN:' | cut -d' ' -f2)
-    [[ -n \"\$token\" ]] || { echo 'Token Authentik introuvable'; exit 1; }
-    pulumi config set --secret authentik:token \"\$token\"
-    pulumi up -y
-  "
+  cd "$INFRA"
+  pulumi stack select dev 2>/dev/null || pulumi stack init dev --non-interactive
+  wait_authentik
+  refresh_authentik_token
+  pulumi up -y --parallel 2
 }
 
 rebuild_frontend() {

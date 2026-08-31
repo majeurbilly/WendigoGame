@@ -16,7 +16,6 @@
     "@pulumi/authentik": "file:sdks/authentik",
     "@pulumi/pulumi": "^3.192.0",
     "@pulumi/tls": "^5.2.3",
-    "@pulumiverse/grafana": "^2.30.0",
     "protobufjs": "^8.4.2"
   },
   "devDependencies": {

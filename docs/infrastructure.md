@@ -2,20 +2,25 @@
 
 ## État actuel
 
-Stack `infrastructure/` : provisionne Authentik (OIDC Wendigo, Google SSO), Grafana datasources, Prometheus scrape config et génère `.env` pour Docker Compose.
+Stack `infrastructure/` : provisionne Authentik (OIDC Wendigo, Google SSO), la config Prometheus scrape et génère `.env` pour Docker Compose.
+
+**Grafana** : datasources Prometheus/Loki provisionnés uniquement via `deploy/grafana/provisioning/datasources/datasources.yml` (Zéro ClickOps). Pulumi n’y touche plus — évite les conflits 409 sur redéploiement CI.
+
+**État Pulumi** : backend fichier persistant hors workspace (`$HOME/.pulumi-wendigo` par défaut, `PULUMI_STATE_DIR` surchargeable). Survit au `git clean` du runner Actions.
 
 ## Choix techniques (CI / instance fraîche)
 
-- **Zéro `invoke` Authentik fragile** : les scopes OIDC `openid` / `email` / `profile` et le certificat de signature RSA sont des **ressources Pulumi** (`PropertyMappingProviderScope`, `CertificateKeyPair`), plus de lookup `getPropertyMappingProviderScope` / `getCertificateKeyPair` sur les objets managés par défaut d'Authentik.
-- **Certificat OIDC** : `@pulumi/tls` génère une paire RSA auto-signée importée dans Authentik (`Wendigo: OIDC Signing (RSA)`). `allowedUses` doit être en snake_case (`key_encipherment`, `digital_signature`) — requis par le provider TLS v5.
-- **Alignement** : même philosophie que `references.ts` (« pas de lookups sur une instance fraîche »).
+- **Zéro `invoke` Authentik fragile** : scopes OIDC et certificat RSA sont des ressources Pulumi (`PropertyMappingProviderScope`, `CertificateKeyPair`).
+- **Certificat OIDC** : `@pulumi/tls` + `allowedUses` en snake_case (`key_encipherment`, `digital_signature`).
+- **`run_pulumi`** : plus de `nix develop` imbriqué — le workflow lance déjà `nix develop --command bash ./start.sh`. Évite un redémarrage Authentik via le `shellHook` pendant `pulumi up`.
+- **`shellHook` flake** : si `/-/health/ready/` répond 200, seul le token API est rafraîchi (pas de `docker compose up` authentik).
 
 ## Impacts
 
 | Composant | Impact |
 |-----------|--------|
-| `oauth-scopes.ts` | 3 `PropertyMappingProviderScope` Wendigo au lieu de 2 invokes + 1 mapping |
-| `signing-certificate.ts` | `tls.SelfSignedCert` + `CertificateKeyPair` |
-| `wendigo-oidc.ts` | `dependsOn` sur le certificat avant création du provider |
-| Backend | JWKS `/application/o/wendigo/jwks/` disponible après `pulumi up` réussi |
-| CI | Corrige l'échec preview `invoke.ts` (2 erreurs) sur runner self-hosted |
+| `deploy.ts` | Suppression `createDatasources` / provider Grafana |
+| `index.ts` | `prometheusDatasourceId` / `lokiDatasourceId` = UIDs statiques du YAML |
+| `start.sh` | `PULUMI_STATE_DIR`, `pulumi up -y --parallel 2` |
+| Backend | JWKS `/application/o/wendigo/jwks/` après `pulumi up` réussi |
+| CI | Corrige 409 Grafana + 502 Authentik (redémarrage mid-deploy) |

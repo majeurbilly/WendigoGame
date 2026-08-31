@@ -5,22 +5,23 @@
 Push sur **`dev`** ou **`workflow_dispatch`** → `.github/workflows/deploy.yml` sur runner **`self-hosted`** :
 
 1. Checkout
-2. Copie **optionnelle** de `/home/gaston/.env.wendigo` → `.env` (overrides prod ; absent = notice, pas d'échec)
-3. `nix develop --command bash ./start.sh` après `source` du profile Nix daemon — expose Node/npm/pnpm/Go/Pulumi au runner (évite `npm: command not found` hors flake)
+2. Copie **optionnelle** de `/home/gaston/.env.wendigo` → `.env`
+3. `nix develop --command bash ./start.sh`
 4. Smoke check + logs Docker si échec
 
 ## Choix techniques
 
-- **`.env.wendigo` non bloquant** : sans fichier persistant, Compose utilise les defaults et Pulumi regénère `.env` via `infrastructure/src/docker-env.ts`. L'étape CI sert uniquement aux overrides futurs (URLs publiques, etc.).
-- **Secrets primaires** : config chiffrée `infrastructure/Pulumi.dev.yaml` + état `infrastructure/.pulumi/` sur le serveur (gitignoré).
+- **`.env.wendigo` non bloquant** : sans fichier persistant, Compose utilise les defaults et Pulumi regénère `.env` via `docker-env.ts`.
+- **État Pulumi persistant** : `PULUMI_STATE_DIR` (défaut `$HOME/.pulumi-wendigo`) — non effacé par `git clean` du checkout CI. Les retries reprennent les ressources déjà créées.
+- **Un seul `nix develop`** : `run_pulumi()` appelle `pulumi` directement ; le `shellHook` ne redémarre plus Authentik si le healthcheck est déjà OK.
+- **Grafana** : datasources via provisioning YAML uniquement (pas Pulumi) — évite `409 data source with the same name already exists`.
 - **`concurrency`** : `cancel-in-progress: false` — file d'attente sur serveur unique.
 
 ## Impacts
 
 | Composant | Impact |
 |-----------|--------|
-| `start.sh` | `wait_authentik` / `verify` : `i=$((i + 1))` au lieu de `((i++))` — sous `set -e`, `((i++))` avec `i=0` quitte avec code 1 (piège Bash, pas curl/502). PATH exporté vers `node_modules/.bin` pour que `tsc` (SDK Authentik / `postinstall.js`) soit trouvé hors PATH système. `run_pulumi` n'appelle plus `./setup-pulumi.sh` (fichier absent du repo) : init stack + token Authentik assurés par `ensure_pulumi_deps()` et le `shellHook` de `flake.nix`. |
-| `flake.nix` | Paquet `typescript` dans le devShell — filet de sécurité si `node_modules/.bin` n’est pas encore peuplé. |
-| Bootstrap serveur | Plus besoin de créer `.env.wendigo` pour le premier deploy. |
-| Overrides | Placer `/home/gaston/.env.wendigo` si besoin ; peut être partiellement écrasé par `pulumi up`. |
-| Pulumi / Authentik | Scopes OIDC + certificat RSA provisionnés sans `invoke` Authentik (voir `docs/infrastructure.md`) — corrige l'échec preview `invoke.ts` sur CI. |
+| `start.sh` | `PULUMI_BACKEND_URL=file://$PULUMI_STATE_DIR`, `run_pulumi` simplifié, `--parallel 2` |
+| `flake.nix` | Backend Pulumi hors repo ; shellHook Authentik conditionnel |
+| Bootstrap | Premier deploy sans `.env.wendigo` ; état Pulumi conservé entre runs |
+| Pulumi | Voir `docs/infrastructure.md` (scopes OIDC, cert RSA, pas de Grafana provider) |

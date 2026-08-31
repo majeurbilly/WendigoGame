@@ -23,14 +23,12 @@ import { createGoogleEnrollmentUserWriteStage } from './authentik/flows-and-stag
 import { createSystemReferences, flowUuidFromLookup } from './authentik/system/references';
 import {
   createAuthentikProvider,
-  createGrafanaProvider,
   prometheusConfigPath,
   prometheusReloadUrl,
 } from './config';
 
 // Observability
 import { createDotEnv } from './docker-env';
-import { createDatasources } from './observability/grafana/datasources';
 import { PrometheusConfigResource } from './observability/prometheus/config-resource';
 import { renderPrometheusYaml } from './observability/prometheus/scrape-config';
 
@@ -127,10 +125,7 @@ export function deploy() {
     { dependsOn: [oidc.provider] },
   );
 
-  // Observability
-  const grafanaProvider = createGrafanaProvider();
-  const datasources = createDatasources(grafanaProvider);
-
+  // Observability — Grafana datasources: provisionnés via deploy/grafana/provisioning (Zéro ClickOps)
   const prometheusConfig = new PrometheusConfigResource('prometheus-config', {
     configPath: prometheusConfigPath,
     reloadUrl: prometheusReloadUrl,
@@ -163,7 +158,6 @@ export function deploy() {
     wendigoApp,
     googleCallbackUri: google.source.callbackUri,
     googleSourceId: google.source.id,
-    datasources,
     prometheusConfig,
     dotEnv,
   };

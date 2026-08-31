@@ -17,9 +17,6 @@ importers:
       '@pulumi/tls':
         specifier: ^5.2.3
         version: 5.5.1(typescript@5.9.3)
-      '@pulumiverse/grafana':
-        specifier: ^2.30.0
-        version: 2.30.0(typescript@5.9.3)
       protobufjs:
         specifier: ^8.4.2
         version: 8.4.2
@@ -301,9 +298,6 @@ packages:
 
   '@pulumi/tls@5.5.1':
     resolution: {integrity: sha512-xwOtj3Ytb3GyXRaLDQ/Aldtwy3RQvmRi6yvZ0kEl++ldrwlRWWcpYnLYC0sWtlXhEonxdi3bne1Mijk80AKdBw==}
-
-  '@pulumiverse/grafana@2.30.0':
-    resolution: {integrity: sha512-ArfAXKBFm/A7EYZa/71lKkTbDCx/9DnVnp8C7r69tZHyGzBn1HNyg9c9hNWOd1YVIu3h1OdL4Vfm38nRu5A7eA==}
 
   '@sigstore/bundle@2.3.2':
     resolution: {integrity: sha512-wueKWDk70QixNLB363yHc2D2ItTgYiMTdPwK8D9dKQMR3ZQ0c35IxP5xnwQ8cNLoCgCRcHf14kE+CLIvNX1zmA==}
@@ -1571,15 +1565,6 @@ snapshots:
       - supports-color
 
   '@pulumi/tls@5.5.1(typescript@5.9.3)':
-    dependencies:
-      '@pulumi/pulumi': 3.192.0(typescript@5.9.3)
-    transitivePeerDependencies:
-      - bluebird
-      - supports-color
-      - ts-node
-      - typescript
-
-  '@pulumiverse/grafana@2.30.0(typescript@5.9.3)':
     dependencies:
       '@pulumi/pulumi': 3.192.0(typescript@5.9.3)
     transitivePeerDependencies:

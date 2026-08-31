@@ -1,7 +1,6 @@
 import * as path from 'node:path';
 import * as authentik from '@pulumi/authentik';
 import * as pulumi from '@pulumi/pulumi';
-import * as grafana from '@pulumiverse/grafana';
 
 const authentikConfig = new pulumi.Config('authentik');
 const grafanaConfig = new pulumi.Config('grafana');
@@ -52,8 +51,6 @@ export const pgPassword = wendigoConfig.requireSecret('pgPassword');
 export const grafanaUrl = grafanaConfig.get('url') ?? 'http://localhost:3000';
 export const grafanaAdminUser = grafanaConfig.get('adminUser') ?? 'admin';
 export const grafanaAdminPassword = grafanaConfig.requireSecret('adminPassword');
-// Grafana provider expects "user:password" format
-export const grafanaAuth = pulumi.interpolate`${grafanaAdminUser}:${grafanaAdminPassword}`;
 
 export const prometheusUrl = wendigoConfig.get('prometheusUrl') ?? 'http://prometheus:9090';
 export const lokiUrl = wendigoConfig.get('lokiUrl') ?? 'http://loki:3100';
@@ -62,10 +59,3 @@ export const prometheusReloadUrl =
 
 // __dirname = infrastructure/src; one level up reaches infrastructure/
 export const prometheusConfigPath = path.resolve(__dirname, '../assets/prometheus/prometheus.yml');
-
-export function createGrafanaProvider(): grafana.Provider {
-  return new grafana.Provider('grafana', {
-    url: grafanaUrl,
-    auth: grafanaAuth,
-  });
-}
