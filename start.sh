@@ -175,14 +175,15 @@ print('TOKEN:', t.key)
 }
 
 sync_authentik_provider() {
-  local urn
-  urn="$(cd "$INFRA" && pulumi stack --show-urns 2>/dev/null \
-    | grep -oE 'urn:pulumi:[^ ]+::pulumi:providers:authentik::[^ ]+' \
-    | head -1)"
-  [[ -n "$urn" ]] || return 0
-  log "Sync provider Authentik (token → état Pulumi)..."
-  # Après repair-wendigo-pulumi-state : plus d'imports default_* → up --target sûr.
-  (cd "$INFRA" && pulumi up -y --target "$urn" --skip-preview)
+  # Token roté via refresh_authentik_token ; config.ts priorise AUTHENTIK_TOKEN.
+  # Pas de pulumi up --target : évite les side-effects (flows orphelins en DB).
+  log "Sync provider Authentik (token via AUTHENTIK_TOKEN)..."
+}
+
+repair_then_refresh() {
+  import_authentik_orphans
+  log "pulumi refresh (post-réparation/import)..."
+  pulumi refresh -y --parallel 2
 }
 
 import_authentik_orphans() {
@@ -259,11 +260,10 @@ pulumi_up_with_retry() {
     if pulumi up -y --parallel 1; then
       return 0
     fi
-    warn "pulumi up tentative $attempt/3 échouée — réconciliation Authentik..."
-    import_authentik_orphans
-    prune_authentik_wendigo_rest
-    delete_wendigo_flows_ak
-    pulumi refresh -y --parallel 1 || warn "refresh post-échec partiel — retry pulumi up"
+    warn "pulumi up tentative $attempt/3 échouée — purge + repair_then_refresh..."
+    refresh_authentik_token
+    prune_authentik_wendigo
+    repair_then_refresh
     sleep 15
   done
   return 1
@@ -280,12 +280,9 @@ run_pulumi() {
   refresh_authentik_token
   prune_authentik_wendigo
   refresh_authentik_token
-  import_authentik_orphans
   sync_authentik_provider
-  import_authentik_orphans
-  pulumi refresh -y --parallel 2
+  repair_then_refresh
   prune_authentik_wendigo_rest
-  delete_wendigo_flows_ak
   pulumi_up_with_retry
   log "Redémarrage backend (JWKS OIDC après pulumi up)..."
   "${DC[@]}" up -d --force-recreate backend
