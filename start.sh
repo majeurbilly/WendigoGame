@@ -181,7 +181,7 @@ run_pulumi() {
       mkdir -p \"\$dest\"
       cp -a '$SDK/bin/.' \"\$dest/\"
     fi
-    ./setup-pulumi.sh
+    # Init Pulumi : shellHook flake.nix + ensure_pulumi_deps() ont déjà installé deps/SDK/token.
     pulumi stack select dev 2>/dev/null || pulumi stack init dev --non-interactive
     token=\$($(printf '%q ' "${DC[@]}") exec -T authentik-worker ak shell -c \"
 from authentik.core.models import Token, TokenIntents, User
