@@ -227,7 +227,10 @@ def repair_flow(
     resource_urn = find_resource_urn(urn_lines, resource_name)
     exported = export_resource(resource_name) if resource_urn else None
     assigned = str(exported.get("provider", "")) if exported else None
-    misassigned = resource_urn and provider_needs_repair(assigned, provider_urn)
+    misassigned = bool(resource_urn and provider_needs_repair(assigned, provider_urn))
+
+    if resource_urn and not misassigned:
+        return 0, urn_lines
 
     api_pk: str | None = None
     try:
@@ -241,8 +244,8 @@ def repair_flow(
             urn_lines = pulumi_urn_lines()
             resource_urn = None
 
-    # Flow présent en API (orphelin ou mal assigné) → supprimer DB + état.
-    if api_pk is not None:
+    # Orphelin API (hors état ou import default_*) → supprimer en DB.
+    if api_pk is not None and (not resource_urn or misassigned):
         resource_urn = find_resource_urn(urn_lines, resource_name)
         if resource_urn:
             if delete_from_state(resource_urn):
@@ -256,9 +259,8 @@ def repair_flow(
             print(f"api delete {slug} failed: {err}", file=sys.stderr)
         return actions, urn_lines
 
-    # Entrée d'état sans ressource API (refresh échouerait sur ID stale).
     resource_urn = find_resource_urn(urn_lines, resource_name)
-    if resource_urn:
+    if resource_urn and api_pk is None:
         if delete_from_state(resource_urn):
             actions = max(actions, 1)
             urn_lines = pulumi_urn_lines()
