@@ -175,9 +175,13 @@ print('TOKEN:', t.key)
 }
 
 sync_authentik_provider() {
-  # Token roté via refresh_authentik_token ; config.ts priorise AUTHENTIK_TOKEN.
-  # Pas de pulumi up --target : évite les side-effects (flows orphelins en DB).
-  log "Sync provider Authentik (token via AUTHENTIK_TOKEN)..."
+  local urn
+  urn="$(cd "$INFRA" && pulumi stack --show-urns 2>/dev/null \
+    | grep -oE 'urn:pulumi:[^ ]+::pulumi:providers:authentik::[^ ]+' \
+    | head -1)"
+  [[ -n "$urn" ]] || return 0
+  log "Sync provider Authentik (token → état Pulumi)..."
+  (cd "$INFRA" && pulumi up -y --target "$urn" --skip-preview)
 }
 
 repair_then_refresh() {
@@ -257,12 +261,15 @@ pulumi_up_with_retry() {
   local attempt
   for attempt in 1 2 3; do
     wait_authentik
+    prune_authentik_wendigo_rest
     if pulumi up -y --parallel 1; then
       return 0
     fi
     warn "pulumi up tentative $attempt/3 échouée — purge + repair_then_refresh..."
     refresh_authentik_token
     prune_authentik_wendigo
+    import_authentik_orphans
+    sync_authentik_provider
     repair_then_refresh
     sleep 15
   done
@@ -280,7 +287,9 @@ run_pulumi() {
   refresh_authentik_token
   prune_authentik_wendigo
   refresh_authentik_token
+  import_authentik_orphans
   sync_authentik_provider
+  import_authentik_orphans
   repair_then_refresh
   prune_authentik_wendigo_rest
   pulumi_up_with_retry

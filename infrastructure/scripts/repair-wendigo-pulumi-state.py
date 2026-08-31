@@ -113,6 +113,38 @@ class AuthentikClient:
                 return True
         return self.flow_pk_by_slug_pk(pk) is None
 
+    def wipe_oauth_providers(self) -> int:
+        deleted = 0
+        for item in self.list_paginated("/api/v3/providers/oauth2/"):
+            name = str(item.get("name", ""))
+            client_id = str(item.get("client_id", ""))
+            if not (name.startswith("Wendigo") or client_id in ("wendigo-dev", "wendigo")):
+                continue
+            pk = item.get("pk")
+            if not pk:
+                continue
+            try:
+                self._request("DELETE", f"/api/v3/providers/oauth2/{pk}/")
+                deleted += 1
+            except urllib.error.HTTPError as err:
+                if err.code not in (404, 204):
+                    raise
+        return deleted
+
+    def wipe_applications(self) -> int:
+        deleted = 0
+        for item in self.list_paginated("/api/v3/core/applications/"):
+            if item.get("slug") != "wendigo" and not str(item.get("name", "")).startswith("Wendigo"):
+                continue
+            pk = item.get("pk")
+            if pk:
+                try:
+                    self._request("DELETE", f"/api/v3/core/applications/{pk}/")
+                    deleted += 1
+                except urllib.error.HTTPError:
+                    pass
+        return deleted
+
     def flow_pk_by_slug_pk(self, pk: str) -> str | None:
         payload = self._request("GET", f"/api/v3/flows/instances/{pk}/")
         if not isinstance(payload, dict):
@@ -281,6 +313,11 @@ def main() -> int:
         return 0
 
     client = AuthentikClient(args.url, args.token)
+    apps = client.wipe_applications()
+    providers = client.wipe_oauth_providers()
+    if apps or providers:
+        print(f"api wiped applications={apps} providers={providers}")
+
     urn_lines = pulumi_urn_lines()
     state_fixes = 0
     api_fixes = 0
