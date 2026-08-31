@@ -24,7 +24,7 @@ FLOW_TARGETS: tuple[tuple[str, str], ...] = (
     ("wendigo-source-authentication-flow", "wendigo-source-authentication"),
 )
 
-FLOW_RESOURCE_TYPE = "authentik:index:Flow"
+FLOW_RESOURCE_TYPE = "authentik:index/flow:Flow"
 PROVIDER_RESOURCE_NAME = "wendigo-authentik"
 
 

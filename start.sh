@@ -42,13 +42,22 @@ export_vite_build_env() {
   export VITE_AUTHENTIK_URL="$(normalize_vite_oidc_url "${VITE_AUTHENTIK_URL:-}")"
 }
 
+kill_stale_authentik_providers() {
+  if pgrep -f 'terraform-provider-authentik' >/dev/null 2>&1; then
+    warn "Arrêt des terraform-provider-authentik orphelins..."
+    pkill -f 'terraform-provider-authentik' 2>/dev/null || true
+    sleep 2
+  fi
+}
+
 compose_up() {
   local profile_args=()
   [[ "$OBSERVABILITY" == "1" ]] && profile_args=(--profile observability)
   export_vite_build_env
   log "Docker: build + up ${profile_args[*]:-(sans observability)}"
   "${DC[@]}" "${profile_args[@]}" up -d --build
-  "${DC[@]}" up -d backend
+  # Backend démarré trop tôt → JWKS 404 tant que Pulumi n'a pas provisionné l'OIDC.
+  "${DC[@]}" stop backend 2>/dev/null || true
 }
 
 wait_authentik() {
@@ -185,6 +194,7 @@ sync_authentik_provider() {
 }
 
 repair_then_refresh() {
+  kill_stale_authentik_providers
   import_authentik_orphans
   log "pulumi refresh (post-réparation/import)..."
   pulumi refresh -y --parallel 2
@@ -260,6 +270,7 @@ print('flows_ok')
 pulumi_up_with_retry() {
   local attempt
   for attempt in 1 2 3; do
+    kill_stale_authentik_providers
     wait_authentik
     prune_authentik_wendigo_rest
     if pulumi up -y --parallel 1; then
@@ -274,6 +285,7 @@ pulumi_up_with_retry() {
     sleep 15
   done
   warn "Dernière tentative pulumi up après réparation..."
+  kill_stale_authentik_providers
   wait_authentik
   prune_authentik_wendigo_rest
   pulumi up -y --parallel 1
@@ -283,6 +295,7 @@ run_pulumi() {
   log "Pulumi up (état: $PULUMI_STATE_DIR)..."
   export PULUMI_CONFIG_PASSPHRASE="${PULUMI_CONFIG_PASSPHRASE:-}"
   mkdir -p "$PULUMI_STATE_DIR"
+  kill_stale_authentik_providers
 
   cd "$INFRA"
   pulumi stack select dev 2>/dev/null || pulumi stack init dev --non-interactive
@@ -297,7 +310,7 @@ run_pulumi() {
   prune_authentik_wendigo_rest
   pulumi_up_with_retry
   log "Redémarrage backend (JWKS OIDC après pulumi up)..."
-  "${DC[@]}" up -d --force-recreate backend
+  "${DC[@]}" up -d --force-recreate backend frontend
 }
 
 rebuild_frontend() {
