@@ -167,13 +167,16 @@ print('TOKEN:', t.key)
 }
 
 prune_authentik_wendigo() {
-  log "Purge Authentik Wendigo (réconciliation API / état Pulumi)..."
-  local token url
-  token="$(cd "$INFRA" && pulumi config get authentik:token 2>/dev/null || true)"
-  url="$(cd "$INFRA" && pulumi config get authentik:url 2>/dev/null || echo 'http://localhost:9000')"
-  [[ -n "$token" ]] || { warn "Token Authentik absent — purge ignorée"; return 0; }
-  python3 "$INFRA/scripts/prune-wendigo-authentik.py" --url "$url" --token "$token" || \
-    warn "Purge Authentik partielle ou échouée — pulumi refresh tentera de réconcilier"
+  log "Purge Authentik Wendigo (ak shell / ORM)..."
+  if ! "${DC[@]}" exec -T authentik-worker ak shell < "$INFRA/scripts/prune-wendigo-authentik-ak.py"; then
+    warn "Purge Authentik via ak shell échouée — tentative API REST..."
+    local token url
+    token="$(cd "$INFRA" && pulumi config get authentik:token 2>/dev/null || true)"
+    url="$(cd "$INFRA" && pulumi config get authentik:url 2>/dev/null || echo 'http://localhost:9000')"
+    [[ -n "$token" ]] || { warn "Token Authentik absent — purge ignorée"; return 0; }
+    python3 "$INFRA/scripts/prune-wendigo-authentik.py" --url "$url" --token "$token" || \
+      warn "Purge Authentik partielle — pulumi refresh tentera de réconcilier"
+  fi
 }
 
 run_pulumi() {

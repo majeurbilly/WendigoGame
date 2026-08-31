@@ -14,7 +14,7 @@ Stack `infrastructure/` : provisionne Authentik (OIDC Wendigo, Google SSO), la c
 - **Certificat OIDC** : `@pulumi/tls` + `allowedUses` en snake_case (`key_encipherment`, `digital_signature`).
 - **`run_pulumi`** : plus de `nix develop` imbriqué — le workflow lance déjà `nix develop --command bash ./start.sh`. Évite un redémarrage Authentik via le `shellHook` pendant `pulumi up`.
 - **`shellHook` flake** : si `/-/health/ready/` répond 200, seul le token API est rafraîchi (pas de `docker compose up` authentik).
-- **Réconciliation Authentik** : `prune-wendigo-authentik.py` supprime les objets Wendigo orphelins via l’API (bindings par `?target=`, multi-passe sur les flows) puis `pulumi refresh` + `pulumi up`.
+- **Réconciliation Authentik** : `prune-wendigo-authentik-ak.py` (Django ORM via `ak shell` dans `authentik-worker`) supprime les objets Wendigo orphelins ; repli API REST (`prune-wendigo-authentik.py`, filtrage client sans `?target=`) si `ak shell` échoue. Puis `pulumi refresh` + `pulumi up`.
 
 ## Impacts
 
@@ -24,4 +24,4 @@ Stack `infrastructure/` : provisionne Authentik (OIDC Wendigo, Google SSO), la c
 | `index.ts` | `prometheusDatasourceId` / `lokiDatasourceId` = UIDs statiques du YAML |
 | `start.sh` | `PULUMI_BACKEND_URL=file://$PULUMI_STATE_DIR`, purge Authentik + `pulumi refresh` avant `up`, `--parallel 2` |
 | Backend | JWKS `/application/o/wendigo/jwks/` après `pulumi up` réussi |
-| CI | Corrige 409 Grafana, 502 Authentik, 400 « stage already exists » (orphelins API) |
+| CI | Corrige 409 Grafana, 502 Authentik, 400 « slug already exists » (orphelins API / purge `ak shell`) |

@@ -10,7 +10,6 @@ import argparse
 import json
 import sys
 import urllib.error
-import urllib.parse
 import urllib.request
 
 WENDIGO_FLOW_SLUGS = frozenset(
@@ -115,13 +114,17 @@ def prune(client: AuthentikClient) -> dict[str, int]:
             if p.get("pk") and name_is_wendigo(p.get("name"))
         }
 
-    def delete_bindings_for_flow(flow_pk: str) -> None:
-        encoded = urllib.parse.quote(flow_pk, safe="")
-        for binding in client.list_paginated(f"/api/v3/flows/bindings/?target={encoded}"):
+    def delete_bindings_for_flows(flow_pks: set[str]) -> None:
+        # L'API Authentik renvoie 400 sur ?target= — on filtre côté client.
+        for binding in client.list_paginated("/api/v3/flows/bindings/"):
+            if str(binding.get("target", "")) not in flow_pks:
+                continue
             pk = item_pk(binding)
             if pk and client.delete(f"/api/v3/flows/bindings/{pk}/"):
                 bump("flow_bindings")
-        for binding in client.list_paginated(f"/api/v3/policies/bindings/?target={encoded}"):
+        for binding in client.list_paginated("/api/v3/policies/bindings/"):
+            if str(binding.get("target", "")) not in flow_pks:
+                continue
             pk = item_pk(binding)
             if pk and client.delete(f"/api/v3/policies/bindings/{pk}/"):
                 bump("policy_bindings")
@@ -132,12 +135,11 @@ def prune(client: AuthentikClient) -> dict[str, int]:
             flows = wendigo_flows()
             if not flows:
                 break
+            flow_pks = {str(f["pk"]) for f in flows if f.get("pk")}
+            delete_bindings_for_flows(flow_pks)
             for flow in flows:
                 flow_pk = flow.get("pk")
-                if not flow_pk:
-                    continue
-                delete_bindings_for_flow(str(flow_pk))
-                if client.delete(f"/api/v3/flows/instances/{flow_pk}/"):
+                if flow_pk and client.delete(f"/api/v3/flows/instances/{flow_pk}/"):
                     bump("flows")
 
     # 1. Application + provider + source
@@ -224,7 +226,7 @@ def main() -> int:
     client = AuthentikClient(args.url, args.token)
     try:
         counts = prune(client)
-    except urllib.error.URLError as err:
+    except (urllib.error.URLError, urllib.error.HTTPError) as err:
         print(f"prune failed: {err}", file=sys.stderr)
         return 1
 
