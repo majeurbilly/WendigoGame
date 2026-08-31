@@ -239,6 +239,7 @@ run_pulumi() {
   import_authentik_orphans
   sync_authentik_provider
   import_authentik_orphans
+  prune_authentik_wendigo_rest
   pulumi refresh -y --parallel 2
   pulumi up -y --parallel 2
   log "Redémarrage backend (JWKS OIDC après pulumi up)..."

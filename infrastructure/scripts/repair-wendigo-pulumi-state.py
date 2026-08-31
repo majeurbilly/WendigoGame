@@ -57,14 +57,68 @@ class AuthentikClient:
         pk = results[0].get("pk")
         return str(pk) if pk else None
 
+    def list_paginated(self, path: str) -> list[dict]:
+        items: list[dict] = []
+        sep = "&" if "?" in path else "?"
+        next_url: str | None = f"{path}{sep}page_size=100"
+        while next_url:
+            payload = self._request("GET", next_url)
+            if not isinstance(payload, dict):
+                break
+            items.extend(payload.get("results", []))
+            next_path = payload.get("next")
+            if not next_path:
+                break
+            next_url = (
+                next_path.replace(self.base, "", 1)
+                if next_path.startswith(self.base)
+                else next_path
+            )
+        return items
+
+    @staticmethod
+    def item_pk(item: dict) -> str | None:
+        for key in ("pk", "pbinding_uuid", "fsb_uuid", "pm_uuid"):
+            value = item.get(key)
+            if value:
+                return str(value)
+        return None
+
+    def delete_bindings_for_flow(self, flow_pk: str) -> None:
+        for binding in self.list_paginated("/api/v3/flows/bindings/"):
+            if str(binding.get("target", "")) != flow_pk:
+                continue
+            pk = self.item_pk(binding)
+            if pk:
+                self._request("DELETE", f"/api/v3/flows/bindings/{pk}/")
+        for binding in self.list_paginated("/api/v3/policies/bindings/"):
+            if str(binding.get("target", "")) != flow_pk:
+                continue
+            pk = self.item_pk(binding)
+            if pk:
+                self._request("DELETE", f"/api/v3/policies/bindings/{pk}/")
+
     def delete_flow(self, pk: str) -> bool:
-        try:
-            self._request("DELETE", f"/api/v3/flows/instances/{pk}/")
-            return True
-        except urllib.error.HTTPError as err:
-            if err.code in (404, 204):
-                return False
-            raise
+        for _ in range(3):
+            self.delete_bindings_for_flow(pk)
+            try:
+                self._request("DELETE", f"/api/v3/flows/instances/{pk}/")
+            except urllib.error.HTTPError as err:
+                if err.code in (404, 204):
+                    return False
+                if err.code in (400, 409, 500):
+                    continue
+                raise
+            if self.flow_pk_by_slug_pk(pk) is None:
+                return True
+        return self.flow_pk_by_slug_pk(pk) is None
+
+    def flow_pk_by_slug_pk(self, pk: str) -> str | None:
+        payload = self._request("GET", f"/api/v3/flows/instances/{pk}/")
+        if not isinstance(payload, dict):
+            return None
+        found = payload.get("pk")
+        return str(found) if found else None
 
 
 def pulumi_urn_lines() -> list[str]:
