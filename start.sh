@@ -168,15 +168,28 @@ print('TOKEN:', t.key)
 
 prune_authentik_wendigo() {
   log "Purge Authentik Wendigo (ak shell / ORM)..."
-  if ! "${DC[@]}" exec -T authentik-worker ak shell < "$INFRA/scripts/prune-wendigo-authentik-ak.py"; then
+  local prune_script="$INFRA/scripts/prune-wendigo-authentik-ak.py"
+  local prune_out ak_ok=0
+
+  # stdin interactif casse les blocs indentés — on copie le script puis exec().
+  "${DC[@]}" exec -T authentik-worker sh -c 'cat > /tmp/prune-wendigo-ak.py' < "$prune_script"
+  prune_out="$("${DC[@]}" exec -T authentik-worker ak shell -c "exec(open('/tmp/prune-wendigo-ak.py').read())" 2>/dev/null | tail -1 || true)"
+  log "  $prune_out"
+  [[ "$prune_out" == *'"total"'* ]] && ak_ok=1
+
+  if [[ "$ak_ok" -eq 0 ]]; then
     warn "Purge Authentik via ak shell échouée — tentative API REST..."
-    local token url
-    token="$(cd "$INFRA" && pulumi config get authentik:token 2>/dev/null || true)"
-    url="$(cd "$INFRA" && pulumi config get authentik:url 2>/dev/null || echo 'http://localhost:9000')"
-    [[ -n "$token" ]] || { warn "Token Authentik absent — purge ignorée"; return 0; }
-    python3 "$INFRA/scripts/prune-wendigo-authentik.py" --url "$url" --token "$token" || \
-      warn "Purge Authentik partielle — pulumi refresh tentera de réconcilier"
+    prune_authentik_wendigo_rest
   fi
+}
+
+prune_authentik_wendigo_rest() {
+  local token url
+  token="$(cd "$INFRA" && pulumi config get authentik:token 2>/dev/null || true)"
+  url="$(cd "$INFRA" && pulumi config get authentik:url 2>/dev/null || echo 'http://localhost:9000')"
+  [[ -n "$token" ]] || { warn "Token Authentik absent — purge ignorée"; return 0; }
+  python3 "$INFRA/scripts/prune-wendigo-authentik.py" --url "$url" --token "$token" || \
+    warn "Purge Authentik partielle — pulumi refresh tentera de réconcilier"
 }
 
 run_pulumi() {
@@ -189,6 +202,7 @@ run_pulumi() {
   wait_authentik
   refresh_authentik_token
   prune_authentik_wendigo
+  refresh_authentik_token
   pulumi refresh -y --parallel 2
   pulumi up -y --parallel 2
 }

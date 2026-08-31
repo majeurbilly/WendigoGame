@@ -1,7 +1,5 @@
-"""Purge Wendigo Authentik objects via Django ORM (ak shell).
-
-Usage: docker compose exec -T authentik-worker ak shell < prune-wendigo-authentik-ak.py
-"""
+# Purge Wendigo Authentik objects via Django ORM (ak shell).
+# Usage: ak shell -c "exec(open('/tmp/prune-wendigo-ak.py').read())"
 
 import json
 
@@ -37,7 +35,7 @@ def delete_queryset(label: str, qs) -> None:
         bump(label, deleted)
 
 
-with transaction.atomic():
+def run() -> None:
     from authentik.core.models import Application
     from authentik.crypto.models import CertificateKeyPair
     from authentik.flows.models import Flow, FlowStageBinding
@@ -46,106 +44,95 @@ with transaction.atomic():
     from authentik.providers.oauth2.models import OAuth2Provider
     from authentik.sources.oauth.models import OAuthSource
     from authentik.stages.identification.models import IdentificationStage
-    from authentik.stages.prompt.models import PromptField, PromptStage
+    from authentik.stages.prompt.models import Prompt, PromptStage
     from authentik.stages.user_login.models import UserLoginStage
     from authentik.stages.user_write.models import UserWriteStage
 
-    delete_queryset("applications", Application.objects.filter(slug="wendigo"))
-    delete_queryset("providers_oauth2", OAuth2Provider.objects.filter(name__startswith="Wendigo"))
-    delete_queryset("sources_oauth", OAuthSource.objects.filter(slug="google"))
-
-    flows = wendigo_flow_qs(Flow)
-    flow_ids = [str(pk) for pk in flows.values_list("pk", flat=True)]
-
-    if flow_ids:
-        flow_ct = ContentType.objects.get_for_model(Flow)
+    with transaction.atomic():
+        delete_queryset("applications", Application.objects.filter(slug="wendigo"))
         delete_queryset(
-            "flow_bindings",
-            FlowStageBinding.objects.filter(target__pk__in=flow_ids),
+            "providers_oauth2",
+            OAuth2Provider.objects.filter(name__startswith="Wendigo"),
         )
-        delete_queryset(
-            "policy_bindings",
-            PolicyBinding.objects.filter(
-                target_content_type=flow_ct,
-                target_object_id__in=flow_ids,
-            ),
-        )
+        delete_queryset("sources_oauth", OAuthSource.objects.filter(slug="google"))
 
-    for _ in range(6):
-        flows = wendigo_flow_qs(Flow)
-        if not flows.exists():
-            break
-        flow_ids = [str(pk) for pk in flows.values_list("pk", flat=True)]
-        if flow_ids:
-            flow_ct = ContentType.objects.get_for_model(Flow)
-            delete_queryset(
-                "flow_bindings",
-                FlowStageBinding.objects.filter(target__pk__in=flow_ids),
-            )
-            delete_queryset(
-                "policy_bindings",
-                PolicyBinding.objects.filter(
-                    target_content_type=flow_ct,
-                    target_object_id__in=flow_ids,
-                ),
-            )
-        delete_queryset("flows", flows)
-
-    delete_queryset(
-        "policies_expression",
-        ExpressionPolicy.objects.filter(name__startswith="Wendigo"),
-    )
-    delete_queryset(
-        "stages_user_login",
-        UserLoginStage.objects.filter(name__startswith="Wendigo"),
-    )
-    delete_queryset(
-        "stages_identification",
-        IdentificationStage.objects.filter(name__startswith="Wendigo"),
-    )
-    delete_queryset(
-        "stages_prompt",
-        PromptStage.objects.filter(name__startswith="Wendigo"),
-    )
-    delete_queryset(
-        "stages_user_write",
-        UserWriteStage.objects.filter(name__startswith="Wendigo"),
-    )
-    delete_queryset(
-        "prompt_fields",
-        PromptField.objects.filter(name__startswith="wendigo-"),
-    )
-
-    try:
-        from authentik.core.models import PropertyMapping
+        for _ in range(6):
+            flows = wendigo_flow_qs(Flow)
+            if not flows.exists():
+                break
+            flow_ids = [str(pk) for pk in flows.values_list("pk", flat=True)]
+            if flow_ids:
+                flow_ct = ContentType.objects.get_for_model(Flow)
+                delete_queryset(
+                    "flow_bindings",
+                    FlowStageBinding.objects.filter(target__pk__in=flow_ids),
+                )
+                delete_queryset(
+                    "policy_bindings",
+                    PolicyBinding.objects.filter(
+                        target_content_type=flow_ct,
+                        target_object_id__in=flow_ids,
+                    ),
+                )
+            delete_queryset("flows", flows)
 
         delete_queryset(
-            "property_mappings",
-            PropertyMapping.objects.filter(name__startswith="Wendigo"),
+            "policies_expression",
+            ExpressionPolicy.objects.filter(name__startswith="Wendigo"),
         )
-    except Exception:
+        delete_queryset(
+            "stages_user_login",
+            UserLoginStage.objects.filter(name__startswith="Wendigo"),
+        )
+        delete_queryset(
+            "stages_identification",
+            IdentificationStage.objects.filter(name__startswith="Wendigo"),
+        )
+        delete_queryset(
+            "stages_prompt",
+            PromptStage.objects.filter(name__startswith="Wendigo"),
+        )
+        delete_queryset(
+            "stages_user_write",
+            UserWriteStage.objects.filter(name__startswith="Wendigo"),
+        )
+        delete_queryset(
+            "prompt_fields",
+            Prompt.objects.filter(name__startswith="wendigo-"),
+        )
+
         try:
-            from authentik.providers.oauth2.models import ScopeMapping
+            from authentik.core.models import PropertyMapping
 
             delete_queryset(
-                "scope_mappings",
-                ScopeMapping.objects.filter(name__startswith="Wendigo"),
+                "property_mappings",
+                PropertyMapping.objects.filter(name__startswith="Wendigo"),
             )
         except Exception:
-            pass
-        try:
-            from authentik.sources.oauth.models import OAuthSourcePropertyMapping
+            try:
+                from authentik.providers.oauth2.models import ScopeMapping
 
-            delete_queryset(
-                "oauth_mappings",
-                OAuthSourcePropertyMapping.objects.filter(name__startswith="Wendigo"),
-            )
-        except Exception:
-            pass
+                delete_queryset(
+                    "scope_mappings",
+                    ScopeMapping.objects.filter(name__startswith="Wendigo"),
+                )
+            except Exception:
+                pass
+            try:
+                from authentik.sources.oauth.models import OAuthSourcePropertyMapping
 
-    delete_queryset(
-        "certificates",
-        CertificateKeyPair.objects.filter(name__startswith="Wendigo"),
-    )
+                delete_queryset(
+                    "oauth_mappings",
+                    OAuthSourcePropertyMapping.objects.filter(name__startswith="Wendigo"),
+                )
+            except Exception:
+                pass
 
+        delete_queryset(
+            "certificates",
+            CertificateKeyPair.objects.filter(name__startswith="Wendigo"),
+        )
+
+
+run()
 print(json.dumps({"pruned": counts, "total": sum(counts.values())}))

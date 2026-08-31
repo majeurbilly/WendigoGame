@@ -14,7 +14,7 @@ Push sur **`dev`** ou **`workflow_dispatch`** → `.github/workflows/deploy.yml`
 - **`.env.wendigo` non bloquant** : sans fichier persistant, Compose utilise les defaults et Pulumi regénère `.env` via `docker-env.ts`.
 - **État Pulumi persistant** : `PULUMI_STATE_DIR` (défaut `$HOME/.pulumi-wendigo`) — non effacé par `git clean` du checkout CI. Les retries reprennent les ressources déjà créées.
 - **Un seul `nix develop`** : `run_pulumi()` appelle `pulumi` directement ; le `shellHook` ne redémarre plus Authentik si le healthcheck est déjà OK.
-- **Réconciliation Authentik** : purge ORM (`ak shell`) + repli REST, puis `pulumi refresh` avant `up` — évite `400 Flow with this slug already exists` quand l'état Pulumi est partiel mais la DB Authentik contient des runs précédents.
+- **Réconciliation Authentik** : purge ORM (`ak shell -c exec`) + repli REST ; token API rafraîchi après purge, avant `pulumi refresh`.
 - **`concurrency`** : `cancel-in-progress: false` — file d'attente sur serveur unique.
 
 ## Impacts
