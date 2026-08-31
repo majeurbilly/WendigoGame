@@ -175,14 +175,19 @@ print('TOKEN:', t.key)
 }
 
 sync_authentik_provider() {
-  local urn
-  # --show-urns affiche un arbre (├─) : awk $1 capture le mauvais token.
-  urn="$(cd "$INFRA" && pulumi stack --show-urns 2>/dev/null \
-    | grep -oE 'urn:pulumi:[^ ]+::pulumi:providers:authentik::[^ ]+' \
-    | head -1)"
-  [[ -n "$urn" ]] || return 0
-  log "Sync provider Authentik (token → état Pulumi)..."
-  (cd "$INFRA" && pulumi up -y --target "$urn" --skip-preview)
+  # Token synchronisé via AUTHENTIK_TOKEN (config.ts) — pas de pulumi up --target
+  # (évite le conflit provider/default_* avec les flows mal importés).
+  log "Sync provider Authentik (token via AUTHENTIK_TOKEN)..."
+}
+
+import_authentik_orphans() {
+  local token url
+  token="$(cd "$INFRA" && pulumi config get authentik:token 2>/dev/null || true)"
+  url="$(cd "$INFRA" && pulumi config get authentik:url 2>/dev/null || echo 'http://localhost:9000')"
+  [[ -n "$token" ]] || return 0
+  log "Réparation état Pulumi / orphelins Authentik (sans pulumi import)..."
+  (cd "$INFRA" && python3 scripts/repair-wendigo-pulumi-state.py --url "$url" --token "$token") || \
+    warn "Réparation état partielle — pulumi refresh tentera de réconcilier"
 }
 
 prune_authentik_wendigo() {
@@ -197,16 +202,6 @@ prune_authentik_wendigo() {
   [[ "$prune_out" == *'"total"'* ]] && ak_ok=1
   [[ "$ak_ok" -eq 0 ]] && warn "Purge Authentik via ak shell échouée — complément API REST..."
   prune_authentik_wendigo_rest
-}
-
-import_authentik_orphans() {
-  local token url
-  token="$(cd "$INFRA" && pulumi config get authentik:token 2>/dev/null || true)"
-  url="$(cd "$INFRA" && pulumi config get authentik:url 2>/dev/null || echo 'http://localhost:9000')"
-  [[ -n "$token" ]] || return 0
-  log "Import flows Authentik orphelins (hors état Pulumi)..."
-  (cd "$INFRA" && python3 scripts/import-wendigo-orphans.py --url "$url" --token "$token") || \
-    warn "Import orphelins partiel — réparation state/import incomplète"
 }
 
 prune_authentik_wendigo_rest() {
