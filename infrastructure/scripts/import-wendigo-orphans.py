@@ -36,9 +36,9 @@ def fetch_flow_pk(base_url: str, token: str, slug: str) -> str | None:
         method="GET",
     )
     try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
+        with urllib.request.urlopen(req, timeout=30) as resp:
             payload = json.loads(resp.read().decode())
-    except urllib.error.HTTPError:
+    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, json.JSONDecodeError):
         return None
 
     if not isinstance(payload, dict):
@@ -63,18 +63,17 @@ def pulumi_urn_lines() -> list[str]:
     return proc.stdout.splitlines()
 
 
-def resource_in_state(urn_lines: list[str], resource_name: str) -> bool:
-    suffix = f"::{resource_name}"
-    return any(line.rstrip().endswith(suffix) for line in urn_lines)
-
-
 def find_resource_urn(urn_lines: list[str], resource_name: str) -> str | None:
     suffix = f"::{resource_name}"
     for line in urn_lines:
         stripped = line.strip()
         if stripped.startswith("urn:") and stripped.endswith(suffix):
             return stripped
-    return None
+    match = re.search(
+        rf"(urn:pulumi:[^\s]+::flow:Flow::{re.escape(resource_name)})",
+        "\n".join(urn_lines),
+    )
+    return match.group(1) if match else None
 
 
 def authentik_provider_urn(urn_lines: list[str] | None = None) -> str | None:
@@ -167,6 +166,24 @@ def import_flow(resource_name: str, pk: str, provider_urn: str) -> bool:
     return True
 
 
+def repair_misassigned_provider(
+    resource_name: str,
+    provider_urn: str,
+    urn_lines: list[str],
+) -> tuple[bool, list[str]]:
+    """Supprime de l'état les imports assignés au provider default_* (sans appel API)."""
+    resource_urn = find_resource_urn(urn_lines, resource_name)
+    if not resource_urn:
+        return False, urn_lines
+    exported = export_resource(resource_name)
+    assigned_provider = str(exported.get("provider", "")) if exported else None
+    if not provider_needs_repair(assigned_provider, provider_urn):
+        return False, urn_lines
+    if delete_from_state(resource_urn):
+        return True, pulumi_urn_lines()
+    return False, urn_lines
+
+
 def reconcile_flow(
     resource_name: str,
     slug: str,
@@ -174,28 +191,31 @@ def reconcile_flow(
     token: str,
     provider_urn: str,
     urn_lines: list[str],
-) -> tuple[bool, list[str]]:
-    """Répare un import mal assigné ou importe l'orphelin avec le bon provider."""
-    pk = fetch_flow_pk(base_url, token, slug)
+) -> tuple[int, list[str]]:
+    """0 = rien, 1 = réparé (state delete), 2 = importé."""
+    repaired, urn_lines = repair_misassigned_provider(resource_name, provider_urn, urn_lines)
+    if repaired:
+        resource_urn = find_resource_urn(urn_lines, resource_name)
+        if resource_urn:
+            exported = export_resource(resource_name)
+            assigned = str(exported.get("provider", "")) if exported else None
+            if not provider_needs_repair(assigned, provider_urn):
+                return 1, urn_lines
+
     resource_urn = find_resource_urn(urn_lines, resource_name)
-    exported = export_resource(resource_name) if resource_urn else None
-    assigned_provider = str(exported.get("provider", "")) if exported else None
+    if resource_urn:
+        exported = export_resource(resource_name)
+        assigned = str(exported.get("provider", "")) if exported else None
+        if not provider_needs_repair(assigned, provider_urn):
+            return 0, urn_lines
 
-    if resource_urn and provider_needs_repair(assigned_provider, provider_urn):
-        if not delete_from_state(resource_urn):
-            return False, urn_lines
-        urn_lines = pulumi_urn_lines()
-        resource_urn = None
-
-    if resource_urn and not provider_needs_repair(assigned_provider, provider_urn):
-        return False, urn_lines
-
+    pk = fetch_flow_pk(base_url, token, slug)
     if not pk:
-        return False, urn_lines
+        return (1 if repaired else 0), urn_lines
 
     if import_flow(resource_name, pk, provider_urn):
-        return True, pulumi_urn_lines()
-    return False, urn_lines
+        return 2, pulumi_urn_lines()
+    return (1 if repaired else 0), urn_lines
 
 
 def main() -> int:
@@ -211,24 +231,31 @@ def main() -> int:
             "authentik provider wendigo-authentik introuvable — import ignoré",
             file=sys.stderr,
         )
-        print(json.dumps({"imported": 0, "provider": PROVIDER_RESOURCE_NAME, "skipped": True}))
+        print(json.dumps({"imported": 0, "repaired": 0, "skipped": True}))
         return 0
 
     imported = 0
+    repaired = 0
 
     for resource_name, slug in FLOW_IMPORTS:
-        changed, urn_lines = reconcile_flow(
-            resource_name,
-            slug,
-            args.url,
-            args.token,
-            provider_urn,
-            urn_lines,
-        )
-        if changed:
+        try:
+            outcome, urn_lines = reconcile_flow(
+                resource_name,
+                slug,
+                args.url,
+                args.token,
+                provider_urn,
+                urn_lines,
+            )
+        except Exception as err:  # noqa: BLE001 — script CI : ne pas bloquer le déploiement
+            print(f"reconcile {resource_name} failed: {err}", file=sys.stderr)
+            continue
+        if outcome >= 1:
+            repaired += 1
+        if outcome == 2:
             imported += 1
 
-    print(json.dumps({"imported": imported, "provider": PROVIDER_RESOURCE_NAME}))
+    print(json.dumps({"imported": imported, "repaired": repaired, "provider": PROVIDER_RESOURCE_NAME}))
     return 0
 
 

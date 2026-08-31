@@ -206,7 +206,7 @@ import_authentik_orphans() {
   [[ -n "$token" ]] || return 0
   log "Import flows Authentik orphelins (hors état Pulumi)..."
   (cd "$INFRA" && python3 scripts/import-wendigo-orphans.py --url "$url" --token "$token") || \
-    warn "Import orphelins partiel — pulumi up tentera create/update"
+    warn "Import orphelins partiel — réparation state/import incomplète"
 }
 
 prune_authentik_wendigo_rest() {
