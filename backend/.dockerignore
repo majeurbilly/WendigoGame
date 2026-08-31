@@ -1,3 +1,7 @@
 node_modules
 .git
 .env
+# Tests : ne participent pas au binaire — évite d'invalider COPY sur changement de test.
+**/*_test.go
+scripts/
+Taskfile.yml

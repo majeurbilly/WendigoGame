@@ -341,7 +341,7 @@ rebuild_frontend() {
   export_vite_build_env
   log "  VITE_AUTHENTIK_URL=$VITE_AUTHENTIK_URL"
   log "  VITE_AUTHENTIK_CLIENT_ID=$VITE_AUTHENTIK_CLIENT_ID"
-  "${DC[@]}" build --no-cache \
+  "${DC[@]}" build \
     --build-arg "VITE_API_URL=${VITE_API_URL}" \
     --build-arg "VITE_AUTHENTIK_URL=${VITE_AUTHENTIK_URL}" \
     --build-arg "VITE_AUTHENTIK_CLIENT_ID=${VITE_AUTHENTIK_CLIENT_ID}" \

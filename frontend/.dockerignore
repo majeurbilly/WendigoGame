@@ -2,3 +2,8 @@ node_modules
 dist
 .git
 .env
+# Dev / CI only — absents du bundle Vite, inutiles dans le contexte build.
+scripts/
+README.md
+eslint.config.js
+11.16.0
