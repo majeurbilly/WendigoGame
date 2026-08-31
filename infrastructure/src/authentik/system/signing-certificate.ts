@@ -1,10 +1,35 @@
 import * as authentik from '@pulumi/authentik';
-import { akInvokeOpts } from '../../utils';
+import * as tls from '@pulumi/tls';
+import { akOpts } from '../../utils';
 
-/** Certificat RSA par défaut d'Authentik — requis pour des JWT RS256 + JWKS (validation backend). */
-export function lookupAuthentikSelfSignedCertificate(provider: authentik.Provider) {
-  return authentik.getCertificateKeyPairOutput(
-    { name: 'authentik Self-signed Certificate' },
-    akInvokeOpts(provider),
+/** Certificat RSA dédié Wendigo — évite le lookup `getCertificateKeyPair` (fragile sur instance fraîche / CI). */
+export function createWendigoOidcSigningCertificate(provider: authentik.Provider) {
+  const privateKey = new tls.PrivateKey('wendigo-oidc-signing-key', {
+    algorithm: 'RSA',
+    rsaBits: 2048,
+  });
+
+  const selfSigned = new tls.SelfSignedCert(
+    'wendigo-oidc-signing-cert',
+    {
+      privateKeyPem: privateKey.privateKeyPem,
+      subject: {
+        commonName: 'wendigo-oidc-signing',
+        organization: 'Wendigo',
+      },
+      validityPeriodHours: 87600,
+      allowedUses: ['keyEncipherment', 'digitalSignature'],
+    },
+    { dependsOn: [privateKey] },
+  );
+
+  return new authentik.CertificateKeyPair(
+    'wendigo-oidc-signing',
+    {
+      name: 'Wendigo: OIDC Signing (RSA)',
+      certificateData: selfSigned.certPem,
+      keyData: privateKey.privateKeyPem,
+    },
+    akOpts(provider, { dependsOn: [selfSigned] }),
   );
 }

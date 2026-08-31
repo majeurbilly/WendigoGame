@@ -23,3 +23,4 @@ Push sur **`dev`** ou **`workflow_dispatch`** → `.github/workflows/deploy.yml`
 | `flake.nix` | Paquet `typescript` dans le devShell — filet de sécurité si `node_modules/.bin` n’est pas encore peuplé. |
 | Bootstrap serveur | Plus besoin de créer `.env.wendigo` pour le premier deploy. |
 | Overrides | Placer `/home/gaston/.env.wendigo` si besoin ; peut être partiellement écrasé par `pulumi up`. |
+| Pulumi / Authentik | Scopes OIDC + certificat RSA provisionnés sans `invoke` Authentik (voir `docs/infrastructure.md`) — corrige l'échec preview `invoke.ts` sur CI. |
