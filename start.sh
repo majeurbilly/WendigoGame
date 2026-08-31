@@ -176,7 +176,10 @@ print('TOKEN:', t.key)
 
 sync_authentik_provider() {
   local urn
-  urn="$(cd "$INFRA" && pulumi stack --show-urns 2>/dev/null | grep 'pulumi:providers:authentik' | awk '{print $1}' | head -1)"
+  # --show-urns affiche un arbre (├─) : awk $1 capture le mauvais token.
+  urn="$(cd "$INFRA" && pulumi stack --show-urns 2>/dev/null \
+    | grep -oE 'urn:pulumi:[^ ]+::pulumi:providers:authentik::[^ ]+' \
+    | head -1)"
   [[ -n "$urn" ]] || return 0
   log "Sync provider Authentik (token → état Pulumi)..."
   (cd "$INFRA" && pulumi up -y --target "$urn" --skip-preview)
@@ -200,12 +203,19 @@ prune_authentik_wendigo() {
 }
 
 prune_authentik_wendigo_rest() {
-  local token url
+  local token url attempt
   token="$(cd "$INFRA" && pulumi config get authentik:token 2>/dev/null || true)"
   url="$(cd "$INFRA" && pulumi config get authentik:url 2>/dev/null || echo 'http://localhost:9000')"
   [[ -n "$token" ]] || { warn "Token Authentik absent — purge ignorée"; return 0; }
-  python3 "$INFRA/scripts/prune-wendigo-authentik.py" --url "$url" --token "$token" || \
-    warn "Purge Authentik partielle — pulumi refresh tentera de réconcilier"
+  for attempt in 1 2 3; do
+    if python3 "$INFRA/scripts/prune-wendigo-authentik.py" --url "$url" --token "$token"; then
+      return 0
+    fi
+    warn "Purge REST tentative $attempt/3 échouée — attente Authentik..."
+    wait_authentik
+    sleep 5
+  done
+  warn "Purge Authentik partielle — pulumi refresh tentera de réconcilier"
 }
 
 run_pulumi() {
@@ -222,6 +232,8 @@ run_pulumi() {
   sync_authentik_provider
   pulumi refresh -y --parallel 2
   pulumi up -y --parallel 2
+  log "Redémarrage backend (JWKS OIDC après pulumi up)..."
+  "${DC[@]}" up -d --force-recreate backend
 }
 
 rebuild_frontend() {
