@@ -182,7 +182,8 @@ sync_authentik_provider() {
     | head -1)"
   [[ -n "$urn" ]] || return 0
   log "Sync provider Authentik (token → état Pulumi)..."
-  (cd "$INFRA" && pulumi up -y --target "$urn" --skip-preview)
+  # refresh --target évite le mélange provider/--target de pulumi up --target.
+  (cd "$INFRA" && pulumi refresh -y --target "$urn")
 }
 
 prune_authentik_wendigo() {
@@ -237,7 +238,6 @@ run_pulumi() {
   prune_authentik_wendigo
   refresh_authentik_token
   sync_authentik_provider
-  pulumi refresh -y --parallel 2
   import_authentik_orphans
   pulumi refresh -y --parallel 2
   pulumi up -y --parallel 2
