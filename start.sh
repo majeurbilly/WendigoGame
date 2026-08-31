@@ -225,6 +225,33 @@ prune_authentik_wendigo_rest() {
   warn "Purge Authentik partielle — pulumi refresh tentera de réconcilier"
 }
 
+delete_wendigo_flows_ak() {
+  log "Suppression ciblée flows Wendigo (ak shell)..."
+  "${DC[@]}" exec -T authentik-worker ak shell -c "
+from authentik.flows.models import Flow, FlowStageBinding
+from django.contrib.contenttypes.models import ContentType
+from authentik.policies.models import PolicyBinding
+slugs = (
+    'wendigo-authentication',
+    'wendigo-google-enrollment',
+    'wendigo-provider-authorization',
+    'wendigo-provider-invalidation',
+    'wendigo-source-authentication',
+)
+for slug in slugs:
+    qs = Flow.objects.filter(slug=slug)
+    if not qs.exists():
+        continue
+    pks = list(qs.values_list('pk', flat=True))
+    ct = ContentType.objects.get_for_model(Flow)
+    FlowStageBinding.objects.filter(target__pk__in=pks).delete()
+    PolicyBinding.objects.filter(target_content_type=ct, target_object_id__in=pks).delete()
+    qs.delete()
+print('flows_ok')
+" 2>/dev/null | grep -q flows_ok && log "  flows Wendigo supprimés (ORM)" || \
+    warn "Suppression ORM flows Wendigo échouée — purge REST utilisée"
+}
+
 run_pulumi() {
   log "Pulumi up (état: $PULUMI_STATE_DIR)..."
   export PULUMI_CONFIG_PASSPHRASE="${PULUMI_CONFIG_PASSPHRASE:-}"
@@ -239,8 +266,9 @@ run_pulumi() {
   import_authentik_orphans
   sync_authentik_provider
   import_authentik_orphans
-  prune_authentik_wendigo_rest
   pulumi refresh -y --parallel 2
+  prune_authentik_wendigo_rest
+  delete_wendigo_flows_ak
   pulumi up -y --parallel 2
   log "Redémarrage backend (JWKS OIDC après pulumi up)..."
   "${DC[@]}" up -d --force-recreate backend
