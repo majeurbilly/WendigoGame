@@ -27,6 +27,14 @@ FLOW_TARGETS: tuple[tuple[str, str], ...] = (
 FLOW_RESOURCE_TYPE = "authentik:index/flow:Flow"
 PROVIDER_RESOURCE_NAME = "wendigo-authentik"
 
+# Ressources souvent liées au provider default_* (DecodePropertyMap au refresh/up).
+MISASSIGNED_CLEANUP_NAMES: tuple[str, ...] = (
+    "wendigo-google-auth-login",
+    "wendigo-google-enrollment-login",
+    "wendigo-google-source-auth-login",
+    "wendigo-openid-scope",
+)
+
 
 class AuthentikClient:
     def __init__(self, base_url: str, token: str) -> None:
@@ -241,6 +249,41 @@ def delete_from_state(resource_urn: str) -> bool:
     return True
 
 
+def cleanup_default_providers(expected_provider_urn: str) -> int:
+    deleted = 0
+    for line in pulumi_urn_lines():
+        stripped = line.strip()
+        if not stripped.startswith("urn:pulumi:"):
+            continue
+        if "::pulumi:providers:authentik::" not in stripped:
+            continue
+        if stripped == expected_provider_urn or stripped.endswith(f"::{PROVIDER_RESOURCE_NAME}"):
+            continue
+        if delete_from_state(stripped):
+            deleted += 1
+    return deleted
+
+
+def cleanup_misassigned_resources(
+    provider_urn: str,
+    urn_lines: list[str],
+) -> tuple[int, list[str]]:
+    deleted = 0
+    names = MISASSIGNED_CLEANUP_NAMES + tuple(r[0] for r in FLOW_TARGETS)
+    for resource_name in names:
+        resource_urn = find_resource_urn(urn_lines, resource_name)
+        if not resource_urn:
+            continue
+        exported = export_resource(resource_name)
+        assigned = str(exported.get("provider", "")) if exported else ""
+        if not provider_needs_repair(assigned, provider_urn):
+            continue
+        if delete_from_state(resource_urn):
+            deleted += 1
+            urn_lines = pulumi_urn_lines()
+    return deleted, urn_lines
+
+
 def import_flow_to_state(resource_name: str, api_pk: str, provider_urn: str) -> bool:
     proc = subprocess.run(
         [
@@ -335,8 +378,16 @@ def main() -> int:
     if apps or providers:
         print(f"api wiped applications={apps} providers={providers}")
 
+    provider_cleaned = cleanup_default_providers(provider_urn)
+    if provider_cleaned:
+        print(f"state deleted default providers={provider_cleaned}")
+
     urn_lines = pulumi_urn_lines()
-    state_fixes = 0
+    misassigned_cleaned, urn_lines = cleanup_misassigned_resources(provider_urn, urn_lines)
+    if misassigned_cleaned:
+        print(f"state deleted misassigned resources={misassigned_cleaned}")
+
+    state_fixes = misassigned_cleaned + provider_cleaned
     api_fixes = 0
     import_fixes = 0
 

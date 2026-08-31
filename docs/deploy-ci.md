@@ -17,6 +17,7 @@ Push sur **`dev`** ou **`workflow_dispatch`** → `.github/workflows/deploy.yml`
 - **Réconciliation Authentik** : purge, repair (`pulumi import` type `authentik:index/flow:Flow` + wipe providers/apps), sync token, **`repair_then_refresh`**, purge REST pre-up, **`pulumi up` retry** + up final.
 - **Backend différé** : pas de démarrage backend avant fin Pulumi (évite JWKS 404 en boucle).
 - **Providers TF orphelins** : `pkill terraform-provider-authentik` avant refresh/up.
+- **Token + provider** : refresh token + `sync_authentik_provider` (cible `wendigo-authentik`) avant chaque import ; suppression des providers `default_*` en état.
 - **`concurrency`** : `cancel-in-progress: false` — file d'attente sur serveur unique.
 
 ## Impacts

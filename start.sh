@@ -186,15 +186,36 @@ print('TOKEN:', t.key)
 sync_authentik_provider() {
   local urn
   urn="$(cd "$INFRA" && pulumi stack --show-urns 2>/dev/null \
-    | grep -oE 'urn:pulumi:[^ ]+::pulumi:providers:authentik::[^ ]+' \
+    | grep -oE 'urn:pulumi:[^ ]+::pulumi:providers:authentik::wendigo-authentik' \
     | head -1)"
+  if [[ -z "$urn" ]]; then
+    urn="$(cd "$INFRA" && pulumi stack --show-urns 2>/dev/null \
+      | grep -oE 'urn:pulumi:[^ ]+::pulumi:providers:authentik::[^ ]+' \
+      | grep -v 'default_' \
+      | head -1)"
+  fi
   [[ -n "$urn" ]] || return 0
   log "Sync provider Authentik (token → état Pulumi)..."
   (cd "$INFRA" && pulumi up -y --target "$urn" --skip-preview)
 }
 
+cleanup_pulumi_default_providers() {
+  local urn
+  while IFS= read -r urn; do
+    [[ -z "$urn" ]] && continue
+    warn "Suppression provider Pulumi obsolète: ${urn##*::}"
+    (cd "$INFRA" && pulumi state delete --force -y "$urn") || true
+  done < <(
+    cd "$INFRA" && pulumi stack --show-urns 2>/dev/null \
+      | grep -oE 'urn:pulumi:[^ ]+::pulumi:providers:authentik::default_[^ ]+' || true
+  )
+}
+
 repair_then_refresh() {
   kill_stale_authentik_providers
+  cleanup_pulumi_default_providers
+  refresh_authentik_token
+  sync_authentik_provider
   import_authentik_orphans
   log "pulumi refresh (post-réparation/import)..."
   pulumi refresh -y --parallel 2
@@ -279,13 +300,15 @@ pulumi_up_with_retry() {
     warn "pulumi up tentative $attempt/3 échouée — purge + repair_then_refresh..."
     refresh_authentik_token
     prune_authentik_wendigo
-    import_authentik_orphans
-    sync_authentik_provider
     repair_then_refresh
     sleep 15
   done
   warn "Dernière tentative pulumi up après réparation..."
   kill_stale_authentik_providers
+  cleanup_pulumi_default_providers
+  refresh_authentik_token
+  sync_authentik_provider
+  repair_then_refresh
   wait_authentik
   prune_authentik_wendigo_rest
   pulumi up -y --parallel 1
