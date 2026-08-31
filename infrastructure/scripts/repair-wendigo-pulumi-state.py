@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Répare l'état Pulumi vs Authentik : supprime les imports default_* et les orphelins API.
+"""Répare l'état Pulumi vs Authentik : imports default_*, import des orphelins API.
 
 Usage: repair-wendigo-pulumi-state.py --url http://localhost:9000 --token <API_TOKEN>
 Exécuter depuis infrastructure/ (répertoire du stack Pulumi).
@@ -24,6 +24,7 @@ FLOW_TARGETS: tuple[tuple[str, str], ...] = (
     ("wendigo-source-authentication-flow", "wendigo-source-authentication"),
 )
 
+FLOW_RESOURCE_TYPE = "authentik:index:Flow"
 PROVIDER_RESOURCE_NAME = "wendigo-authentik"
 
 
@@ -98,20 +99,20 @@ class AuthentikClient:
             if pk:
                 self._request("DELETE", f"/api/v3/policies/bindings/{pk}/")
 
-    def delete_flow(self, pk: str) -> bool:
+    def delete_flow(self, pk: str, slug: str) -> bool:
         for _ in range(3):
             self.delete_bindings_for_flow(pk)
             try:
                 self._request("DELETE", f"/api/v3/flows/instances/{pk}/")
             except urllib.error.HTTPError as err:
                 if err.code in (404, 204):
-                    return False
+                    return self.flow_pk_by_slug(slug) is None
                 if err.code in (400, 409, 500):
                     continue
                 raise
-            if self.flow_pk_by_slug_pk(pk) is None:
+            if self.flow_pk_by_slug(slug) is None:
                 return True
-        return self.flow_pk_by_slug_pk(pk) is None
+        return self.flow_pk_by_slug(slug) is None
 
     def wipe_oauth_providers(self) -> int:
         deleted = 0
@@ -144,13 +145,6 @@ class AuthentikClient:
                 except urllib.error.HTTPError:
                     pass
         return deleted
-
-    def flow_pk_by_slug_pk(self, pk: str) -> str | None:
-        payload = self._request("GET", f"/api/v3/flows/instances/{pk}/")
-        if not isinstance(payload, dict):
-            return None
-        found = payload.get("pk")
-        return str(found) if found else None
 
 
 def pulumi_urn_lines() -> list[str]:
@@ -247,6 +241,33 @@ def delete_from_state(resource_urn: str) -> bool:
     return True
 
 
+def import_flow_to_state(resource_name: str, api_pk: str, provider_urn: str) -> bool:
+    proc = subprocess.run(
+        [
+            "pulumi",
+            "import",
+            "-y",
+            "--skip-preview",
+            "--provider",
+            provider_urn,
+            FLOW_RESOURCE_TYPE,
+            resource_name,
+            api_pk,
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        print(
+            f"import {resource_name} failed: {proc.stderr or proc.stdout}",
+            file=sys.stderr,
+        )
+        return False
+    print(f"state imported {resource_name} ({api_pk})")
+    return True
+
+
 def repair_flow(
     resource_name: str,
     slug: str,
@@ -254,15 +275,12 @@ def repair_flow(
     provider_urn: str,
     urn_lines: list[str],
 ) -> tuple[int, list[str]]:
-    """Retourne (actions, urn_lines) — actions: 0=rien, 1=state, 2=state+api."""
+    """Retourne (actions, urn_lines) — 0=rien, 1=state, 2=api delete, 3=import."""
     actions = 0
     resource_urn = find_resource_urn(urn_lines, resource_name)
     exported = export_resource(resource_name) if resource_urn else None
-    assigned = str(exported.get("provider", "")) if exported else None
+    assigned = str(exported.get("provider", "")) if exported else ""
     misassigned = bool(resource_urn and provider_needs_repair(assigned, provider_urn))
-
-    if resource_urn and not misassigned:
-        return 0, urn_lines
 
     api_pk: str | None = None
     try:
@@ -270,28 +288,27 @@ def repair_flow(
     except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as err:
         print(f"api lookup {slug} failed: {err}", file=sys.stderr)
 
+    if resource_urn and not misassigned and api_pk is not None:
+        return 0, urn_lines
+
     if misassigned and resource_urn:
         if delete_from_state(resource_urn):
             actions = 1
             urn_lines = pulumi_urn_lines()
             resource_urn = None
 
-    # Orphelin API (hors état ou import default_*) → supprimer en DB.
-    if api_pk is not None and (not resource_urn or misassigned):
-        resource_urn = find_resource_urn(urn_lines, resource_name)
-        if resource_urn:
-            if delete_from_state(resource_urn):
-                actions = max(actions, 1)
-                urn_lines = pulumi_urn_lines()
-        try:
-            if client.delete_flow(api_pk):
-                print(f"api deleted flow {slug} ({api_pk})")
-                actions = max(actions, 2)
-        except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as err:
-            print(f"api delete {slug} failed: {err}", file=sys.stderr)
+    resource_urn = find_resource_urn(urn_lines, resource_name)
+
+    # Orphelin API → import (évite slug already exists au pulumi up).
+    if api_pk is not None and not resource_urn:
+        if import_flow_to_state(resource_name, api_pk, provider_urn):
+            return max(actions, 3), pulumi_urn_lines()
+        if client.delete_flow(api_pk, slug):
+            print(f"api deleted flow {slug} ({api_pk})")
+            return max(actions, 2), pulumi_urn_lines()
         return actions, urn_lines
 
-    resource_urn = find_resource_urn(urn_lines, resource_name)
+    # Entrée état fantôme (absente côté API).
     if resource_urn and api_pk is None:
         if delete_from_state(resource_urn):
             actions = max(actions, 1)
@@ -321,6 +338,7 @@ def main() -> int:
     urn_lines = pulumi_urn_lines()
     state_fixes = 0
     api_fixes = 0
+    import_fixes = 0
 
     for resource_name, slug in FLOW_TARGETS:
         try:
@@ -334,12 +352,22 @@ def main() -> int:
         except Exception as err:  # noqa: BLE001
             print(f"repair {resource_name} failed: {err}", file=sys.stderr)
             continue
-        if actions >= 1:
+        if actions == 1:
             state_fixes += 1
-        if actions >= 2:
+        elif actions == 2:
             api_fixes += 1
+        elif actions >= 3:
+            import_fixes += 1
 
-    print(json.dumps({"state_fixes": state_fixes, "api_fixes": api_fixes}))
+    print(
+        json.dumps(
+            {
+                "state_fixes": state_fixes,
+                "api_fixes": api_fixes,
+                "import_fixes": import_fixes,
+            }
+        )
+    )
     return 0
 
 

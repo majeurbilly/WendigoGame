@@ -195,7 +195,7 @@ import_authentik_orphans() {
   token="$(cd "$INFRA" && pulumi config get authentik:token 2>/dev/null || true)"
   url="$(cd "$INFRA" && pulumi config get authentik:url 2>/dev/null || echo 'http://localhost:9000')"
   [[ -n "$token" ]] || return 0
-  log "Réparation état Pulumi / orphelins Authentik (sans pulumi import)..."
+  log "Réparation état Pulumi / import orphelins Authentik..."
   (cd "$INFRA" && python3 scripts/repair-wendigo-pulumi-state.py --url "$url" --token "$token") || \
     warn "Réparation état partielle — pulumi refresh tentera de réconcilier"
 }
@@ -273,7 +273,10 @@ pulumi_up_with_retry() {
     repair_then_refresh
     sleep 15
   done
-  return 1
+  warn "Dernière tentative pulumi up après réparation..."
+  wait_authentik
+  prune_authentik_wendigo_rest
+  pulumi up -y --parallel 1
 }
 
 run_pulumi() {
