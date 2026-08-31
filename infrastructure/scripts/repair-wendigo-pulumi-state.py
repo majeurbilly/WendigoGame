@@ -146,7 +146,7 @@ def provider_needs_repair(provider_urn: str | None, expected_provider_urn: str) 
 
 def delete_from_state(resource_urn: str) -> bool:
     proc = subprocess.run(
-        ["pulumi", "state", "delete", "-y", resource_urn],
+        ["pulumi", "state", "delete", "--force", "-y", resource_urn],
         capture_output=True,
         text=True,
         check=False,
