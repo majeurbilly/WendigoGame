@@ -252,6 +252,19 @@ print('flows_ok')
     warn "Suppression ORM flows Wendigo échouée — purge REST utilisée"
 }
 
+pulumi_up_with_retry() {
+  local attempt
+  for attempt in 1 2 3; do
+    wait_authentik
+    if pulumi up -y --parallel 1; then
+      return 0
+    fi
+    warn "pulumi up tentative $attempt/3 échouée — attente Authentik..."
+    sleep 15
+  done
+  return 1
+}
+
 run_pulumi() {
   log "Pulumi up (état: $PULUMI_STATE_DIR)..."
   export PULUMI_CONFIG_PASSPHRASE="${PULUMI_CONFIG_PASSPHRASE:-}"
@@ -269,7 +282,7 @@ run_pulumi() {
   pulumi refresh -y --parallel 2
   prune_authentik_wendigo_rest
   delete_wendigo_flows_ak
-  pulumi up -y --parallel 2
+  pulumi_up_with_retry
   log "Redémarrage backend (JWKS OIDC après pulumi up)..."
   "${DC[@]}" up -d --force-recreate backend
 }
