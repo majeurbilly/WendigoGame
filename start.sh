@@ -262,6 +262,8 @@ pulumi_up_with_retry() {
     warn "pulumi up tentative $attempt/3 échouée — réconciliation Authentik..."
     import_authentik_orphans
     prune_authentik_wendigo_rest
+    delete_wendigo_flows_ak
+    pulumi refresh -y --parallel 1 || warn "refresh post-échec partiel — retry pulumi up"
     sleep 15
   done
   return 1
