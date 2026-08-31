@@ -192,14 +192,21 @@ prune_authentik_wendigo() {
 
   # stdin interactif casse les blocs indentés — on copie le script puis exec().
   "${DC[@]}" exec -T authentik-worker sh -c 'cat > /tmp/prune-wendigo-ak.py' < "$prune_script"
-  prune_out="$("${DC[@]}" exec -T authentik-worker ak shell -c "exec(open('/tmp/prune-wendigo-ak.py').read())" 2>&1 | grep -E '^\{"pruned"' | tail -1 || true)"
+  prune_out="$("${DC[@]}" exec -T authentik-worker ak shell -c "exec(open('/tmp/prune-wendigo-ak.py').read())" 2>&1 | grep -E '\{"pruned"' | tail -1 || true)"
   log "  $prune_out"
   [[ "$prune_out" == *'"total"'* ]] && ak_ok=1
+  [[ "$ak_ok" -eq 0 ]] && warn "Purge Authentik via ak shell échouée — complément API REST..."
+  prune_authentik_wendigo_rest
+}
 
-  if [[ "$ak_ok" -eq 0 ]]; then
-    warn "Purge Authentik via ak shell échouée — tentative API REST..."
-    prune_authentik_wendigo_rest
-  fi
+import_authentik_orphans() {
+  local token url
+  token="$(cd "$INFRA" && pulumi config get authentik:token 2>/dev/null || true)"
+  url="$(cd "$INFRA" && pulumi config get authentik:url 2>/dev/null || echo 'http://localhost:9000')"
+  [[ -n "$token" ]] || return 0
+  log "Import flows Authentik orphelins (hors état Pulumi)..."
+  (cd "$INFRA" && python3 scripts/import-wendigo-orphans.py --url "$url" --token "$token") || \
+    warn "Import orphelins partiel — pulumi up tentera create/update"
 }
 
 prune_authentik_wendigo_rest() {
@@ -231,6 +238,7 @@ run_pulumi() {
   refresh_authentik_token
   sync_authentik_provider
   pulumi refresh -y --parallel 2
+  import_authentik_orphans
   pulumi up -y --parallel 2
   log "Redémarrage backend (JWKS OIDC après pulumi up)..."
   "${DC[@]}" up -d --force-recreate backend

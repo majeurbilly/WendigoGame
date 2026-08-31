@@ -151,7 +151,8 @@ def prune(client: AuthentikClient) -> dict[str, int]:
     wipe_collection(
         "providers_oauth2",
         "/api/v3/providers/oauth2/",
-        lambda i: name_is_wendigo(i.get("name")),
+        lambda i: name_is_wendigo(i.get("name"))
+        or i.get("client_id") in ("wendigo-dev", "wendigo"),
     )
     wipe_collection(
         "sources_oauth",
@@ -180,6 +181,17 @@ def prune(client: AuthentikClient) -> dict[str, int]:
 
     # 3. Flows Wendigo (multi-passe)
     delete_wendigo_flows()
+
+    # 3b. Slugs connus — certains orphelins échappent au filtre name/slug générique.
+    for slug in WENDIGO_FLOW_SLUGS:
+        for flow in client.list_paginated(f"/api/v3/flows/instances/?slug={slug}"):
+            flow_pk = flow.get("pk")
+            if not flow_pk:
+                continue
+            flow_pks = {str(flow_pk)}
+            delete_bindings_for_flows(flow_pks)
+            if client.delete(f"/api/v3/flows/instances/{flow_pk}/"):
+                bump("flows")
 
     # 4. Stages & policies
     for label, path in (
