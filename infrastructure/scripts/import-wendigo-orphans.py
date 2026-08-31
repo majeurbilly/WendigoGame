@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import urllib.error
@@ -76,13 +77,23 @@ def find_resource_urn(urn_lines: list[str], resource_name: str) -> str | None:
     return None
 
 
-def authentik_provider_urn(urn_lines: list[str]) -> str | None:
-    needle = f"pulumi:providers:authentik::{PROVIDER_RESOURCE_NAME}"
-    for line in urn_lines:
-        stripped = line.strip()
-        if stripped.startswith("urn:") and needle in stripped:
-            return stripped
-    return None
+def authentik_provider_urn(urn_lines: list[str] | None = None) -> str | None:
+    text = "\n".join(urn_lines) if urn_lines is not None else ""
+    if not text:
+        proc = subprocess.run(
+            ["pulumi", "stack", "--show-urns"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            return None
+        text = proc.stdout
+    match = re.search(
+        r"urn:pulumi:[^ \n]+::pulumi:providers:authentik::wendigo-authentik",
+        text,
+    )
+    return match.group(0) if match else None
 
 
 def export_resource(resource_name: str) -> dict | None:
@@ -196,8 +207,12 @@ def main() -> int:
     urn_lines = pulumi_urn_lines()
     provider_urn = authentik_provider_urn(urn_lines)
     if not provider_urn:
-        print("authentik provider wendigo-authentik introuvable dans l'état Pulumi", file=sys.stderr)
-        return 1
+        print(
+            "authentik provider wendigo-authentik introuvable — import ignoré",
+            file=sys.stderr,
+        )
+        print(json.dumps({"imported": 0, "provider": PROVIDER_RESOURCE_NAME, "skipped": True}))
+        return 0
 
     imported = 0
 
@@ -212,8 +227,6 @@ def main() -> int:
         )
         if changed:
             imported += 1
-            if export_resource(resource_name):
-                repaired += 1
 
     print(json.dumps({"imported": imported, "provider": PROVIDER_RESOURCE_NAME}))
     return 0
