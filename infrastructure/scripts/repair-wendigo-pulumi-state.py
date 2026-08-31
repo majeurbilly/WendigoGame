@@ -86,10 +86,18 @@ def find_resource_urn(urn_lines: list[str], resource_name: str) -> str | None:
         if stripped.startswith("urn:") and stripped.endswith(suffix):
             return stripped
     match = re.search(
-        rf"(urn:pulumi:[^\s]+::flow:Flow::{re.escape(resource_name)})",
+        rf"(urn:pulumi:[^\s]+::[^\s]+::{re.escape(resource_name)})\s*$",
         "\n".join(urn_lines),
+        re.MULTILINE,
     )
-    return match.group(1) if match else None
+    if match:
+        return match.group(1)
+    exported = export_resource(resource_name)
+    if exported:
+        urn = str(exported.get("urn", ""))
+        if urn:
+            return urn
+    return None
 
 
 def authentik_provider_urn() -> str | None:
