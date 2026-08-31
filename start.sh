@@ -175,9 +175,14 @@ print('TOKEN:', t.key)
 }
 
 sync_authentik_provider() {
-  # Token synchronisé via AUTHENTIK_TOKEN (config.ts) — pas de pulumi up --target
-  # (évite le conflit provider/default_* avec les flows mal importés).
-  log "Sync provider Authentik (token via AUTHENTIK_TOKEN)..."
+  local urn
+  urn="$(cd "$INFRA" && pulumi stack --show-urns 2>/dev/null \
+    | grep -oE 'urn:pulumi:[^ ]+::pulumi:providers:authentik::[^ ]+' \
+    | head -1)"
+  [[ -n "$urn" ]] || return 0
+  log "Sync provider Authentik (token → état Pulumi)..."
+  # Après repair-wendigo-pulumi-state : plus d'imports default_* → up --target sûr.
+  (cd "$INFRA" && pulumi up -y --target "$urn" --skip-preview)
 }
 
 import_authentik_orphans() {

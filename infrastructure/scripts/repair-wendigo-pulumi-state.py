@@ -173,22 +173,33 @@ def repair_flow(
     except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as err:
         print(f"api lookup {slug} failed: {err}", file=sys.stderr)
 
-    # Orphelin API sans entrée d'état valide → supprimer en DB pour laisser pulumi up créer.
-    orphan_in_api = api_pk is not None and (not resource_urn or misassigned)
-
     if misassigned and resource_urn:
         if delete_from_state(resource_urn):
             actions = 1
             urn_lines = pulumi_urn_lines()
             resource_urn = None
 
-    if orphan_in_api and api_pk:
+    # Flow présent en API (orphelin ou mal assigné) → supprimer DB + état.
+    if api_pk is not None:
+        resource_urn = find_resource_urn(urn_lines, resource_name)
+        if resource_urn:
+            if delete_from_state(resource_urn):
+                actions = max(actions, 1)
+                urn_lines = pulumi_urn_lines()
         try:
             if client.delete_flow(api_pk):
                 print(f"api deleted flow {slug} ({api_pk})")
                 actions = max(actions, 2)
         except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as err:
             print(f"api delete {slug} failed: {err}", file=sys.stderr)
+        return actions, urn_lines
+
+    # Entrée d'état sans ressource API (refresh échouerait sur ID stale).
+    resource_urn = find_resource_urn(urn_lines, resource_name)
+    if resource_urn:
+        if delete_from_state(resource_urn):
+            actions = max(actions, 1)
+            urn_lines = pulumi_urn_lines()
 
     return actions, urn_lines
 
