@@ -33,15 +33,29 @@ class AuthentikClient:
 
     def _request(self, method: str, path: str) -> dict | list | None:
         url = f"{self.base}{path}"
-        req = urllib.request.Request(url, headers=self.headers, method=method)
-        try:
-            with urllib.request.urlopen(req, timeout=60) as resp:
-                body = resp.read().decode()
-                return json.loads(body) if body else None
-        except urllib.error.HTTPError as err:
-            if err.code == 404:
-                return None
-            raise
+        last_err: Exception | None = None
+        for attempt in range(1, 4):
+            req = urllib.request.Request(url, headers=self.headers, method=method)
+            try:
+                with urllib.request.urlopen(req, timeout=120) as resp:
+                    body = resp.read().decode()
+                    return json.loads(body) if body else None
+            except TimeoutError as err:
+                last_err = err
+                print(f"timeout {method} {path} (tentative {attempt}/3)", file=sys.stderr)
+                if attempt < 3:
+                    continue
+            except urllib.error.HTTPError as err:
+                if err.code == 404:
+                    return None
+                if err.code in (502, 503, 504) and attempt < 3:
+                    print(f"HTTP {err.code} {method} {path} (tentative {attempt}/3)", file=sys.stderr)
+                    last_err = err
+                    continue
+                raise
+        if last_err:
+            raise last_err
+        return None
 
     def list_paginated(self, path: str) -> list[dict]:
         items: list[dict] = []
@@ -105,7 +119,17 @@ def prune(client: AuthentikClient) -> dict[str, int]:
                 bump(label)
 
     def wendigo_flows() -> list[dict]:
-        return [f for f in client.list_paginated("/api/v3/flows/instances/") if flow_is_wendigo(f)]
+        flows: list[dict] = []
+        for slug in WENDIGO_FLOW_SLUGS:
+            flows.extend(client.list_paginated(f"/api/v3/flows/instances/?slug={slug}"))
+        seen: set[str] = set()
+        unique: list[dict] = []
+        for flow in flows:
+            pk = flow.get("pk")
+            if pk and str(pk) not in seen:
+                seen.add(str(pk))
+                unique.append(flow)
+        return unique
 
     def wendigo_policy_pks() -> set[str]:
         return {

@@ -224,18 +224,27 @@ prune_authentik_wendigo_ak() {
 }
 
 prune_authentik_wendigo_rest() {
-  local token url
+  local token url attempt
   token="$(authentik_api_token)"
   url="$(authentik_url)"
   [[ -n "$token" ]] || { warn "Token Authentik absent — purge REST ignorée"; return 0; }
 
   log "Purge Authentik Wendigo (API REST)..."
-  python3 "$INFRA/scripts/prune-wendigo-authentik.py" --url "$url" --token "$token"
+  for attempt in 1 2 3 4 5; do
+    wait_authentik
+    if python3 "$INFRA/scripts/prune-wendigo-authentik.py" --url "$url" --token "$token"; then
+      return 0
+    fi
+    warn "Purge REST tentative $attempt/5 échouée — attente Authentik..."
+    sleep 15
+  done
+  return 1
 }
 
 purge_authentik_wendigo() {
+  wait_authentik
   prune_authentik_wendigo_ak
-  prune_authentik_wendigo_rest
+  prune_authentik_wendigo_rest || die "Purge Authentik Wendigo incomplète — impossible de faire un clean deploy"
 }
 
 reset_pulumi_state() {

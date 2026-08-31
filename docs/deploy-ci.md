@@ -53,7 +53,7 @@ Plus de boucles `repair_then_refresh` / `import` / retries avec purge entre chaq
 
 | Script | Usage |
 |--------|--------|
-| `prune-wendigo-authentik.py` | Purge REST Wendigo (appelé par clean deploy) |
+| `prune-wendigo-authentik.py` | Purge REST Wendigo — requêtes par slug, timeout 120s, retries |
 | `prune-wendigo-authentik-ak.py` | Purge ORM via `ak shell` |
 | `repair-wendigo-pulumi-state.py` | **Déprécié dans start.sh** — récupération manuelle uniquement |
 
