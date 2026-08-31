@@ -33,10 +33,17 @@ export const allowedRedirectUris = parseRedirectUris(
 );
 
 export function createAuthentikProvider(): authentik.Provider {
-  const url = authentikConfig.get('url')?.replace(/\/+$/, '') ?? 'http://localhost:9000';
+  const configUrl = authentikConfig.get('url')?.replace(/\/+$/, '') ?? 'http://localhost:9000';
+  const url = process.env.AUTHENTIK_URL?.replace(/\/+$/, '') ?? configUrl;
+  // CI: start.sh exporte AUTHENTIK_TOKEN après rotation — prioritaire sur le secret stack
+  // pour éviter un refresh avec le token figé dans l'état du provider.
+  const token =
+    process.env.AUTHENTIK_TOKEN !== undefined
+      ? pulumi.secret(process.env.AUTHENTIK_TOKEN)
+      : authentikToken;
   return new authentik.Provider('wendigo-authentik', {
     url,
-    token: authentikToken,
+    token,
     insecure: authentikConfig.getBoolean('insecure') ?? false,
   });
 }

@@ -14,7 +14,7 @@ Stack `infrastructure/` : provisionne Authentik (OIDC Wendigo, Google SSO), la c
 - **Certificat OIDC** : `@pulumi/tls` + `allowedUses` en snake_case (`key_encipherment`, `digital_signature`).
 - **`run_pulumi`** : plus de `nix develop` imbriqué — le workflow lance déjà `nix develop --command bash ./start.sh`. Évite un redémarrage Authentik via le `shellHook` pendant `pulumi up`.
 - **`shellHook` flake** : si `/-/health/ready/` répond 200, seul le token API est rafraîchi (pas de `docker compose up` authentik).
-- **Réconciliation Authentik** : `prune-wendigo-authentik-ak.py` exécuté via `ak shell -c "exec(open(...).read())"` (pas stdin interactif) ; modèle `Prompt` (pas `PromptField`). Repli REST si échec. Token API rafraîchi **après** purge, avant `pulumi refresh`.
+- **Réconciliation Authentik** : purge ORM (`ak shell -c exec`) + repli REST. Token API **roté** à chaque deploy (`pulumi-deploy`), exporté via `AUTHENTIK_TOKEN` / `AUTHENTIK_URL`, puis `sync_authentik_provider` (`pulumi up --target` du provider) avant `refresh` — le provider TF ne lit pas le secret stack à jour lors d'un refresh seul.
 
 ## Impacts
 

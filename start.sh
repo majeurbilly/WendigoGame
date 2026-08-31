@@ -147,13 +147,19 @@ ensure_pulumi_deps() {
 
 refresh_authentik_token() {
   log "Token API Authentik..."
-  local token
+  local token url
+  url="$(cd "$INFRA" && pulumi config get authentik:url 2>/dev/null || echo 'http://localhost:9000')"
+  url="${url%/}"
+
+  # Rotation à chaque deploy : le provider TF en état Pulumi garde l'ancien token sinon.
   token="$("${DC[@]}" exec -T authentik-worker ak shell -c "
 from authentik.core.models import Token, TokenIntents, User
 admin = User.objects.get(username='akadmin')
-t, _ = Token.objects.get_or_create(
+Token.objects.filter(identifier='pulumi-deploy').delete()
+t = Token.objects.create(
+    user=admin,
     identifier='pulumi-deploy',
-    defaults=dict(user=admin, intent=TokenIntents.INTENT_API),
+    intent=TokenIntents.INTENT_API,
 )
 print('TOKEN:', t.key)
 " 2>/dev/null | grep '^TOKEN:' | cut -d' ' -f2)"
@@ -163,7 +169,17 @@ print('TOKEN:', t.key)
     cd "$INFRA"
     pulumi config set --secret authentik:token "$token"
   )
+  export AUTHENTIK_TOKEN="$token"
+  export AUTHENTIK_URL="$url"
   log "Token Authentik enregistré"
+}
+
+sync_authentik_provider() {
+  local urn
+  urn="$(cd "$INFRA" && pulumi stack --show-urns 2>/dev/null | grep 'pulumi:providers:authentik' | awk '{print $1}' | head -1)"
+  [[ -n "$urn" ]] || return 0
+  log "Sync provider Authentik (token → état Pulumi)..."
+  (cd "$INFRA" && pulumi up -y --target "$urn" --skip-preview)
 }
 
 prune_authentik_wendigo() {
@@ -173,7 +189,7 @@ prune_authentik_wendigo() {
 
   # stdin interactif casse les blocs indentés — on copie le script puis exec().
   "${DC[@]}" exec -T authentik-worker sh -c 'cat > /tmp/prune-wendigo-ak.py' < "$prune_script"
-  prune_out="$("${DC[@]}" exec -T authentik-worker ak shell -c "exec(open('/tmp/prune-wendigo-ak.py').read())" 2>/dev/null | tail -1 || true)"
+  prune_out="$("${DC[@]}" exec -T authentik-worker ak shell -c "exec(open('/tmp/prune-wendigo-ak.py').read())" 2>&1 | grep -E '^\{"pruned"' | tail -1 || true)"
   log "  $prune_out"
   [[ "$prune_out" == *'"total"'* ]] && ak_ok=1
 
@@ -203,6 +219,7 @@ run_pulumi() {
   refresh_authentik_token
   prune_authentik_wendigo
   refresh_authentik_token
+  sync_authentik_provider
   pulumi refresh -y --parallel 2
   pulumi up -y --parallel 2
 }
