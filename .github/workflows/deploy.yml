@@ -4,7 +4,12 @@ on:
   push:
     branches:
       - dev
-  workflow_dispatch: # NOUVEAU: Permet de lancer le déploiement via un bouton sur GitHub
+  workflow_dispatch:
+    inputs:
+      clean_deploy:
+        description: "Reset état Pulumi local + purge Authentik Wendigo avant deploy"
+        type: boolean
+        default: false
 
 concurrency:
   group: wendigame-deploy-dev
@@ -30,11 +35,13 @@ jobs:
           fi
 
       - name: Deploy infrastructure (Docker + Pulumi)
+        env:
+          WENDIGO_CLEAN_DEPLOY: ${{ github.event_name == 'workflow_dispatch' && inputs.clean_deploy && '1' || '0' }}
         run: |
-          # On force le robot à charger la commande Nix
           source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
-
-          # On lance ton script À L'INTÉRIEUR de la bulle Nix (qui contient npm, Pulumi, etc.)
+          if [[ "${WENDIGO_CLEAN_DEPLOY}" == "1" ]]; then
+            echo "::notice::Clean deploy — reset $HOME/.pulumi-wendigo + purge Authentik Wendigo"
+          fi
           nix develop --command bash ./start.sh
 
       - name: Smoke check (Verify services)

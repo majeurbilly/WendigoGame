@@ -11,6 +11,13 @@ MAX_WAIT="${MAX_WAIT:-360}"
 PULUMI_STATE_DIR="${PULUMI_STATE_DIR:-$HOME/.pulumi-wendigo}"
 export PULUMI_BACKEND_URL="file://${PULUMI_STATE_DIR}"
 
+# Reset one-shot : vide l'état Pulumi local + purge Authentik Wendigo avant un pulumi up propre.
+# Activé via WENDIGO_CLEAN_DEPLOY=1 ou ./start.sh --clean
+WENDIGO_CLEAN_DEPLOY="${WENDIGO_CLEAN_DEPLOY:-0}"
+for arg in "$@"; do
+  [[ "$arg" == "--clean" ]] && WENDIGO_CLEAN_DEPLOY=1
+done
+
 # Binaires locaux (tsc, etc.) — postinstall.js du SDK Authentik appelle `tsc` via /bin/sh.
 export PATH="$INFRA/node_modules/.bin:$SDK/node_modules/.bin:$ROOT/node_modules/.bin:${PATH:-}"
 
@@ -40,6 +47,24 @@ export_vite_build_env() {
   [[ -n "${VITE_API_URL:-}" ]] || export VITE_API_URL="http://localhost:8080"
   [[ -n "${VITE_AUTHENTIK_CLIENT_ID:-}" ]] || export VITE_AUTHENTIK_CLIENT_ID="wendigo-dev"
   export VITE_AUTHENTIK_URL="$(normalize_vite_oidc_url "${VITE_AUTHENTIK_URL:-}")"
+}
+
+authentik_url() {
+  if [[ -n "${AUTHENTIK_URL:-}" ]]; then
+    printf '%s' "${AUTHENTIK_URL%/}"
+    return 0
+  fi
+  local url
+  url="$(cd "$INFRA" && pulumi config get authentik:url 2>/dev/null || echo 'http://localhost:9000')"
+  printf '%s' "${url%/}"
+}
+
+authentik_api_token() {
+  if [[ -n "${AUTHENTIK_TOKEN:-}" ]]; then
+    printf '%s' "$AUTHENTIK_TOKEN"
+    return 0
+  fi
+  cd "$INFRA" && pulumi config get authentik:token 2>/dev/null || true
 }
 
 kill_stale_authentik_providers() {
@@ -105,7 +130,6 @@ build_authentik_sdk() {
     if [[ ! -d node_modules ]]; then
       npm install --ignore-scripts
     fi
-    # Après npm install : tsc est dans $SDK/node_modules/.bin (pas dans le PATH du runner).
     export PATH="$SDK/node_modules/.bin:$INFRA/node_modules/.bin:${PATH:-}"
     command -v tsc >/dev/null || die "tsc introuvable (installe typescript dans $SDK ou flake.nix)"
     node scripts/postinstall.js
@@ -143,7 +167,6 @@ ensure_pulumi_deps() {
     pnpm add "@pulumi/authentik@file:sdks/authentik" || true
   fi
 
-  # Build AVANT pnpm install : pnpm copie le SDK au moment de l'install
   patch_authentik_sdk_sources
   build_authentik_sdk
   pnpm install --ignore-scripts
@@ -157,10 +180,8 @@ ensure_pulumi_deps() {
 refresh_authentik_token() {
   log "Token API Authentik..."
   local token url
-  url="$(cd "$INFRA" && pulumi config get authentik:url 2>/dev/null || echo 'http://localhost:9000')"
-  url="${url%/}"
+  url="$(authentik_url)"
 
-  # Rotation à chaque deploy : le provider TF en état Pulumi garde l'ancien token sinon.
   token="$("${DC[@]}" exec -T authentik-worker ak shell -c "
 from authentik.core.models import Token, TokenIntents, User
 admin = User.objects.get(username='akadmin')
@@ -174,144 +195,57 @@ print('TOKEN:', t.key)
 " 2>/dev/null | grep '^TOKEN:' | cut -d' ' -f2)"
 
   [[ -n "$token" ]] || die "Impossible de récupérer le token Authentik"
-  (
-    cd "$INFRA"
-    pulumi config set --secret authentik:token "$token"
-  )
   export AUTHENTIK_TOKEN="$token"
   export AUTHENTIK_URL="$url"
+  (
+    cd "$INFRA"
+    pulumi config set --secret authentik:token "$token" 2>/dev/null || true
+  )
   log "Token Authentik enregistré"
 }
 
-sync_authentik_provider() {
-  local urn
-  urn="$(cd "$INFRA" && pulumi stack --show-urns 2>/dev/null \
-    | grep -oE 'urn:pulumi:[^ ]+::pulumi:providers:authentik::wendigo-authentik' \
-    | head -1)"
-  if [[ -z "$urn" ]]; then
-    urn="$(cd "$INFRA" && pulumi stack --show-urns 2>/dev/null \
-      | grep -oE 'urn:pulumi:[^ ]+::pulumi:providers:authentik::[^ ]+' \
-      | grep -v 'default_' \
-      | head -1)"
-  fi
-  [[ -n "$urn" ]] || return 0
-  log "Sync provider Authentik (token → état Pulumi)..."
-  (cd "$INFRA" && pulumi up -y --target "$urn" --skip-preview)
-}
-
-cleanup_pulumi_default_providers() {
-  local urn
-  while IFS= read -r urn; do
-    [[ -z "$urn" ]] && continue
-    warn "Suppression provider Pulumi obsolète: ${urn##*::}"
-    (cd "$INFRA" && pulumi state delete --force -y "$urn") || true
-  done < <(
-    cd "$INFRA" && pulumi stack --show-urns 2>/dev/null \
-      | grep -oE 'urn:pulumi:[^ ]+::pulumi:providers:authentik::default_[^ ]+' || true
-  )
-}
-
-repair_then_refresh() {
-  kill_stale_authentik_providers
-  cleanup_pulumi_default_providers
-  refresh_authentik_token
-  sync_authentik_provider
-  import_authentik_orphans
-  log "pulumi refresh (post-réparation/import)..."
-  pulumi refresh -y --parallel 2
-}
-
-import_authentik_orphans() {
-  local token url
-  token="$(cd "$INFRA" && pulumi config get authentik:token 2>/dev/null || true)"
-  url="$(cd "$INFRA" && pulumi config get authentik:url 2>/dev/null || echo 'http://localhost:9000')"
-  [[ -n "$token" ]] || return 0
-  log "Réparation état Pulumi / import orphelins Authentik..."
-  (cd "$INFRA" && python3 scripts/repair-wendigo-pulumi-state.py --url "$url" --token "$token") || \
-    warn "Réparation état partielle — pulumi refresh tentera de réconcilier"
-}
-
-prune_authentik_wendigo() {
-  log "Purge Authentik Wendigo (ak shell / ORM)..."
+prune_authentik_wendigo_ak() {
   local prune_script="$INFRA/scripts/prune-wendigo-authentik-ak.py"
-  local prune_out ak_ok=0
+  [[ -f "$prune_script" ]] || return 0
 
-  # stdin interactif casse les blocs indentés — on copie le script puis exec().
+  log "Purge Authentik Wendigo (ak shell / ORM)..."
+  local prune_out
   "${DC[@]}" exec -T authentik-worker sh -c 'cat > /tmp/prune-wendigo-ak.py' < "$prune_script"
   prune_out="$("${DC[@]}" exec -T authentik-worker ak shell -c "exec(open('/tmp/prune-wendigo-ak.py').read())" 2>&1 | grep -E '\{"pruned"' | tail -1 || true)"
-  log "  $prune_out"
-  [[ "$prune_out" == *'"total"'* ]] && ak_ok=1
-  [[ "$ak_ok" -eq 0 ]] && warn "Purge Authentik via ak shell échouée — complément API REST..."
-  prune_authentik_wendigo_rest
+  if [[ -n "$prune_out" ]]; then
+    log "  $prune_out"
+  else
+    warn "Purge Authentik via ak shell sans résultat — complément REST..."
+  fi
 }
 
 prune_authentik_wendigo_rest() {
-  local token url attempt
-  token="$(cd "$INFRA" && pulumi config get authentik:token 2>/dev/null || true)"
-  url="$(cd "$INFRA" && pulumi config get authentik:url 2>/dev/null || echo 'http://localhost:9000')"
-  [[ -n "$token" ]] || { warn "Token Authentik absent — purge ignorée"; return 0; }
-  for attempt in 1 2 3; do
-    if python3 "$INFRA/scripts/prune-wendigo-authentik.py" --url "$url" --token "$token"; then
-      return 0
-    fi
-    warn "Purge REST tentative $attempt/3 échouée — attente Authentik..."
-    wait_authentik
-    sleep 5
-  done
-  warn "Purge Authentik partielle — pulumi refresh tentera de réconcilier"
+  local token url
+  token="$(authentik_api_token)"
+  url="$(authentik_url)"
+  [[ -n "$token" ]] || { warn "Token Authentik absent — purge REST ignorée"; return 0; }
+
+  log "Purge Authentik Wendigo (API REST)..."
+  python3 "$INFRA/scripts/prune-wendigo-authentik.py" --url "$url" --token "$token"
 }
 
-delete_wendigo_flows_ak() {
-  log "Suppression ciblée flows Wendigo (ak shell)..."
-  "${DC[@]}" exec -T authentik-worker ak shell -c "
-from authentik.flows.models import Flow, FlowStageBinding
-from django.contrib.contenttypes.models import ContentType
-from authentik.policies.models import PolicyBinding
-slugs = (
-    'wendigo-authentication',
-    'wendigo-google-enrollment',
-    'wendigo-provider-authorization',
-    'wendigo-provider-invalidation',
-    'wendigo-source-authentication',
-)
-for slug in slugs:
-    qs = Flow.objects.filter(slug=slug)
-    if not qs.exists():
-        continue
-    pks = list(qs.values_list('pk', flat=True))
-    ct = ContentType.objects.get_for_model(Flow)
-    FlowStageBinding.objects.filter(target__pk__in=pks).delete()
-    PolicyBinding.objects.filter(target_content_type=ct, target_object_id__in=pks).delete()
-    qs.delete()
-print('flows_ok')
-" 2>/dev/null | grep -q flows_ok && log "  flows Wendigo supprimés (ORM)" || \
-    warn "Suppression ORM flows Wendigo échouée — purge REST utilisée"
-}
-
-pulumi_up_with_retry() {
-  local attempt
-  for attempt in 1 2 3; do
-    kill_stale_authentik_providers
-    wait_authentik
-    prune_authentik_wendigo_rest
-    if pulumi up -y --parallel 1; then
-      return 0
-    fi
-    warn "pulumi up tentative $attempt/3 échouée — purge + repair_then_refresh..."
-    refresh_authentik_token
-    prune_authentik_wendigo
-    repair_then_refresh
-    sleep 15
-  done
-  warn "Dernière tentative pulumi up après réparation..."
-  kill_stale_authentik_providers
-  cleanup_pulumi_default_providers
-  refresh_authentik_token
-  sync_authentik_provider
-  repair_then_refresh
-  wait_authentik
+purge_authentik_wendigo() {
+  prune_authentik_wendigo_ak
   prune_authentik_wendigo_rest
-  pulumi up -y --parallel 1
+}
+
+reset_pulumi_state() {
+  log "Reset état Pulumi ($PULUMI_STATE_DIR)..."
+  kill_stale_authentik_providers
+  if [[ -d "$PULUMI_STATE_DIR" ]]; then
+    rm -rf "$PULUMI_STATE_DIR"
+  fi
+  mkdir -p "$PULUMI_STATE_DIR"
+}
+
+ensure_pulumi_stack() {
+  cd "$INFRA"
+  pulumi stack select dev 2>/dev/null || pulumi stack init dev --non-interactive
 }
 
 run_pulumi() {
@@ -320,18 +254,24 @@ run_pulumi() {
   mkdir -p "$PULUMI_STATE_DIR"
   kill_stale_authentik_providers
 
+  if [[ "$WENDIGO_CLEAN_DEPLOY" == "1" ]]; then
+    log "Mode clean deploy — reset état + purge Authentik Wendigo"
+    refresh_authentik_token
+    reset_pulumi_state
+    purge_authentik_wendigo
+    refresh_authentik_token
+    ensure_pulumi_stack
+  else
+    wait_authentik
+    refresh_authentik_token
+    ensure_pulumi_stack
+  fi
+
   cd "$INFRA"
-  pulumi stack select dev 2>/dev/null || pulumi stack init dev --non-interactive
   wait_authentik
-  refresh_authentik_token
-  prune_authentik_wendigo
-  refresh_authentik_token
-  import_authentik_orphans
-  sync_authentik_provider
-  import_authentik_orphans
-  repair_then_refresh
-  prune_authentik_wendigo_rest
-  pulumi_up_with_retry
+  log "pulumi up (provisionnement complet)..."
+  pulumi up -y --parallel 1
+
   log "Redémarrage backend (JWKS OIDC après pulumi up)..."
   "${DC[@]}" up -d --force-recreate backend frontend
 }
