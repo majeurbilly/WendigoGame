@@ -1,5 +1,5 @@
 name: wendigo-authentik
-description: Wendigo infrastructure (Authentik OIDC — cible k3s/GitOps)
+description: Wendigo infrastructure (Authentik OIDC — cible k3s / CI push)
 runtime:
   name: nodejs
   options:

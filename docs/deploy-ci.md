@@ -1,20 +1,21 @@
-# CI/CD — Build & Push GHCR
+# CI/CD — Push hybride (GHCR + k3s)
 
 ## État actuel
 
-Push sur **`main`** (ou `workflow_dispatch`) → `.github/workflows/build-and-push-ghcr.yml` :
+Push sur **`main`** (ou `workflow_dispatch`) → `.github/workflows/ci-cd.yml` :
 
-1. Checkout
-2. Login GHCR via `${{ secrets.GITHUB_TOKEN }}`
-3. Build/push parallèle :
-   - `ghcr.io/majeurbilly/wendigame-backend:latest` (+ `:sha`)
-   - `ghcr.io/majeurbilly/wendigame-frontend:latest` (+ `:sha`)
+1. **Lint & Test** (`ubuntu-latest`) — backend Go + frontend lint/tsc
+2. **Build & Push** (`ubuntu-latest`) — images GHCR
+3. **Deploy** (`self-hosted`) — `kustomize edit set image` + `kubectl apply -k deploy/k8s`
 
-ArgoCD synchronise `deploy/k8s/` et tire les images `:latest`.
+Images :
+
+- `ghcr.io/majeurbilly/wendigame-backend:latest` et `:${{ github.sha }}`
+- `ghcr.io/majeurbilly/wendigame-frontend:latest` et `:${{ github.sha }}`
+
+Le job deploy force les Deployments sur le tag **SHA** (pas seulement `latest`).
 
 ## Variables repository (frontend)
-
-Optionnelles — build-args Vite :
 
 | Variable | Défaut CI |
 |----------|-----------|
@@ -22,15 +23,19 @@ Optionnelles — build-args Vite :
 | `VITE_AUTHENTIK_URL` | `http://localhost:9000/application/o/wendigo/` |
 | `VITE_AUTHENTIK_CLIENT_ID` | `wendigo-dev` |
 
-À renseigner avec les URLs publiques (Ingress) dès qu’elles existent.
-
 ## Permissions
 
-Le workflow déclare `packages: write`. Le package GHCR doit autoriser Actions du dépôt (visibilité / Inherit).
+- Jobs build : `packages: write` (GITHUB_TOKEN → GHCR)
+- Job deploy : `contents: read` uniquement ; kubectl via kubeconfig local du runner
 
-## Obsolète (supprimé Phase 1.5)
+## Pull cluster (packages privés)
 
-- `.github/workflows/deploy.yml` (self-hosted → Compose → `start.sh`)
-- `docker-compose.yml`, `start.sh`
+Les manifests apps référencent `imagePullSecrets: ghcr-creds`. Créer le secret une fois sur le cluster (voir `docs/gitops.md`). Sans secret, et si GHCR est privé → `ErrImagePull`.
+
+## Obsolète
+
+- ArgoCD / `deploy/k8s/argocd-app.yaml`
+- `.github/workflows/build-and-push-ghcr.yml`
+- Docker Compose / `start.sh`
 
 Voir `docs/gitops.md`.

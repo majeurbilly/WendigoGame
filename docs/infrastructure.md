@@ -4,7 +4,7 @@
 
 Stack `infrastructure/` : provisionne Authentik (OIDC Wendigo, Google SSO) via Pulumi.
 
-**Phase 1.5** : Docker Compose et `start.sh` sont **supprimés**. Le runtime cible est **k3s + ArgoCD** (`deploy/k8s/`). Cette stack Pulumi n’est plus branchée sur un bootstrap Compose ; la migration Authentik/Grafana vers manifests K8s reste à faire.
+**Phase push CI/CD** : Docker Compose, `start.sh` et ArgoCD sont **retirés**. Le runtime cible est **k3s** déployé par GitHub Actions (`.github/workflows/ci-cd.yml`). Cette stack Pulumi n’est plus branchée sur un bootstrap Compose ; la migration Authentik/Grafana vers manifests K8s reste à faire.
 
 **Grafana** : datasources Prometheus/Loki via `deploy/grafana/provisioning/` (Zéro ClickOps) — configs historiques Compose, à rebrancher en cluster.
 
@@ -22,5 +22,5 @@ Stack `infrastructure/` : provisionne Authentik (OIDC Wendigo, Google SSO) via P
 |-----------|--------|
 | Compose / `start.sh` | Supprimés — plus de génération `.env` Compose |
 | `deploy/k8s/` | Source de vérité runtime (postgres, redis, backend, frontend) |
-| CI | Build/push GHCR uniquement (`docs/deploy-ci.md`) |
-| Authentik sur K8s | Prochaine phase GitOps |
+| CI | Push hybride GHCR + kubectl (`docs/deploy-ci.md`) |
+| Authentik sur K8s | Prochaine phase |

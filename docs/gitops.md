@@ -1,42 +1,58 @@
-# GitOps k3s / ArgoCD — Phase 1.5
+# CI/CD Push — k3s (sans ArgoCD)
 
 ## État actuel
 
-Orchestration 100 % Kubernetes (GitOps). Docker Compose et `start.sh` ont été **supprimés**. Docker reste uniquement l’outil de **build** d’images (Dockerfiles → GHCR).
+Déploiement **push** via GitHub Actions. ArgoCD et le modèle GitOps pull ont été abandonnés (charge CPU/RAM de réconciliation sur le serveur k3s).
 
 ```
 deploy/k8s/
-├── argocd-app.yaml          # Application ArgoCD (bootstrap manuel)
 ├── kustomization.yaml
-├── base/                    # namespace, postgres, redis
-└── apps/                    # backend (replicas: 1), frontend
+├── base/          # namespace, postgres, redis
+└── apps/          # backend (replicas: 1), frontend
 ```
 
-CI : `.github/workflows/build-and-push-ghcr.yml` — push sur `main` → build/push
-`ghcr.io/majeurbilly/wendigame-{backend,frontend}:latest` (+ tag SHA).
+Pipeline : `.github/workflows/ci-cd.yml` (push sur `main`)
+
+| Job | Runner | Rôle |
+|-----|--------|------|
+| `lint-test` | `ubuntu-latest` | `go test` + ESLint + `tsc -b` |
+| `build-backend` / `build-frontend` | `ubuntu-latest` | Build/push GHCR `:latest` + `:${{ github.sha }}` |
+| `deploy` | `self-hosted` | `kustomize edit set image` → `kubectl apply -k deploy/k8s` |
 
 ## Choix techniques
 
 | Décision | Raison |
 |---|---|
-| Org GHCR `majeurbilly` | Dépôt `majeurbilly/WendigoGame` |
-| Backend `replicas: 1` + `Recreate` | Hub WebSocket in-memory |
-| `ALLOWED_ORIGINS=*` | CORS permissif Phase 1.5 ; middleware Go traite `*` comme allow-all (echo Origin) |
-| Mot de passe Postgres en clair dans les manifests | Temporaire — Secret/SealedSecret à venir |
-| Pas de Compose | IaC / Authentik / Grafana ciblés K8s uniquement |
-| Images `:latest` + `:sha` | ArgoCD suit `latest` ; SHA pour traçabilité |
+| Pas d’ArgoCD | Évite la boucle de sync continue sur machine saturée |
+| Hybrid runners | Builds cloud ; deploy local LAN (`192.168.x`) avec kubectl natif |
+| Tag SHA en deploy | Image immuable ; patch éphémère via `kustomize edit` (non commité) |
+| Backend `replicas: 1` | Hub WebSocket in-memory |
+| `ALLOWED_ORIGINS=*` | CORS permissif temporaire |
+| `imagePullSecrets: ghcr-creds` | Packages GHCR privés — auth docker-registry côté cluster |
 
-## Bootstrap cluster
+## Prérequis runner self-hosted
+
+- Runner GitHub installé sur le serveur (ou machine LAN) avec accès API k3s (`kubectl` configuré).
+- Labels : au minimum `self-hosted` (job `deploy`).
+
+## Secret GHCR (`ghcr-creds`)
+
+Les Deployments `backend` et `frontend` référencent `imagePullSecrets: [{ name: ghcr-creds }]`.
+
+Créer une fois dans le namespace `wendigo` (PAT GitHub avec `read:packages`) :
 
 ```bash
-kubectl apply -f deploy/k8s/argocd-app.yaml -n argocd
+kubectl -n wendigo create secret docker-registry ghcr-creds \
+  --docker-server=ghcr.io \
+  --docker-username=majeurbilly \
+  --docker-password=<GITHUB_PAT> \
+  --docker-email=<email>
 ```
 
-ArgoCD sync path : `deploy/k8s` (Kustomize exclut `argocd-app.yaml`).
+Si les packages GHCR sont **publics**, le secret est inutile mais inoffensif tant qu’il existe (sinon `ImagePullBackOff`).
 
 ## Impacts
 
-- **CI** : plus de runner self-hosted / `start.sh` ; GitHub-hosted + GHCR.
-- **Frontend build** : `VITE_*` via repository Variables (sinon défauts localhost — à surcharger avant prod réelle).
-- **Pulumi / Authentik** : hors Compose ; migration K8s à planifier (manifests non inclus Phase 1.5).
-- **Observabilité** : configs sous `deploy/{grafana,prometheus,promtail}/` héritées Compose — à rebrancher en K8s.
+- **CI** : un seul workflow `ci-cd.yml` ; plus de `build-and-push-ghcr.yml` ni `argocd-app.yaml`.
+- **Frontend** : Variables repo `VITE_*` (sinon défauts localhost).
+- **Authentik / Grafana** : migration K8s toujours à planifier.

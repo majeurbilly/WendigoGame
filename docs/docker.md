@@ -32,7 +32,7 @@ Chaque instruction est placée selon **ce qui invalide la couche suivante** :
 
 ### CI
 
-- Runner GitHub-hosted + Buildx + cache GHA (`type=gha`).
+- Runner GitHub-hosted (build) + self-hosted (deploy) via `ci-cd.yml`.
 - Registry : `ghcr.io/majeurbilly/wendigame-{backend,frontend}`.
 
 ## Impacts
@@ -41,5 +41,5 @@ Chaque instruction est placée selon **ce qui invalide la couche suivante** :
 |---------|--------|
 | `backend/Dockerfile` | Build GHCR uniquement |
 | `frontend/Dockerfile` | Build-args `VITE_*` depuis Actions Variables |
-| `.github/workflows/build-and-push-ghcr.yml` | Source de vérité du build |
-| Compose / `start.sh` | **Supprimés** (Phase 1.5) |
+| `.github/workflows/ci-cd.yml` | Lint/Test → Build GHCR → Deploy k3s |
+| Compose / `start.sh` / ArgoCD | **Supprimés** |

@@ -21,13 +21,14 @@ L'application s'occupe de tout et s'adapte à vous :
 
 ---
 
-## 🚀 Comment lancer (GitOps / k3s)
+## 🚀 Comment lancer (CI/CD Push / k3s)
 
-L’orchestration Docker Compose a été retirée. Le runtime cible est un cluster **k3s** synchronisé par **ArgoCD** depuis `deploy/k8s/`.
+L’orchestration Docker Compose et ArgoCD ont été retirées. Le runtime cible est un cluster **k3s** déployé en **push** par GitHub Actions.
 
-1. **Build images** : push sur `main` → workflow `.github/workflows/build-and-push-ghcr.yml` pousse vers GHCR.
-2. **Cluster** : `kubectl apply -f deploy/k8s/argocd-app.yaml -n argocd`
-3. **Dev local applicatif** (sans cluster) :
+1. **Pipeline** : push sur `main` → `.github/workflows/ci-cd.yml`
+   - Lint/Test + Build/Push GHCR sur `ubuntu-latest`
+   - Deploy sur runner **`self-hosted`** (`kustomize edit set image` + `kubectl apply -k deploy/k8s`)
+2. **Dev local applicatif** (sans cluster) :
    ```bash
    nix develop
    cp backend/.env.example backend/.env

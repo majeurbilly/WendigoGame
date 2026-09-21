@@ -13,7 +13,7 @@
       in
       {
         # Outils locaux (Go/Node/Pulumi/Docker build). Plus de bootstrap Docker Compose.
-        # Stack runtime = k3s + ArgoCD (deploy/k8s/) ; images = GHCR.
+        # Stack runtime = k3s ; déploiement = GitHub Actions push (ci-cd.yml).
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             go
@@ -62,7 +62,7 @@
               cp -a "$_sdk/bin/." "$_ak_bin/"
             fi
 
-            echo "WendigoGame shell — runtime = k3s/ArgoCD (deploy/k8s), images = GHCR"
+            echo "WendigoGame shell — runtime = k3s (push CI/CD), images = GHCR"
           '';
         };
       });

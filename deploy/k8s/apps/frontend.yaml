@@ -38,6 +38,8 @@ spec:
         app.kubernetes.io/name: frontend
         app.kubernetes.io/part-of: wendigo
     spec:
+      imagePullSecrets:
+        - name: ghcr-creds
       containers:
         - name: frontend
           image: ghcr.io/majeurbilly/wendigame-frontend:latest
