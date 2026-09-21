@@ -59,6 +59,13 @@ spec:
               value: redis://redis:6379
             - name: ALLOWED_ORIGINS
               value: "*"
+            # Authentik sur l'hôte LAN (évite le défaut code localhost:9000)
+            - name: AUTHENTIK_JWKS_URL
+              value: http://192.168.0.157:9000/application/o/wendigo/jwks/
+            - name: OIDC_ISSUER_URL
+              value: http://192.168.0.157:9000/application/o/wendigo/
+            - name: OIDC_EXPECTED_ISSUER
+              value: http://192.168.0.157:9000/application/o/wendigo/
           readinessProbe:
             httpGet:
               path: /health

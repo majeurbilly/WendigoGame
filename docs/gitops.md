@@ -29,6 +29,7 @@ Pipeline : `.github/workflows/ci-cd.yml` (push sur `main`)
 | Backend `replicas: 1` | Hub WebSocket in-memory |
 | `ALLOWED_ORIGINS=*` | CORS permissif temporaire |
 | `imagePullSecrets: ghcr-creds` | Packages GHCR privés — auth docker-registry côté cluster |
+| OIDC / JWKS → `192.168.0.157:9000` | Authentik hors cluster (LAN) ; évite les défauts Go `localhost:9000` |
 
 ## Prérequis runner self-hosted
 
