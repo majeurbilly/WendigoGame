@@ -21,58 +21,21 @@ L'application s'occupe de tout et s'adapte à vous :
 
 ---
 
-## 🚀 Comment lancer le jeu chez toi (De A à Z)
+## 🚀 Comment lancer (GitOps / k3s)
 
-Tu veux faire tourner le jeu sur ton propre ordinateur pour tester ? Pas de panique, suis ce guide étape par étape. C'est comme une recette de cuisine !
+L’orchestration Docker Compose a été retirée. Le runtime cible est un cluster **k3s** synchronisé par **ArgoCD** depuis `deploy/k8s/`.
 
-### Étape 1 : Les outils nécessaires (Les ingrédients)
-Avant de commencer, ton ordinateur a besoin de deux logiciels gratuits pour comprendre le code du jeu :
-1. **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** : C'est le moteur qui va faire tourner les serveurs du jeu de manière isolée. Télécharge-le, installe-le et lance-le.
-2. **[Nix](https://nixos.org/download.html)** : C'est une boîte à outils magique qui va installer automatiquement tout le reste pour toi (Go, Node.js, etc.) sans rien casser sur ton ordinateur.
+1. **Build images** : push sur `main` → workflow `.github/workflows/build-and-push-ghcr.yml` pousse vers GHCR.
+2. **Cluster** : `kubectl apply -f deploy/k8s/argocd-app.yaml -n argocd`
+3. **Dev local applicatif** (sans cluster) :
+   ```bash
+   nix develop
+   cp backend/.env.example backend/.env
+   cp frontend/.env.example frontend/.env
+   cd backend && task run    # API Go (nécessite Postgres/Redis joignables)
+   ```
 
-> ⚠️ **Petite note pour les utilisateurs de Windows :**
-> La boîte magique Nix ne comprend que le langage "Linux". Pas d'inquiétude ! Il te suffit d'installer un petit traducteur officiel appelé WSL. 
-> Cherche le programme **PowerShell** sur ton ordi, fais un clic droit pour l'ouvrir "en tant qu'administrateur", tape `wsl --install`, appuie sur Entrée, puis redémarre ton ordinateur. Tu es maintenant prêt !
-
-### Étape 2 : Récupérer le jeu
-Ouvre ton **Terminal** (ou Invite de commandes) et copie-colle ceci pour télécharger le dossier du jeu sur ton ordinateur :
-```bash
-git clone 
-cd WendiGame
-```
-
-### Étape 3 : Activer la boîte à outils
-Maintenant que tu es dans le dossier du jeu, dis à Nix de préparer tes outils. Dans ton terminal, tape :
-```bash
-nix develop
-```
-*(Patiente un peu la première fois, il télécharge ce dont il a besoin).*
-
-### Étape 4 : Les clés secrètes
-Le jeu a besoin de fichiers de configuration (qu'on appelle variables d'environnement) pour que ses différents morceaux communiquent entre eux. On a préparé des fichiers "exemples" qu'il suffit de copier :
-
-Tape ces deux commandes pour créer tes propres fichiers `.env` :
-```bash
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-```
-
-### Étape 5 : Allumer le moteur !
-Tout est prêt. Déplace-toi dans le dossier du serveur et lance la commande magique de démarrage :
-```bash
-cd backend
-task up
-```
-*(Docker va se mettre en route. Tu vas voir beaucoup de texte défiler, c'est normal : il construit le serveur, la base de données et le système vocal).*
-
-### 🎉 Étape 6 : Jouer !
-Une fois que le terminal s'arrête de défiler frénétiquement :
-1. Ouvre ton navigateur internet (Chrome, Firefox, Safari...).
-2. Va à l'adresse suivante : **`http://localhost:5173`**
-3. Crée-toi un compte, clique sur **"Create Game"**, et amuse-toi !
-
-> **Pour tout éteindre quand tu as fini :** 
-> Retourne dans ton terminal et tape `task down`.
+Détails : `docs/gitops.md`, `docs/deploy-ci.md`.
 
 ---
 

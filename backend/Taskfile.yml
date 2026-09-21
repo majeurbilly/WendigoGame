@@ -12,23 +12,3 @@ tasks:
       CGO_ENABLED: "1"
     cmds:
       - go test -v -race -cover ./...
-
-  up:
-    desc: Start Docker Compose (jeu + Authentik ; sans Prometheus/Loki/Grafana — profil observability).
-    cmds:
-      - docker-compose -f ../docker-compose.yml up -d
-
-  up-observability:
-    desc: "Start full stack including Prometheus, Loki, Grafana (Docker Hub pulls)."
-    cmds:
-      - docker-compose -f ../docker-compose.yml --profile observability up -d
-
-  down:
-    desc: Stop the Docker Compose stack.
-    cmds:
-      - docker-compose -f ../docker-compose.yml down
-
-  logs:
-    desc: Stream logs from the Redis container (Ctrl+C to quit).
-    cmds:
-      - docker-compose -f ../docker-compose.yml logs -f redis

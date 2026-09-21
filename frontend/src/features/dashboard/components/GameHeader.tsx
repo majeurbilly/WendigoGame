@@ -20,21 +20,6 @@ const phaseClassByLabel: Record<string, string> = {
   GAME_OVER: 'bg-rose-500/20 text-rose-300 ring-1 ring-rose-400/30',
 }
 
-const modeLabel = (mode: string | undefined): string => {
-  const m = (mode ?? 'local').toLowerCase()
-  if (m === 'online') {
-    return t`Online`
-  }
-  return t`In person`
-}
-
-const modeBadgeClass = (mode: string | undefined): string => {
-  const m = (mode ?? 'local').toLowerCase()
-  return m === 'online'
-    ? 'border-sky-500/40 bg-sky-500/15 text-sky-200'
-    : 'border-amber-500/40 bg-amber-500/15 text-amber-200'
-}
-
 const formatTimer = (seconds: number): string => {
   const safeSeconds = Math.max(0, Math.floor(seconds))
   const minutesPart = Math.floor(safeSeconds / 60)
@@ -80,10 +65,8 @@ const GameHeader = ({ lobby }: GameHeaderProps) => {
             <p className="text-sm uppercase tracking-[0.2em] text-slate-400">
               <Trans>Lobby</Trans>
             </p>
-            <span
-              className={`rounded-md border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide ${modeBadgeClass(lobby.mode)}`}
-            >
-              {modeLabel(lobby.mode)}
+            <span className="rounded-md border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-amber-200">
+              {t`In person`}
             </span>
           </div>
           <h2 className="text-3xl font-bold tracking-widest text-slate-100">{lobby.code}</h2>

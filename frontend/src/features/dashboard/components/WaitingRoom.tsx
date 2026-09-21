@@ -30,11 +30,6 @@ interface WaitingRoomProps {
 const plateauStone =
   'relative w-full overflow-visible rounded-3xl border-t-4 border-b-8 border-x-2 border-[#2d261f] bg-[#1a1612] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)]'
 
-const modeLabel = (mode: string | undefined): string => {
-  const m = (mode ?? 'local').toLowerCase()
-  return m === 'online' ? t`Online` : t`In person`
-}
-
 const lobbySettingsTabBodyClass =
   'mx-auto mt-6 w-full max-w-2xl max-h-[50vh] overflow-y-auto overscroll-contain pr-4 [scrollbar-width:thin] [scrollbar-color:#2a231c_#0c0a08] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-md [&::-webkit-scrollbar-track]:bg-[#0c0a08] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#241e18] [&::-webkit-scrollbar-thumb]:shadow-[inset_0_0_0_1px_rgba(0,0,0,0.45)] hover:[&::-webkit-scrollbar-thumb]:bg-[#322a22]'
 
@@ -261,7 +256,7 @@ export default function WaitingRoom({ sendMessage, onLeave }: WaitingRoomProps) 
 
       <div className="mt-4 flex flex-wrap items-center justify-center gap-2 px-4 pt-20 sm:px-6 sm:pt-24">
         <span className="rounded-md border border-amber-800/50 bg-black/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-200/85">
-          {modeLabel(lobby.mode)}
+          {t`In person`}
         </span>
         {typeof lobby.players?.length === 'number' ? (
           <span className="text-[11px] font-semibold uppercase tracking-wide text-[#c9a66b]/80">

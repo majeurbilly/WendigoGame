@@ -16,19 +16,19 @@ const DashboardPage = () => {
   const logout = useAuthStore((state) => state.logout)
   const user = useAuthStore((state) => state.user)
 
-  const [creatingMode, setCreatingMode] = useState<'local' | 'online' | null>(null)
+  const [isCreating, setIsCreating] = useState(false)
   const [isJoining, setIsJoining] = useState(false)
   const [joinCode, setJoinCode] = useState('')
 
-  const handleCreateLobby = async (mode: 'local' | 'online') => {
-    setCreatingMode(mode)
+  const handleCreateLobby = async () => {
+    setIsCreating(true)
     try {
-      const code = await createLobbyAPI(mode)
+      const code = await createLobbyAPI()
       transitionTo(`/lobby/${code}`)
     } catch (error: unknown) {
       toast.error(getApiErrorMessage(error))
     } finally {
-      setCreatingMode(null)
+      setIsCreating(false)
     }
   }
 
@@ -53,7 +53,7 @@ const DashboardPage = () => {
     void performAuthentikLogout()
   }
 
-  const busy = creatingMode !== null
+  const busy = isCreating
 
   const onJoinCodeChange = (raw: string) => {
     const next = raw.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4)
@@ -80,14 +80,10 @@ const DashboardPage = () => {
               <VoxelButton
                 type="button"
                 className="w-full"
-                onClick={() => void handleCreateLobby('local')}
+                onClick={() => void handleCreateLobby()}
                 disabled={busy}
               >
-                {creatingMode === 'local' ? <Trans>Creating…</Trans> : <Trans>Create Lobby (Local)</Trans>}
-              </VoxelButton>
-
-              <VoxelButton type="button" className="w-full" disabled title={t`Coming soon`}>
-                <Trans>Create Lobby (Online)</Trans>
+                {isCreating ? <Trans>Creating…</Trans> : <Trans>Create Lobby</Trans>}
               </VoxelButton>
 
               <VoxelButton

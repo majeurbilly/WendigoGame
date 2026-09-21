@@ -19,7 +19,7 @@ func TestProcessGameTick_CouncilVoteTransitionsToStakeAndStoresVictim(t *testing
 	st := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Host")
+	lobby, err := st.CreateLobby(ctx, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}

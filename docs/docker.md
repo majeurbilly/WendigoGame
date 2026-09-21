@@ -2,7 +2,7 @@
 
 ## État actuel
 
-Deux Dockerfiles multi-stage (`builder` → `runner`) avec **ordre de layers orienté cache**. Pas de `--mount=type=cache` : le runner `gaston` utilise Docker classique sans BuildKit/buildx.
+Deux Dockerfiles multi-stage (`builder` → `runner`) avec **ordre de layers orienté cache**. Les images sont construites par GitHub Actions et poussées sur **GHCR** — plus de build via Docker Compose.
 
 ## Choix techniques
 
@@ -20,26 +20,26 @@ Chaque instruction est placée selon **ce qui invalide la couche suivante** :
 
 ### Backend
 
-- **`go mod download`** (plus `go mod tidy` en build — tidy modifie `go.sum` et casse la reproductibilité).
-- **`COPY cmd/` + `internal/`** au lieu de `COPY . .` — contexte minimal.
-- **`.dockerignore`** : `*_test.go`, scripts — les tests n'invalident plus le build.
+- **`go mod download`** (pas de `go mod tidy` en build).
+- **`COPY cmd/` + `internal/`** — contexte minimal.
+- **`.dockerignore`** : `*_test.go`, scripts.
 
 ### Frontend
 
 - **`npm ci`** isolé avant `COPY src/`.
-- **Config** copiée avant **src/** — edit composant ≠ refetch deps.
-- **`rebuild_frontend`** (`start.sh`) : **sans `--no-cache`** — un changement de `VITE_*` rebuild uniquement depuis `ARG` (layer `npm run build`).
+- **Config** avant **src/**.
+- **`VITE_*`** injectés en build-args par le workflow GHCR.
 
 ### CI
 
-- `compose_up` : `up -d --build` réutilise le cache du daemon sur le runner self-hosted.
-- Pas de registry cache GHA (runner local).
+- Runner GitHub-hosted + Buildx + cache GHA (`type=gha`).
+- Registry : `ghcr.io/majeurbilly/wendigame-{backend,frontend}`.
 
 ## Impacts
 
 | Fichier | Impact |
 |---------|--------|
-| `backend/Dockerfile` | Layers deps / sources / build séparés |
-| `frontend/Dockerfile` | Layers deps / config / src / build env séparés |
-| `start.sh` | `build` frontend cache-friendly |
-| `.dockerignore` | Moins d'invalidations parasites |
+| `backend/Dockerfile` | Build GHCR uniquement |
+| `frontend/Dockerfile` | Build-args `VITE_*` depuis Actions Variables |
+| `.github/workflows/build-and-push-ghcr.yml` | Source de vérité du build |
+| Compose / `start.sh` | **Supprimés** (Phase 1.5) |

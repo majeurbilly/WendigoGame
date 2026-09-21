@@ -193,7 +193,7 @@ const normalizePhaseSettingsPayload = (raw?: RawPhaseSettingsPayload): PhaseSett
 const normalizeLobbyPayload = (payload: RawLobbyPayload): LobbyState => ({
   code: payload.code,
   phase: payload.phase,
-  mode: payload.mode,
+  mode: 'local',
   timeRemaining: payload.timeRemaining ?? payload.time_remaining ?? 0,
   phaseTotalSeconds: payload.phaseTotalSeconds ?? payload.phase_total_seconds,
   phaseSettings: payload.phaseSettings ?? normalizePhaseSettingsPayload(payload.phase_settings),

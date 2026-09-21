@@ -22,7 +22,7 @@ func TestCreateLobbyPersistsInValkeyWithTTL(t *testing.T) {
 	lobbyStore := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Alice")
+	lobby, err := lobbyStore.CreateLobby(ctx, "Alice")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -72,7 +72,7 @@ func TestAppendPlayerConcurrentNoLostPlayers(t *testing.T) {
 	lobbyStore := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Host")
+	lobby, err := lobbyStore.CreateLobby(ctx, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -120,7 +120,7 @@ func TestRoleDistribution_Fairness(t *testing.T) {
 	lobbyStore := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Host")
+	lobby, err := lobbyStore.CreateLobby(ctx, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -204,7 +204,7 @@ func TestUpdatePhaseSettings_HostOnlyClamped(t *testing.T) {
 	st := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Host")
+	lobby, err := st.CreateLobby(ctx, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}

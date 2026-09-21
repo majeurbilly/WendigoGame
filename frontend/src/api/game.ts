@@ -12,7 +12,8 @@ export interface Player {
   isExcludedFromCouncil?: boolean
 }
 
-export type GameMode = 'local' | 'online' | string
+/** Party game présentiel uniquement. */
+export type GameMode = 'local'
 
 /** Durées de phase (secondes), alignées sur le backend `PhaseSettings`. */
 export interface PhaseSettings {
@@ -142,8 +143,8 @@ interface CreateLobbyResponse {
   code: string
 }
 
-export const createLobbyAPI = async (mode: 'local' | 'online' = 'local'): Promise<string> => {
-  const { data } = await apiClient.post<CreateLobbyResponse>('/lobbies', { mode })
+export const createLobbyAPI = async (): Promise<string> => {
+  const { data } = await apiClient.post<CreateLobbyResponse>('/lobbies', {})
   return data.code
 }
 

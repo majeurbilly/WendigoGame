@@ -13,12 +13,11 @@ const LobbyManager = () => {
   const navigate = useNavigate()
   const [isCreating, setIsCreating] = useState(false)
   const [joinCode, setJoinCode] = useState('')
-  const [createMode, setCreateMode] = useState<'local' | 'online'>('local')
 
   const handleCreateGame = async () => {
     setIsCreating(true)
     try {
-      const code = await createLobbyAPI(createMode)
+      const code = await createLobbyAPI()
       navigate(`/lobby/${code}`)
     } catch (error) {
       toast.error(getApiErrorMessage(error))
@@ -46,38 +45,10 @@ const LobbyManager = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-              <Trans>Game mode</Trans>
-            </p>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 has-[:checked]:border-amber-500/50 has-[:checked]:bg-amber-500/10">
-                <input
-                  type="radio"
-                  name="create-mode"
-                  className="accent-amber-500"
-                  checked={createMode === 'local'}
-                  onChange={() => setCreateMode('local')}
-                />
-                <span className="text-sm text-slate-200">
-                  <Trans>Local (in person)</Trans>
-                </span>
-              </label>
-              <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 has-[:checked]:border-sky-500/50 has-[:checked]:bg-sky-500/10">
-                <input
-                  type="radio"
-                  name="create-mode"
-                  className="accent-sky-500"
-                  checked={createMode === 'online'}
-                  onChange={() => setCreateMode('online')}
-                />
-                <span className="text-sm text-slate-200">
-                  <Trans>Online</Trans>
-                </span>
-              </label>
-            </div>
-          </div>
-          <Button type="button" className="w-full" onClick={handleCreateGame} disabled={isCreating}>
+          <p className="text-sm text-slate-400">
+            <Trans>In-person party game — players share the same room.</Trans>
+          </p>
+          <Button type="button" className="w-full" onClick={() => void handleCreateGame()} disabled={isCreating}>
             {isCreating ? <Trans>Creating...</Trans> : <Trans>Create Lobby</Trans>}
           </Button>
         </CardContent>

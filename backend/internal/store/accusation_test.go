@@ -20,7 +20,7 @@ func TestSubmitCouncilAccusation_OK(t *testing.T) {
 	st := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "A")
+	lobby, err := st.CreateLobby(ctx, "A")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -62,7 +62,7 @@ func TestSubmitCouncilAccusation_ErrAlreadyAccused(t *testing.T) {
 	st := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "A")
+	lobby, err := st.CreateLobby(ctx, "A")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -105,7 +105,7 @@ func TestSubmitCouncilAccusation_ErrTargetAlreadyAccused(t *testing.T) {
 	st := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "A")
+	lobby, err := st.CreateLobby(ctx, "A")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}

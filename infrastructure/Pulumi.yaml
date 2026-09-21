@@ -1,5 +1,5 @@
 name: wendigo-authentik
-description: Wendigo infrastructure (Authentik OIDC, Grafana, Prometheus, docker-compose .env)
+description: Wendigo infrastructure (Authentik OIDC — cible k3s/GitOps)
 runtime:
   name: nodejs
   options:

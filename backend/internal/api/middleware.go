@@ -55,7 +55,12 @@ func isAllowedOrigin(origin string) bool {
 	if origin == "" {
 		return false
 	}
-	_, ok := allowedOriginSet()[origin]
+	allowed := allowedOriginSet()
+	// "*" = toutes origines (echo de l'Origin requête — requis avec credentials)
+	if _, ok := allowed["*"]; ok {
+		return true
+	}
+	_, ok := allowed[origin]
 	return ok
 }
 

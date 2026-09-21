@@ -1,27 +1,26 @@
-# Infrastructure Pulumi (Authentik + observabilité)
+# Infrastructure Pulumi (Authentik OIDC)
 
 ## État actuel
 
-Stack `infrastructure/` : provisionne Authentik (OIDC Wendigo, Google SSO), la config Prometheus scrape et génère `.env` pour Docker Compose.
+Stack `infrastructure/` : provisionne Authentik (OIDC Wendigo, Google SSO) via Pulumi.
 
-**Grafana** : datasources Prometheus/Loki provisionnés uniquement via `deploy/grafana/provisioning/datasources/datasources.yml` (Zéro ClickOps). Pulumi n’y touche plus — évite les conflits 409 sur redéploiement CI.
+**Phase 1.5** : Docker Compose et `start.sh` sont **supprimés**. Le runtime cible est **k3s + ArgoCD** (`deploy/k8s/`). Cette stack Pulumi n’est plus branchée sur un bootstrap Compose ; la migration Authentik/Grafana vers manifests K8s reste à faire.
 
-**État Pulumi** : backend fichier persistant hors workspace (`$HOME/.pulumi-wendigo` par défaut, `PULUMI_STATE_DIR` surchargeable). Survit au `git clean` du runner Actions.
+**Grafana** : datasources Prometheus/Loki via `deploy/grafana/provisioning/` (Zéro ClickOps) — configs historiques Compose, à rebrancher en cluster.
 
-## Choix techniques (CI / instance fraîche)
+**État Pulumi** : backend fichier (`$HOME/.pulumi-wendigo`, surcharge `PULUMI_STATE_DIR`).
 
-- **Zéro `invoke` Authentik fragile** : scopes OIDC et certificat RSA sont des ressources Pulumi (`PropertyMappingProviderScope`, `CertificateKeyPair`).
-- **Certificat OIDC** : `@pulumi/tls` + `allowedUses` en snake_case (`key_encipherment`, `digital_signature`).
-- **`run_pulumi`** : plus de `nix develop` imbriqué — le workflow lance déjà `nix develop --command bash ./start.sh`. Évite un redémarrage Authentik via le `shellHook` pendant `pulumi up`.
-- **`shellHook` flake** : si `/-/health/ready/` répond 200, seul le token API est rafraîchi (pas de `docker compose up` authentik).
-- **Réconciliation Authentik** : clean deploy (`WENDIGO_CLEAN_DEPLOY=1`) = purge ORM + REST puis `pulumi up` unique. Deploy incrémental = token roté + `pulumi up` sans import/repair.
+## Choix techniques
+
+- Scopes OIDC et certificat RSA = ressources Pulumi (`PropertyMappingProviderScope`, `CertificateKeyPair`).
+- Certificat OIDC : `@pulumi/tls` + `allowedUses` snake_case.
+- Scripts sous `infrastructure/scripts/` (purge Authentik) : utiles uniquement tant qu’une instance Authentik joignable existe.
 
 ## Impacts
 
 | Composant | Impact |
 |-----------|--------|
-| `deploy.ts` | Suppression `createDatasources` / provider Grafana |
-| `index.ts` | `prometheusDatasourceId` / `lokiDatasourceId` = UIDs statiques du YAML |
-| `start.sh` | `PULUMI_BACKEND_URL=file://$PULUMI_STATE_DIR`, clean deploy ou token + `pulumi up`, backend après Pulumi |
-| Backend | JWKS `/application/o/wendigo/jwks/` après `pulumi up` réussi |
-| CI | Clean deploy pour reset état ; sinon deploy incrémental linéaire |
+| Compose / `start.sh` | Supprimés — plus de génération `.env` Compose |
+| `deploy/k8s/` | Source de vérité runtime (postgres, redis, backend, frontend) |
+| CI | Build/push GHCR uniquement (`docs/deploy-ci.md`) |
+| Authentik sur K8s | Prochaine phase GitOps |

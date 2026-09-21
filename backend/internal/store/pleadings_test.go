@@ -20,7 +20,7 @@ func TestBuildPleadingsQueueFromCouncil_DeterministicOrder(t *testing.T) {
 	st := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Z")
+	lobby, err := st.CreateLobby(ctx, "Z")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -99,7 +99,7 @@ func TestStartPleading_OK(t *testing.T) {
 	st := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Host")
+	lobby, err := st.CreateLobby(ctx, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -140,7 +140,7 @@ func TestProcessGameTick_PleadingsQueueOmitsExcludedDefendant(t *testing.T) {
 	st := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Z")
+	lobby, err := st.CreateLobby(ctx, "Z")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -207,7 +207,7 @@ func TestProcessGameTick_CouncilSummaryWithoutAccusationsGoesToVote(t *testing.T
 	st := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Host")
+	lobby, err := st.CreateLobby(ctx, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}

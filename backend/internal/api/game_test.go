@@ -69,7 +69,7 @@ func TestStartGame_OKUpdatesPhaseInValkey(t *testing.T) {
 	ctx := context.Background()
 
 	hostUUID := uuid.New()
-	createBody := `{"mode":"local","host_name":"Alice"}`
+	createBody := `{"host_name":"Alice"}`
 	createReq := httptest.NewRequest(http.MethodPost, "/lobbies", strings.NewReader(createBody))
 	createReq.Header.Set("Content-Type", "application/json")
 	createReq.Header.Set("Authorization", "Bearer "+auth.MustTestAccessToken(hostUUID))
@@ -125,7 +125,7 @@ func TestStartGame_WrongHostForbidden(t *testing.T) {
 	_, handler := newGameTestRouter(t)
 
 	hostUUID := uuid.New()
-	createBody := `{"mode":"local","host_name":"Bob"}`
+	createBody := `{"host_name":"Bob"}`
 	createReq := httptest.NewRequest(http.MethodPost, "/lobbies", strings.NewReader(createBody))
 	createReq.Header.Set("Content-Type", "application/json")
 	createReq.Header.Set("Authorization", "Bearer "+auth.MustTestAccessToken(hostUUID))
@@ -156,7 +156,7 @@ func TestCreateLobby_WithJWT_UsesAuthenticatedUserIDAsHost(t *testing.T) {
 
 	// Keep host_name explicit here because this test router has no UserStore.
 	// The behavior under test is ID mapping (JWT user ID -> lobby host player ID).
-	createBody := `{"mode":"online","host_name":"jwt-host"}`
+	createBody := `{"host_name":"jwt-host"}`
 	createReq := httptest.NewRequest(http.MethodPost, "/lobbies", strings.NewReader(createBody))
 	createReq.Header.Set("Content-Type", "application/json")
 	createReq.Header.Set("Authorization", "Bearer "+token)
@@ -198,7 +198,7 @@ func TestCreateLobby_WithJWT_FallbackToDBHostName(t *testing.T) {
 	token := auth.MustTestAccessToken(fixedUserID)
 
 	// host_name intentionally omitted to validate backend fallback via UserStore (Postgres).
-	createReq := httptest.NewRequest(http.MethodPost, "/lobbies", strings.NewReader(`{"mode":"online"}`))
+	createReq := httptest.NewRequest(http.MethodPost, "/lobbies", strings.NewReader(`{}`))
 	createReq.Header.Set("Content-Type", "application/json")
 	createReq.Header.Set("Authorization", "Bearer "+token)
 	createRec := httptest.NewRecorder()
@@ -232,7 +232,7 @@ func TestCreateLobby_OIDCUpsertCreatesUserAndUsesPreferredUsername(t *testing.T)
 	const wantEmail = "authentik.host@example.com"
 	token := auth.MustTestAccessTokenWithOIDCClaims(fixedUserID, wantName, wantEmail)
 
-	createReq := httptest.NewRequest(http.MethodPost, "/lobbies", strings.NewReader(`{"mode":"online"}`))
+	createReq := httptest.NewRequest(http.MethodPost, "/lobbies", strings.NewReader(`{}`))
 	createReq.Header.Set("Content-Type", "application/json")
 	createReq.Header.Set("Authorization", "Bearer "+token)
 	createRec := httptest.NewRecorder()

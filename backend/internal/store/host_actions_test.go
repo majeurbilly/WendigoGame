@@ -23,7 +23,7 @@ func newHostActionStore(t *testing.T) (*store.Store, context.Context) {
 func TestTogglePause_HostOnlyAndTickDoesNotAdvance(t *testing.T) {
 	st, ctx := newHostActionStore(t)
 
-	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Host")
+	lobby, err := st.CreateLobby(ctx, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -67,7 +67,7 @@ func TestTogglePause_HostOnlyAndTickDoesNotAdvance(t *testing.T) {
 func TestForceEndGame_UsesLivingWendigoWinner(t *testing.T) {
 	st, ctx := newHostActionStore(t)
 
-	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Host")
+	lobby, err := st.CreateLobby(ctx, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -96,7 +96,7 @@ func TestForceEndGame_UsesLivingWendigoWinner(t *testing.T) {
 func TestSurrenderVote_ApprovalEndsAtNightResolution(t *testing.T) {
 	st, ctx := newHostActionStore(t)
 
-	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Host")
+	lobby, err := st.CreateLobby(ctx, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}

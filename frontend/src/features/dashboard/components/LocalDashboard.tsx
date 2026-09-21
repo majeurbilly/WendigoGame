@@ -25,18 +25,6 @@ const overlayChrome =
 const hudBadge =
   'rounded-md border border-amber-600/50 bg-[#1c1814]/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#f5ecd8] shadow-[inset_0_1px_0_rgba(255,215,160,0.08)]'
 
-const modeLabel = (mode: string | undefined): string => {
-  const m = (mode ?? 'local').toLowerCase()
-  return m === 'online' ? t`Online` : t`In person`
-}
-
-const modeBadgeClass = (mode: string | undefined): string => {
-  const m = (mode ?? 'local').toLowerCase()
-  return m === 'online'
-    ? 'border-sky-500/45 bg-sky-950/35 text-sky-100'
-    : 'border-amber-600/50 bg-[#2a2118]/90 text-amber-100'
-}
-
 const formatTimer = (seconds: number): string => {
   const safeSeconds = Math.max(0, Math.floor(seconds))
   const minutesPart = Math.floor(safeSeconds / 60)
@@ -159,7 +147,7 @@ export default function LocalDashboard({ sendMessage }: LocalDashboardProps) {
         <div className="flex w-full flex-wrap items-start gap-2 sm:items-center">
           <div className="pointer-events-none flex min-w-0 flex-1 flex-col items-start gap-1.5 pl-0 sm:max-w-[85%]">
             <div className="flex flex-wrap items-center gap-2">
-              <span className={`${hudBadge} ${modeBadgeClass(lobby.mode)}`}>{modeLabel(lobby.mode)}</span>
+              <span className={`${hudBadge} border-amber-600/50 bg-[#2a2118]/90 text-amber-100`}>{t`In person`}</span>
               <span className={`flex items-center gap-1.5 ${hudBadge} border-amber-500/45 bg-[#231c16]/95`}>
                 <PhaseGlyph phase={phaseLabel} />
                 <span className="font-mono text-[10px] tracking-wider text-[#f5ecd8]">{phaseLabel}</span>

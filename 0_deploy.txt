@@ -1,0 +1,1274 @@
+deploy	Set up job	﻿2026-08-31T06:44:54.6921406Z Current runner version: '2.336.0'
+deploy	Set up job	2026-08-31T06:44:54.6937168Z Runner name: 'techgridy'
+deploy	Set up job	2026-08-31T06:44:54.6938649Z Runner group name: 'Default'
+deploy	Set up job	2026-08-31T06:44:54.6940282Z Machine name: 'techgridy'
+deploy	Set up job	2026-08-31T06:44:54.6949417Z ##[group]GITHUB_TOKEN Permissions
+deploy	Set up job	2026-08-31T06:44:54.6958144Z Contents: read
+deploy	Set up job	2026-08-31T06:44:54.6959540Z Metadata: read
+deploy	Set up job	2026-08-31T06:44:54.6960662Z Packages: read
+deploy	Set up job	2026-08-31T06:44:54.6961733Z ##[endgroup]
+deploy	Set up job	2026-08-31T06:44:54.6966629Z Secret source: Actions
+deploy	Set up job	2026-08-31T06:44:54.6969617Z Prepare workflow directory
+deploy	Set up job	2026-08-31T06:44:54.9029492Z Prepare all required actions
+deploy	Set up job	2026-08-31T06:44:54.9239947Z Getting action download info
+deploy	Set up job	2026-08-31T06:44:55.4596529Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+deploy	Set up job	2026-08-31T06:44:56.3514620Z Complete job name: deploy
+deploy	Checkout repository	﻿2026-08-31T06:44:56.6271353Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+deploy	Checkout repository	2026-08-31T06:44:56.6293459Z ##[group]Run actions/checkout@v4
+deploy	Checkout repository	2026-08-31T06:44:56.6295335Z with:
+deploy	Checkout repository	2026-08-31T06:44:56.6296284Z   repository: majeurbilly/WendigoGame
+deploy	Checkout repository	2026-08-31T06:44:56.6305839Z   token: ***
+deploy	Checkout repository	2026-08-31T06:44:56.6306755Z   ssh-strict: true
+deploy	Checkout repository	2026-08-31T06:44:56.6307658Z   ssh-user: git
+deploy	Checkout repository	2026-08-31T06:44:56.6308583Z   persist-credentials: true
+deploy	Checkout repository	2026-08-31T06:44:56.6309616Z   clean: true
+deploy	Checkout repository	2026-08-31T06:44:56.6310522Z   sparse-checkout-cone-mode: true
+deploy	Checkout repository	2026-08-31T06:44:56.6311634Z   fetch-depth: 1
+deploy	Checkout repository	2026-08-31T06:44:56.6312603Z   fetch-tags: false
+deploy	Checkout repository	2026-08-31T06:44:56.6313554Z   show-progress: true
+deploy	Checkout repository	2026-08-31T06:44:56.6314494Z   lfs: false
+deploy	Checkout repository	2026-08-31T06:44:56.6315342Z   submodules: false
+deploy	Checkout repository	2026-08-31T06:44:56.6316392Z   set-safe-directory: true
+deploy	Checkout repository	2026-08-31T06:44:56.6317458Z   allow-unsafe-pr-checkout: false
+deploy	Checkout repository	2026-08-31T06:44:56.6319296Z ##[endgroup]
+deploy	Checkout repository	2026-08-31T06:44:56.8926918Z Syncing repository: majeurbilly/WendigoGame
+deploy	Checkout repository	2026-08-31T06:44:56.8931488Z ##[group]Getting Git version info
+deploy	Checkout repository	2026-08-31T06:44:56.8933840Z Working directory is '/home/gaston/actions-runner/_work/WendigoGame/WendigoGame'
+deploy	Checkout repository	2026-08-31T06:44:56.9733881Z [command]/usr/bin/git version
+deploy	Checkout repository	2026-08-31T06:44:57.1984048Z git version 2.53.0
+deploy	Checkout repository	2026-08-31T06:44:57.2030673Z ##[endgroup]
+deploy	Checkout repository	2026-08-31T06:44:57.2086236Z Temporarily overriding HOME='/home/gaston/actions-runner/_work/_temp/d0fab8e1-ecc4-4fe1-9f06-b517d5fffadb' before making global git config changes
+deploy	Checkout repository	2026-08-31T06:44:57.2090599Z Adding repository directory to the temporary git global config as a safe directory
+deploy	Checkout repository	2026-08-31T06:44:57.2106012Z [command]/usr/bin/git config --global --add safe.directory /home/gaston/actions-runner/_work/WendigoGame/WendigoGame
+deploy	Checkout repository	2026-08-31T06:44:57.2180049Z [command]/usr/bin/git config --local --get remote.origin.url
+deploy	Checkout repository	2026-08-31T06:44:57.2221751Z https://github.com/majeurbilly/WendigoGame
+deploy	Checkout repository	2026-08-31T06:44:57.2254150Z ##[group]Removing previously created refs, to avoid conflicts
+deploy	Checkout repository	2026-08-31T06:44:57.2262292Z [command]/usr/bin/git rev-parse --symbolic-full-name --verify --quiet HEAD
+deploy	Checkout repository	2026-08-31T06:44:57.2304983Z refs/heads/dev
+deploy	Checkout repository	2026-08-31T06:44:57.2324351Z [command]/usr/bin/git checkout --detach
+deploy	Checkout repository	2026-08-31T06:44:57.5283944Z HEAD is now at 9a841b3 Rotate Authentik token and sync provider state
+deploy	Checkout repository	2026-08-31T06:44:57.5292303Z M	infrastructure/Pulumi.dev.yaml
+deploy	Checkout repository	2026-08-31T06:44:57.5404613Z [command]/usr/bin/git branch --delete --force dev
+deploy	Checkout repository	2026-08-31T06:44:57.6313283Z Deleted branch dev (was 9a841b3).
+deploy	Checkout repository	2026-08-31T06:44:57.6633718Z ##[endgroup]
+deploy	Checkout repository	2026-08-31T06:44:57.6635203Z [command]/usr/bin/git submodule status
+deploy	Checkout repository	2026-08-31T06:44:57.9024405Z ##[group]Cleaning the repository
+deploy	Checkout repository	2026-08-31T06:44:57.9026014Z [command]/usr/bin/git clean -ffdx
+deploy	Checkout repository	2026-08-31T06:44:58.6736631Z Removing infrastructure/node_modules/
+deploy	Checkout repository	2026-08-31T06:44:58.6744979Z Removing infrastructure/sdks/authentik/bin/
+deploy	Checkout repository	2026-08-31T06:44:58.6748572Z Removing infrastructure/sdks/authentik/node_modules/
+deploy	Checkout repository	2026-08-31T06:44:58.6759788Z [command]/usr/bin/git reset --hard HEAD
+deploy	Checkout repository	2026-08-31T06:44:59.2597728Z HEAD is now at 9a841b3 Rotate Authentik token and sync provider state
+deploy	Checkout repository	2026-08-31T06:44:59.2616520Z ##[endgroup]
+deploy	Checkout repository	2026-08-31T06:44:59.2620741Z ##[group]Disabling automatic garbage collection
+deploy	Checkout repository	2026-08-31T06:44:59.2634761Z [command]/usr/bin/git config --local gc.auto 0
+deploy	Checkout repository	2026-08-31T06:44:59.2743862Z ##[endgroup]
+deploy	Checkout repository	2026-08-31T06:44:59.2750560Z ##[group]Setting up auth
+deploy	Checkout repository	2026-08-31T06:44:59.2775650Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+deploy	Checkout repository	2026-08-31T06:44:59.2837710Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+deploy	Checkout repository	2026-08-31T06:44:59.3469355Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+deploy	Checkout repository	2026-08-31T06:44:59.3538632Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+deploy	Checkout repository	2026-08-31T06:44:59.4014766Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+deploy	Checkout repository	2026-08-31T06:44:59.4134511Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+deploy	Checkout repository	2026-08-31T06:44:59.4935487Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+deploy	Checkout repository	2026-08-31T06:44:59.4981645Z ##[endgroup]
+deploy	Checkout repository	2026-08-31T06:44:59.4984534Z ##[group]Fetching the repository
+deploy	Checkout repository	2026-08-31T06:44:59.5003220Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +422d34652f4294b33d541f9ad5c887dd0853a64f:refs/remotes/origin/dev
+deploy	Checkout repository	2026-08-31T06:45:01.7579814Z From https://github.com/majeurbilly/WendigoGame
+deploy	Checkout repository	2026-08-31T06:45:01.7584304Z  + 9a841b3...422d346 422d34652f4294b33d541f9ad5c887dd0853a64f -> origin/dev  (forced update)
+deploy	Checkout repository	2026-08-31T06:45:01.8105832Z ##[endgroup]
+deploy	Checkout repository	2026-08-31T06:45:01.8108013Z ##[group]Determining the checkout info
+deploy	Checkout repository	2026-08-31T06:45:01.8115534Z ##[endgroup]
+deploy	Checkout repository	2026-08-31T06:45:01.8134445Z [command]/usr/bin/git sparse-checkout disable
+deploy	Checkout repository	2026-08-31T06:45:01.8460386Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+deploy	Checkout repository	2026-08-31T06:45:01.8535984Z ##[group]Checking out the ref
+deploy	Checkout repository	2026-08-31T06:45:01.8537838Z [command]/usr/bin/git checkout --progress --force -B dev refs/remotes/origin/dev
+deploy	Checkout repository	2026-08-31T06:45:01.8644078Z Warning: you are leaving 1 commit behind, not connected to
+deploy	Checkout repository	2026-08-31T06:45:01.8652040Z any of your branches:
+deploy	Checkout repository	2026-08-31T06:45:01.8673083Z 
+deploy	Checkout repository	2026-08-31T06:45:01.8685286Z   9a841b3 Rotate Authentik token and sync provider state
+deploy	Checkout repository	2026-08-31T06:45:01.8686439Z 
+deploy	Checkout repository	2026-08-31T06:45:01.8687249Z If you want to keep it by creating a new branch, this may be a good time
+deploy	Checkout repository	2026-08-31T06:45:01.8688436Z to do so with:
+deploy	Checkout repository	2026-08-31T06:45:01.8688892Z 
+deploy	Checkout repository	2026-08-31T06:45:01.8689423Z  git branch <new-branch-name> 9a841b3
+deploy	Checkout repository	2026-08-31T06:45:01.8690030Z 
+deploy	Checkout repository	2026-08-31T06:45:01.8690472Z Switched to a new branch 'dev'
+deploy	Checkout repository	2026-08-31T06:45:01.8691359Z branch 'dev' set up to track 'origin/dev'.
+deploy	Checkout repository	2026-08-31T06:45:01.8709692Z ##[endgroup]
+deploy	Checkout repository	2026-08-31T06:45:01.8783311Z [command]/usr/bin/git log -1 --format=%H
+deploy	Checkout repository	2026-08-31T06:45:01.8863998Z 422d34652f4294b33d541f9ad5c887dd0853a64f
+deploy	Setup environment file (.env)	﻿2026-08-31T06:45:01.9292349Z ##[group]Run if [ -f /home/gaston/.env.wendigo ]; then
+deploy	Setup environment file (.env)	2026-08-31T06:45:01.9293647Z [36;1mif [ -f /home/gaston/.env.wendigo ]; then[0m
+deploy	Setup environment file (.env)	2026-08-31T06:45:01.9294413Z [36;1m  cp /home/gaston/.env.wendigo .env[0m
+deploy	Setup environment file (.env)	2026-08-31T06:45:01.9295216Z [36;1m  echo "Fichier d'override .env copié avec succès."[0m
+deploy	Setup environment file (.env)	2026-08-31T06:45:01.9295918Z [36;1melse[0m
+deploy	Setup environment file (.env)	2026-08-31T06:45:01.9297045Z [36;1m  echo "::notice::Pas de fichier .env persistant trouvé. Utilisation des valeurs par défaut et génération via Pulumi."[0m
+deploy	Setup environment file (.env)	2026-08-31T06:45:01.9298294Z [36;1mfi[0m
+deploy	Setup environment file (.env)	2026-08-31T06:45:01.9326332Z shell: /usr/bin/bash -e {0}
+deploy	Setup environment file (.env)	2026-08-31T06:45:01.9327419Z ##[endgroup]
+deploy	Setup environment file (.env)	2026-08-31T06:45:01.9767762Z ##[notice]Pas de fichier .env persistant trouvé. Utilisation des valeurs par défaut et génération via Pulumi.
+deploy	Deploy infrastructure (Docker + Pulumi)	﻿2026-08-31T06:45:01.9884844Z ##[group]Run # On force le robot à charger la commande Nix
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:01.9885997Z [36;1m# On force le robot à charger la commande Nix[0m
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:01.9887154Z [36;1msource /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh[0m
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:01.9888152Z [36;1m[0m
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:01.9889106Z [36;1m# On lance ton script À L'INTÉRIEUR de la bulle Nix (qui contient npm, Pulumi, etc.)[0m
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:01.9890359Z [36;1mnix develop --command bash ./start.sh[0m
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:01.9913563Z shell: /usr/bin/bash -e {0}
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:01.9914205Z ##[endgroup]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:40.8155413Z Installing infrastructure npm dependencies...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:44.8316295Z Lockfile is up to date, resolution step is skipped
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:44.8900331Z Progress: resolved 1, reused 0, downloaded 0, added 0
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:44.9823755Z Packages: +282
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:44.9853856Z ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:45.8927348Z Progress: resolved 282, reused 70, downloaded 0, added 0
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:46.8945302Z Progress: resolved 282, reused 185, downloaded 0, added 0
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:47.8947910Z Progress: resolved 282, reused 281, downloaded 0, added 1
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:48.8954526Z Progress: resolved 282, reused 281, downloaded 0, added 279
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:49.7140323Z Progress: resolved 282, reused 281, downloaded 0, added 282, done
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:50.4154434Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:50.4156547Z dependencies:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:50.4158786Z + @pulumi/authentik @pulumi/authentik@file:sdks/authentik
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:50.4160989Z + @pulumi/pulumi 3.192.0
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:50.4162511Z + @pulumi/tls 5.5.1
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:50.4164148Z + protobufjs 8.4.2
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:50.4165104Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:50.4166501Z devDependencies:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:50.4185649Z + @biomejs/biome 2.4.16
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:50.4190395Z + @types/node 20.19.41
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:50.4214578Z + typescript 5.9.3
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:50.4233152Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:50.4556609Z Done in 7.1s using pnpm v10.33.0
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:45:50.4896623Z Building Authentik SDK...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:46:21.3623922Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:46:21.3644364Z added 225 packages, and audited 226 packages in 30s
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:46:21.3651102Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:46:21.3713629Z 23 packages are looking for funding
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:46:21.3714684Z   run `npm fund` for details
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:46:21.6219450Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:46:21.6220907Z 20 vulnerabilities (14 moderate, 5 high, 1 critical)
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:46:21.6221981Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:46:21.6222703Z To address all issues, run:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:46:21.6223665Z   npm audit fix
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:46:21.6224183Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:46:21.6224662Z Run `npm audit` for details.
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:46:38.1127540Z Initializing Pulumi dev stack...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:46:44.5526731Z Authentik déjà prêt — rafraîchissement du token API (sans redémarrage)...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:19.9123575Z Authentik API token set.
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:19.9733551Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:19.9736863Z ▶ Docker: build + up --profile observability
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:20.0049420Z time="2026-08-31T06:47:20Z" level=warning msg="The \"AUTHENTIK_BOOTSTRAP_PASSWORD\" variable is not set. Defaulting to a blank string."
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:20.0094854Z time="2026-08-31T06:47:20Z" level=warning msg="The \"AUTHENTIK_BOOTSTRAP_PASSWORD\" variable is not set. Defaulting to a blank string."
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:20.6864527Z time="2026-08-31T06:47:20Z" level=warning msg="Docker Compose requires buildx plugin to be installed"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:20.6892654Z  Image wendigame-backend:dev Building 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:20.7035236Z  Image wendigame-backend:dev Building 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:20.8915157Z Sending build context to Docker daemon  56.74kB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:20.8917888Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:20.9146023Z Step 1/15 : FROM golang:1.25-alpine AS builder
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.0451082Z  ---> 1ae0735f00da
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.0453478Z Step 2/15 : WORKDIR /app
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.0739054Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.0740993Z  ---> 7ec1765cf81b
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.0742009Z Step 3/15 : COPY go.mod go.sum ./
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.0862335Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.0863187Z  ---> d5ccb4846016
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.0863722Z Step 4/15 : COPY . .
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.1276537Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.1277419Z  ---> d32ba81e39e3
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.1278136Z Step 5/15 : RUN go mod tidy
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.1532943Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.1533788Z  ---> 7e4de8a1650a
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.1535011Z Step 6/15 : RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /out/backend ./cmd/server
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.1818401Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.1823684Z  ---> 899c5086de48
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.1828533Z Step 7/15 : FROM alpine:3.21 AS runner
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.2559721Z  ---> 48b0309ca019
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.2565570Z Step 8/15 : RUN addgroup -S app && adduser -S app -G app
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.2968565Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.2973575Z  ---> 7baab5b44169
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.2976103Z Step 9/15 : RUN apk add --no-cache ca-certificates
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.3237220Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.3240619Z  ---> cff5d28003fe
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.3241969Z Step 10/15 : WORKDIR /app
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.3479432Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.3480773Z  ---> b9e74b496646
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.3482070Z Step 11/15 : COPY --from=builder /out/backend /app/backend
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:21.6045708Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.2338421Z  ---> 83a2c0e06a1b
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.2340622Z Step 12/15 : EXPOSE 8080
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.2751914Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.2754073Z  ---> 2dcdb6cc4c96
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.2773136Z Step 13/15 : USER app
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.3044843Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.3047176Z  ---> 97e138fe1cf5
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.3049931Z Step 14/15 : CMD ["./backend"]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.3168275Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.3169628Z  ---> 69499fa2e71b
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.3170811Z Step 15/15 : LABEL com.docker.compose.image.builder=classic
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.3266065Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.3267111Z  ---> b5cdc1c6fdee
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.4139014Z Successfully built b5cdc1c6fdee
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.4348161Z  Image wendigame-backend:dev Built 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.4349721Z Successfully tagged wendigame-backend:dev
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.4355079Z  Image wendigame-backend:dev Built 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.4356558Z  Image wendigogame-frontend Building 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.4474833Z  Image wendigogame-frontend Building 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.7144793Z Sending build context to Docker daemon  524.4kB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:22.8744010Z Sending build context to Docker daemon  1.573MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:23.0074555Z Sending build context to Docker daemon  2.622MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:23.1371285Z Sending build context to Docker daemon  3.671MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:23.2738395Z Sending build context to Docker daemon   4.72MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:23.4075606Z Sending build context to Docker daemon  5.769MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:23.5842867Z Sending build context to Docker daemon  6.817MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:23.7112662Z Sending build context to Docker daemon  7.353MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:24.1045449Z Sending build context to Docker daemon  8.402MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:24.2534422Z Sending build context to Docker daemon  8.929MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:24.4113213Z Sending build context to Docker daemon  9.978MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:24.5533503Z Sending build context to Docker daemon  11.03MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:24.6980930Z Sending build context to Docker daemon  12.08MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:24.8149814Z Sending build context to Docker daemon  13.12MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:24.9469298Z Sending build context to Docker daemon  14.17MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:25.0756111Z Sending build context to Docker daemon  15.22MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:25.4823786Z Sending build context to Docker daemon  16.27MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:25.6109090Z Sending build context to Docker daemon  17.32MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:25.7698626Z Sending build context to Docker daemon  18.37MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:25.9144628Z Sending build context to Docker daemon  19.42MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:26.0386167Z Sending build context to Docker daemon  20.47MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:26.1714134Z Sending build context to Docker daemon  21.52MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:26.2974244Z Sending build context to Docker daemon  22.56MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:26.4480908Z Sending build context to Docker daemon  23.61MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:26.5735403Z Sending build context to Docker daemon  24.14MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:26.7000309Z Sending build context to Docker daemon  25.19MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:26.8381421Z Sending build context to Docker daemon  25.71MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:27.2209838Z Sending build context to Docker daemon  26.77MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:27.3624915Z Sending build context to Docker daemon  27.81MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:27.5127552Z Sending build context to Docker daemon  28.86MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:28.6251058Z Sending build context to Docker daemon  29.91MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:28.7494819Z Sending build context to Docker daemon  30.96MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:29.0124173Z Sending build context to Docker daemon  31.49MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:29.3279296Z Sending build context to Docker daemon  32.01MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:29.4653846Z Sending build context to Docker daemon  33.06MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:29.6317663Z Sending build context to Docker daemon  34.11MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:29.8200887Z Sending build context to Docker daemon  35.16MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:29.9660570Z Sending build context to Docker daemon   36.2MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:30.1225626Z Sending build context to Docker daemon  37.25MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:30.2496386Z Sending build context to Docker daemon   38.3MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:30.6024560Z Sending build context to Docker daemon  39.35MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:30.7504104Z Sending build context to Docker daemon   40.4MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:30.8954419Z Sending build context to Docker daemon  41.45MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:31.0289680Z Sending build context to Docker daemon   42.5MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:31.1365365Z Sending build context to Docker daemon  43.55MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:31.2855824Z Sending build context to Docker daemon   44.6MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:31.4295831Z Sending build context to Docker daemon  45.65MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:31.7049738Z Sending build context to Docker daemon   46.7MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:31.9081075Z Sending build context to Docker daemon  47.22MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:32.0866345Z Sending build context to Docker daemon  48.27MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:32.2133957Z Sending build context to Docker daemon  49.32MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:32.3941361Z Sending build context to Docker daemon  50.37MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:32.5268102Z Sending build context to Docker daemon  51.42MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:32.6292174Z Sending build context to Docker daemon  52.48MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:32.8510849Z Sending build context to Docker daemon  53.01MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:32.9655295Z Sending build context to Docker daemon  54.05MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:33.5341211Z Sending build context to Docker daemon  54.59MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:33.7490513Z Sending build context to Docker daemon  56.17MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:33.9895145Z Sending build context to Docker daemon  56.69MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:34.2163590Z Sending build context to Docker daemon  57.22MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:34.3312868Z Sending build context to Docker daemon  58.27MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:34.4669223Z Sending build context to Docker daemon  59.32MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:34.5906369Z Sending build context to Docker daemon  60.36MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:34.9049371Z Sending build context to Docker daemon  60.89MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:35.1941324Z Sending build context to Docker daemon  61.94MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:35.3299507Z Sending build context to Docker daemon  63.51MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:35.4550560Z Sending build context to Docker daemon  64.03MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:35.5887183Z Sending build context to Docker daemon  65.08MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:35.7195368Z Sending build context to Docker daemon  66.13MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:35.8554095Z Sending build context to Docker daemon  67.18MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:35.9748948Z Sending build context to Docker daemon  67.72MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:36.9676931Z Sending build context to Docker daemon  69.29MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:36.9683091Z Sending build context to Docker daemon  69.71MB
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:36.9686679Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:37.2093672Z Step 1/17 : FROM node:22-alpine AS builder
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:38.4392889Z  ---> c610fcdfb1d5
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:38.4410053Z Step 2/17 : WORKDIR /app
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:38.7744483Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:38.7745195Z  ---> af4a903b5d73
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:38.7745885Z Step 3/17 : COPY package.json package-lock.json ./
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:39.3643026Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:39.3645852Z  ---> 92080799ffd2
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:39.3652057Z Step 4/17 : RUN npm ci
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:40.4551241Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:40.4554116Z  ---> e177d35c5e2e
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:40.4555593Z Step 5/17 : COPY . .
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.0147304Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.0151047Z  ---> a1a51756525d
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.0157054Z Step 6/17 : ARG VITE_API_URL=http://localhost:8080
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.5184343Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.5186018Z  ---> 1462f747fb22
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.5195071Z Step 7/17 : ARG VITE_AUTHENTIK_URL=http://localhost:9000/application/o/wendigo/
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.5748736Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.5750201Z  ---> bf5b6108e816
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.5752695Z Step 8/17 : ARG VITE_AUTHENTIK_CLIENT_ID=wendigo-dev
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.5901169Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.5902255Z  ---> 7c7961599be5
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.5903826Z Step 9/17 : ENV VITE_API_URL=${VITE_API_URL}
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.6023879Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.6024752Z  ---> 24b18f53e21c
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.6026068Z Step 10/17 : ENV VITE_AUTHENTIK_URL=${VITE_AUTHENTIK_URL}
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.6140724Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.6141309Z  ---> 11072672b40a
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.6142078Z Step 11/17 : ENV VITE_AUTHENTIK_CLIENT_ID=${VITE_AUTHENTIK_CLIENT_ID}
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.6248965Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.6249545Z  ---> 370b382061c0
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.6250063Z Step 12/17 : RUN npm run build
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.6457240Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.6458031Z  ---> 43df59a74b15
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.6464039Z Step 13/17 : FROM nginx:alpine AS runner
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.8125776Z  ---> db35bfc6b295
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.8129325Z Step 14/17 : COPY nginx.conf /etc/nginx/conf.d/default.conf
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.8455550Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.8457153Z  ---> 24d38323d206
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:41.8459190Z Step 15/17 : COPY --from=builder /app/dist /usr/share/nginx/html
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.2784047Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.6127533Z  ---> e39bde7b9c86
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.6132302Z Step 16/17 : EXPOSE 80
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.6338319Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.6340579Z  ---> fc2b09dfd072
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.6341911Z Step 17/17 : LABEL com.docker.compose.image.builder=classic
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.6557459Z  ---> Using cache
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.6559213Z  ---> 6c0f07c9ce51
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.7709208Z Successfully built 6c0f07c9ce51
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.7870742Z Successfully tagged wendigogame-frontend:latest
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.7876808Z  Image wendigogame-frontend Built 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.7898534Z  Image wendigogame-frontend Built 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.9456770Z  Container wendigogame-db-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.9461562Z  Container wendigogame-loki-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.9463659Z  Container wendigogame-cadvisor-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.9484147Z  Container wendigogame-redis-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.9486258Z  Container wendigogame-prometheus-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.9488353Z  Container wendigogame-authentik-redis-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.9489896Z  Container wendigogame-authentik-postgresql-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.9491179Z  Container wendigogame-authentik-worker-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.9496336Z  Container wendigogame-promtail-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.9497558Z  Container wendigogame-grafana-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.9498713Z  Container wendigogame-authentik-server-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:42.9499844Z  Container wendigogame-frontend-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:43.0607350Z  Container wendigogame-authentik-redis-1 Waiting 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:43.0609904Z  Container wendigogame-authentik-postgresql-1 Waiting 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:43.0611210Z  Container wendigogame-cadvisor-1 Waiting 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:43.0612768Z  Container wendigogame-authentik-redis-1 Waiting 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:43.0613952Z  Container wendigogame-authentik-postgresql-1 Waiting 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:43.5677932Z  Container wendigogame-authentik-postgresql-1 Healthy 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:43.5680679Z  Container wendigogame-authentik-redis-1 Healthy 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:43.5683245Z  Container wendigogame-authentik-redis-1 Healthy 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:43.5685382Z  Container wendigogame-cadvisor-1 Healthy 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:43.5687529Z  Container wendigogame-authentik-postgresql-1 Healthy 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:43.5689606Z  Container wendigogame-db-1 Waiting 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:43.5691691Z  Container wendigogame-redis-1 Waiting 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:44.0707644Z  Container wendigogame-redis-1 Healthy 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:44.0711860Z  Container wendigogame-db-1 Healthy 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:44.0764701Z  Container wendigogame-backend-1 Starting 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:44.0767037Z  Container wendigogame-backend-1 Started 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:44.1084650Z time="2026-08-31T06:47:44Z" level=warning msg="The \"AUTHENTIK_BOOTSTRAP_PASSWORD\" variable is not set. Defaulting to a blank string."
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:44.1094913Z time="2026-08-31T06:47:44Z" level=warning msg="The \"AUTHENTIK_BOOTSTRAP_PASSWORD\" variable is not set. Defaulting to a blank string."
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:44.9635106Z  Container wendigogame-redis-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:44.9636558Z  Container wendigogame-authentik-postgresql-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:44.9639438Z  Container wendigogame-db-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:44.9640387Z  Container wendigogame-authentik-redis-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:44.9641312Z  Container wendigogame-authentik-server-1 Running 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:45.0758325Z  Container wendigogame-authentik-postgresql-1 Waiting 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:45.0759428Z  Container wendigogame-authentik-redis-1 Waiting 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:45.5794260Z  Container wendigogame-authentik-redis-1 Healthy 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:45.5797439Z  Container wendigogame-authentik-postgresql-1 Healthy 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:45.5800398Z  Container wendigogame-db-1 Waiting 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:45.5802393Z  Container wendigogame-redis-1 Waiting 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:46.0821804Z  Container wendigogame-db-1 Healthy 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:46.0824977Z  Container wendigogame-redis-1 Healthy 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:46.0826925Z  Container wendigogame-backend-1 Starting 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:46.0829136Z  Container wendigogame-backend-1 Started 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:46.1013551Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:46.1015344Z ▶ Attente Authentik (http://localhost:9000/-/health/ready/) — peut prendre ~5 min...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:46.1843674Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:46.1855035Z ▶ Authentik prêt (HTTP 200) après 0s
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:46.1864150Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:46.1884054Z ▶ Dépendances infrastructure...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:46.2743992Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:47:46.2764609Z ▶ Build SDK Authentik (tsc + bin/package.json)...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:08.7166022Z Lockfile is up to date, resolution step is skipped
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:08.7727936Z Progress: resolved 1, reused 0, downloaded 0, added 0
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:08.8363823Z Packages: +1
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:08.8364958Z +
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:09.2202023Z Progress: resolved 1, reused 1, downloaded 0, added 1, done
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:09.5904438Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:09.6136859Z Done in 1.9s using pnpm v10.33.0
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:09.6994861Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:09.6996122Z ▶ Sync bin/ SDK → node_modules pnpm...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:09.7810134Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:09.7812114Z ▶ Pulumi up (état: /home/gaston/.pulumi-wendigo)...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:10.2374506Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:10.2381308Z ▶ Attente Authentik (http://localhost:9000/-/health/ready/) — peut prendre ~5 min...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:10.3236426Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:10.3237243Z ▶ Authentik prêt (HTTP 200) après 0s
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:10.3237717Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:10.3237979Z ▶ Token API Authentik...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:26.4308778Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:26.4314203Z ▶ Token Authentik enregistré
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:26.4315711Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:26.4316546Z ▶ Purge Authentik Wendigo (ak shell / ORM)...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:26.4623855Z time="2026-08-31T06:48:26Z" level=warning msg="The \"AUTHENTIK_BOOTSTRAP_PASSWORD\" variable is not set. Defaulting to a blank string."
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:26.4627417Z time="2026-08-31T06:48:26Z" level=warning msg="The \"AUTHENTIK_BOOTSTRAP_PASSWORD\" variable is not set. Defaulting to a blank string."
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:41.4847175Z ⚠ Purge Authentik via ak shell échouée — tentative API REST...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:41.4848019Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:48:41.4862393Z ▶   
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:49:10.0699944Z {"pruned": {"flows": 30}, "total": 30}
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:49:10.1053371Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:49:10.1064120Z ▶ Token API Authentik...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:49:25.8391648Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:49:25.8392974Z ▶ Token Authentik enregistré
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:49:27.7245068Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:49:27.7246649Z ▶ Sync provider Authentik (token → état Pulumi)...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:49:29.8152993Z Updating (dev):
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:49:29.8209602Z     pulumi:pulumi:Stack wendigo-authentik-dev  warning: using pulumi-language-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-language-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:49:33.4837672Z @ updating......
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:49:33.4842768Z     pulumi:pulumi:Stack wendigo-authentik-dev  warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:49:33.4951633Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:49:36.4914076Z @ updating......
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:49:36.4917165Z     pulumi:pulumi:Stack wendigo-authentik-dev running warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:07.2204116Z @ updating..................................
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:07.2245548Z     pulumi:pulumi:Stack wendigo-authentik-dev running warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:09.6828954Z @ updating.....
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:09.6830641Z  ~  pulumi:providers:authentik wendigo-authentik updating (0s) [diff: ~token]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:09.6952509Z  ~  pulumi:providers:authentik wendigo-authentik updated (0.01s) [diff: ~token]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:14.6247705Z @ updating........
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:14.6249358Z     pulumi:pulumi:Stack wendigo-authentik-dev running warning: Undefined value (googleCallbackUri) will not show as a stack output.
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7869311Z @ updating.....
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7870333Z     pulumi:pulumi:Stack wendigo-authentik-dev  4 warnings
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7878202Z Diagnostics:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7884725Z   pulumi:pulumi:Stack (wendigo-authentik-dev):
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7886960Z     warning: using pulumi-language-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-language-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7893603Z     warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7897371Z     warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7899948Z     warning: Undefined value (googleCallbackUri) will not show as a stack output.
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7910843Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7911417Z Outputs:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7912178Z     applicationSlugOut        : "wendigo"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7913395Z     googleEnrollmentFlow      : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7914260Z         authentication   : "none"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7915339Z         background       : "/static/dist/assets/images/flow_background.jpg"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7916447Z         compatibilityMode: true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7917319Z         deniedAction     : "message_continue"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7918228Z         designation      : "enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7919822Z         flowId           : "wendigo-google-enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7920884Z         id               : "wendigo-google-enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7921804Z         layout           : "stacked"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7923261Z         name             : "Wendigo: Google Enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7924223Z         policyEngineMode : "any"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7925140Z         slug             : "wendigo-google-enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7926167Z         title            : "Wendigo: Google Enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7939706Z         urn              : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/flow:Flow::wendigo-google-enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7941932Z         uuid             : "d129196a-de21-4ff9-bddf-a1bb0eacf7bb"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7943274Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7943996Z     googleProfileMapping      : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7948423Z         expression                  : "info = request.context.get(\"oauth_userinfo\") or {}\nemail = info.get(\"email\") or \"\"\nusername = email.split(\"@\")[0] if \"@\" in email else (info.get(\"sub\") or \"\")\npicture = info.get(\"picture\") or \"\"\nreturn {\n    \"email\": email,\n    \"username\": username,\n    \"name\": info.get(\"name\") or info.get(\"given_name\") or username or email,\n    \"attributes\": {\n        \"picture\": picture,\n        \"avatar\": picture,\n    },\n}"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7952724Z         id                          : "2b331b8f-2d92-4075-8e60-b7eb00da1edc"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7954051Z         name                        : "Wendigo Google: profile (email, username, picture)"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7955522Z         propertyMappingSourceOauthId: "2b331b8f-2d92-4075-8e60-b7eb00da1edc"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7958076Z         urn                         : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/propertyMappingSourceOauth:PropertyMappingSourceOauth::wendigo-google-profile-mapping"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7959933Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7960602Z     googleSource              : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7961679Z         authenticationFlow: "58dca006-c6d9-42ce-ba5e-67048a8da3f1"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7963507Z         consumerKey       : "276321618988-c9gn61hqql7fspuva25g9lam4jh25mvg.apps.googleusercontent.com"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7965076Z         consumerSecret    : [secret]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7965918Z         enabled           : true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7967270Z         enrollmentFlow    : "d129196a-de21-4ff9-bddf-a1bb0eacf7bb"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7968492Z         id                : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7969311Z         name              : "Google"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7970126Z         promoted          : true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7970930Z         propertyMappings  : [
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7971822Z             [0]: "2b331b8f-2d92-4075-8e60-b7eb00da1edc"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7972817Z         ]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7973507Z         providerType      : "google"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7974351Z         slug              : "google"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7985257Z         urn               : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/sourceOauth:SourceOauth::wendigo-google-source"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7987262Z         userMatchingMode  : "identifier"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7989376Z         userPathTemplate  : "go[secret].io/sources/%(slug)s"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7990363Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7991038Z     googleSourceId            : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7991912Z     lokiDatasourceId          : "loki"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7993064Z     oidcClientIdOut           : "wendigo-dev"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7994292Z     oidcIssuerUrl             : "http://localhost:9000/application/o/wendigo/"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7995447Z     oidcPropertyMappingIds    : [
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7996376Z         [0]: "f12d63cb-3eb2-43ee-8b78-409b8a35511f"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7997362Z         [1]: "0e66bc6f-d1f3-4c36-b59c-7b5c5d390bc9"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7998337Z         [2]: "386e6bac-c324-4ae9-a98c-3f015fcc377e"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7999155Z     ]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.7999811Z     oidcProvider              : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8001342Z         accessTokenValidity   : "minutes=15"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8002254Z         authentikToken        : [secret]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8003398Z         authentikUrl          : "http://localhost:9000"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8004944Z         authorizationFlow     : "d4a18cee-74a8-44db-bb52-bf03df31c130"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8006048Z         clientId              : "wendigo-dev"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8006931Z         clientType            : "public"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8007781Z         id                    : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8008640Z         includeClaimsInIdToken: true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8009706Z         invalidationFlow      : "63272268-3d9b-4446-a6ba-7aa7e428d1fb"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8010796Z         issuerMode            : "per_provider"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8011679Z         name                  : "Wendigo"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8012746Z         propertyMappings      : [
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8013702Z             [0]: "f12d63cb-3eb2-43ee-8b78-409b8a35511f"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8014736Z             [1]: "0e66bc6f-d1f3-4c36-b59c-7b5c5d390bc9"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8015799Z             [2]: "386e6bac-c324-4ae9-a98c-3f015fcc377e"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8016630Z         ]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8017442Z         redirectUris          : [
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8018229Z             [0]: {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8018938Z                 matchingMode: "strict"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8019862Z                 url         : "http://localhost:5173/"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8020713Z             }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8021343Z             [1]: {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8022046Z                 matchingMode: "strict"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8023099Z                 url         : "http://localhost:5173/login"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8023979Z             }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8024597Z         ]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8032410Z         refreshTokenValidity  : "days=30"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8036206Z         subMode               : "user_uuid"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8038106Z         urn                   : "urn:pulumi:dev::wendigo-[secret]::pulumi-nodejs:dynamic:Resource::wendigo-oidc"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8039466Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8040152Z     oidcProviderId            : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8041027Z     profileScopeMapping       : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8042501Z         description                   : "Wendigo OIDC profile: standard claims + picture from Google or user attributes"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8048618Z         expression                    : "return {\n    \"name\": request.user.name,\n    \"given_name\": request.user.name,\n    \"preferred_username\": request.user.username,\n    \"nickname\": request.user.username,\n    \"groups\": [group.name for group in request.user.ak_groups.all()],\n    \"picture\": (\n        (request.user.attributes or {}).get(\"picture\")\n        or (request.user.attributes or {}).get(\"avatar\")\n        or (request.user.attributes or {}).get(\"avatar_url\")\n        or (request.context.get(\"oauth_userinfo\") or {}).get(\"picture\")\n        or \"\"\n    ),\n}"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8053723Z         id                            : "386e6bac-c324-4ae9-a98c-3f015fcc377e"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8054981Z         name                          : "Wendigo: OpenID profile with Google picture"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8056426Z         propertyMappingProviderScopeId: "386e6bac-c324-4ae9-a98c-3f015fcc377e"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8057698Z         scopeName                     : "profile"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8059842Z         urn                           : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/propertyMappingProviderScope:PropertyMappingProviderScope::wendigo-profile-scope"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8061651Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8062369Z     prometheusDatasourceId    : "prometheus"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8063427Z     wendigoAuthenticationFlow : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8064353Z         authentication: "require_unauthenticated"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8065304Z         designation   : "authentication"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8066155Z         id            : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8067060Z         name          : "Wendigo: Google Authentication"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8068623Z         slug          : "wendigo-authentication"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8069557Z         title         : "Wendigo: Sign In"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8071047Z         urn           : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/flow:Flow::wendigo-authentication"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8073419Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8074163Z     wendigoIdentificationStage: {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8076065Z         enableRememberMe: false
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8076924Z         id              : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8077850Z         name            : "Wendigo: Google sign-in"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8078790Z         showSourceLabels: false
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8079589Z         sources         : [
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8080343Z             [0]: <null>
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8081034Z         ]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8082911Z         urn             : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/stageIdentification:StageIdentification::wendigo-google-identification"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8084650Z         userFields      : []
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8085425Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8085846Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8086231Z Resources:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8086860Z     ~ 1 updated
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8087531Z     39 unchanged
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8088012Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8088397Z Duration: 44s
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:16.8088830Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:18.9722645Z Previewing refresh (dev):
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:18.9775313Z     pulumi:pulumi:Stack wendigo-authentik-dev  warning: using pulumi-language-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-language-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:22.7758500Z @ previewing refresh......
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:22.7763977Z     pulumi:pulumi:Stack wendigo-authentik-dev  warning: refresh operation is using an older version of package '[secret]' than the specified program version: 1.1.0 < 2025.12.1
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:22.7774353Z     pulumi:pulumi:Stack wendigo-authentik-dev  warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:22.7780086Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:22.7786526Z     pulumi:pulumi:Stack wendigo-authentik-dev  warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:23.8655292Z @ previewing refresh....
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:23.8668121Z  ~  pulumi:pulumi:Stack wendigo-authentik-dev refreshing warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:23.8673198Z     pulumi:pulumi:Stack wendigo-authentik-dev running warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:23.8676419Z  ~  pulumi:providers:authentik wendigo-authentik refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:23.8677848Z     pulumi:providers:authentik wendigo-authentik  
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:23.8679238Z  ~  pulumi-nodejs:dynamic:Resource dotenv refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:23.8680841Z  ~  pulumi-nodejs:dynamic:Resource prometheus-config refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:23.8887836Z     pulumi-nodejs:dynamic:Resource dotenv  
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:23.8889481Z  ~  authentik:index:StageUserLogin wendigo-google-source-auth-login refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:23.8988445Z     pulumi-nodejs:dynamic:Resource prometheus-config  
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:23.8991129Z  ~  authentik:index:StagePromptField wendigo-google-enrollment-username-field refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:25.7853703Z @ previewing refresh.....
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:25.7855140Z  -  authentik:index:StageUserLogin wendigo-google-source-auth-login delete 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:25.7856498Z  ~  authentik:index:StageUserLogin wendigo-google-auth-login refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:25.9349069Z  -  authentik:index:StageUserLogin wendigo-google-auth-login delete 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:25.9362289Z  ~  authentik:index:PropertyMappingProviderScope wendigo-profile-scope refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:26.1831617Z @ previewing refresh....
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:26.1851011Z  -  authentik:index:PropertyMappingProviderScope wendigo-profile-scope delete 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:26.1854357Z  ~  authentik:index:PropertyMappingSourceOauth wendigo-google-profile-mapping refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:26.3530893Z  -  authentik:index:PropertyMappingSourceOauth wendigo-google-profile-mapping delete 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:26.3567225Z  ~  authentik:index:StageUserLogin wendigo-google-enrollment-login refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:26.5084571Z  -  authentik:index:StageUserLogin wendigo-google-enrollment-login delete 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:26.5116695Z  ~  authentik:index:StageUserWrite wendigo-google-enrollment-write refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:26.6318805Z  -  authentik:index:StageUserWrite wendigo-google-enrollment-write delete 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:26.6355987Z  ~  authentik:index:Flow wendigo-provider-invalidation-flow refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:26.7374926Z  -  authentik:index:StagePromptField wendigo-google-enrollment-username-field delete 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:26.7384016Z  ~  authentik:index:Flow wendigo-provider-authorization-flow refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:26.9104893Z     authentik:index:Flow wendigo-provider-invalidation-flow  
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:26.9143480Z  ~  authentik:index:PolicyExpression wendigo-source-auth-sso-policy refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:27.0798771Z @ previewing refresh....
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:27.0822842Z  -  authentik:index:PolicyExpression wendigo-source-auth-sso-policy delete 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:27.0828681Z  ~  authentik:index:PolicyExpression wendigo-google-enrollment-attributes refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:27.1978101Z  -  authentik:index:PolicyExpression wendigo-google-enrollment-attributes delete 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:27.2008630Z  ~  authentik:index:PolicyExpression wendigo-google-enrollment-sso refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:27.2841589Z  -  authentik:index:PolicyExpression wendigo-google-enrollment-sso delete 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:27.2854127Z  ~  authentik:index:PropertyMappingProviderScope wendigo-openid-scope refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:27.4246586Z  -  authentik:index:PropertyMappingProviderScope wendigo-openid-scope delete 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:27.4269652Z  ~  authentik:index:PolicyExpression wendigo-google-enrollment-if-username refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:27.5428940Z  -  authentik:index:PolicyExpression wendigo-google-enrollment-if-username delete 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:27.5456001Z  ~  authentik:index:Flow wendigo-google-enrollment refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:27.7267786Z     authentik:index:Flow wendigo-google-enrollment  
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:27.7271787Z  ~  authentik:index:PropertyMappingProviderScope wendigo-email-scope refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:27.8160839Z  -  authentik:index:PropertyMappingProviderScope wendigo-email-scope delete 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:27.8162905Z  ~  authentik:index:Flow wendigo-source-authentication-flow refreshing 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:27.9341505Z     authentik:index:Flow wendigo-source-authentication-flow  
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.0661529Z @ previewing refresh......
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.0663721Z     authentik:index:Flow wendigo-provider-authorization-flow  
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.0893028Z     pulumi:pulumi:Stack wendigo-authentik-dev  4 warnings
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.0894434Z Diagnostics:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.0901488Z   pulumi:pulumi:Stack (wendigo-authentik-dev):
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.0904856Z     warning: using pulumi-language-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-language-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.0908012Z     warning: refresh operation is using an older version of package '[secret]' than the specified program version: 1.1.0 < 2025.12.1
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.0911131Z     warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.0914749Z     warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.0917105Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.0917953Z Resources:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.0918678Z     - 13 to delete
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.0919434Z     8 unchanged
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.0919981Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.0920454Z Refreshing (dev):
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.0963693Z     pulumi:pulumi:Stack wendigo-authentik-dev  warning: using pulumi-language-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-language-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.3897727Z     pulumi:pulumi:Stack wendigo-authentik-dev  warning: refresh operation is using an older version of package '[secret]' than the specified program version: 1.1.0 < 2025.12.1
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.3904810Z     pulumi:pulumi:Stack wendigo-authentik-dev  warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.3908030Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.3910602Z     pulumi:pulumi:Stack wendigo-authentik-dev  warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.9507294Z  ~  pulumi:pulumi:Stack wendigo-authentik-dev refreshing (0s) warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.9553866Z  ~  pulumi:providers:authentik wendigo-authentik refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.9557157Z     pulumi:pulumi:Stack wendigo-authentik-dev running warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.9559929Z     pulumi:providers:authentik wendigo-authentik  
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.9584245Z  ~  pulumi-nodejs:dynamic:Resource dotenv refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.9603948Z  ~  pulumi-nodejs:dynamic:Resource prometheus-config refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.9845313Z     pulumi-nodejs:dynamic:Resource dotenv  
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.9847496Z  ~  authentik:index:StageUserLogin wendigo-google-source-auth-login refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.9863772Z     pulumi-nodejs:dynamic:Resource prometheus-config  
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:30.9884302Z  ~  authentik:index:StagePromptField wendigo-google-enrollment-username-field refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.2565212Z @ refreshing....
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.2580745Z  -  authentik:index:StagePromptField wendigo-google-enrollment-username-field deleted (0.27s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.2582913Z  ~  authentik:index:StageUserLogin wendigo-google-auth-login refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.3992443Z  -  authentik:index:StageUserLogin wendigo-google-auth-login deleted (0.14s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.4007144Z  ~  authentik:index:PropertyMappingProviderScope wendigo-profile-scope refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.4894628Z  -  authentik:index:PropertyMappingProviderScope wendigo-profile-scope deleted (0.09s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.4918664Z  ~  authentik:index:PropertyMappingSourceOauth wendigo-google-profile-mapping refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.5659710Z  -  authentik:index:StageUserLogin wendigo-google-source-auth-login deleted (0.58s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.5661300Z  ~  authentik:index:StageUserLogin wendigo-google-enrollment-login refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.6014591Z  -  authentik:index:PropertyMappingSourceOauth wendigo-google-profile-mapping deleted (0.11s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.6016300Z  ~  authentik:index:StageUserWrite wendigo-google-enrollment-write refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.6851291Z  -  authentik:index:StageUserLogin wendigo-google-enrollment-login deleted (0.12s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.6853577Z  ~  authentik:index:Flow wendigo-provider-invalidation-flow refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.6987409Z  -  authentik:index:StageUserWrite wendigo-google-enrollment-write deleted (0.10s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.6988912Z  ~  authentik:index:Flow wendigo-provider-authorization-flow refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.8290596Z     authentik:index:Flow wendigo-provider-authorization-flow  
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.8306835Z  ~  authentik:index:PolicyExpression wendigo-source-auth-sso-policy refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.8336508Z     authentik:index:Flow wendigo-provider-invalidation-flow  
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.8339253Z  ~  authentik:index:PolicyExpression wendigo-google-enrollment-attributes refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.9676937Z  -  authentik:index:PolicyExpression wendigo-google-enrollment-attributes deleted (0.13s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:31.9678624Z  ~  authentik:index:PolicyExpression wendigo-google-enrollment-sso refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.0845451Z  -  authentik:index:PolicyExpression wendigo-google-enrollment-sso deleted (0.12s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.0862933Z  ~  authentik:index:PropertyMappingProviderScope wendigo-openid-scope refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.1866342Z @ refreshing....
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.1868712Z  -  authentik:index:PropertyMappingProviderScope wendigo-openid-scope deleted (0.10s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.1871731Z  ~  authentik:index:PolicyExpression wendigo-google-enrollment-if-username refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.2078079Z  -  authentik:index:PolicyExpression wendigo-source-auth-sso-policy deleted (0.38s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.2080498Z  ~  authentik:index:Flow wendigo-google-enrollment refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.3030047Z  -  authentik:index:PolicyExpression wendigo-google-enrollment-if-username deleted (0.12s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.3032131Z  ~  authentik:index:PropertyMappingProviderScope wendigo-email-scope refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.4967864Z  -  authentik:index:PropertyMappingProviderScope wendigo-email-scope deleted (0.19s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.4970760Z  ~  authentik:index:Flow wendigo-source-authentication-flow refreshing (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.5281220Z     authentik:index:Flow wendigo-google-enrollment  
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6249136Z     authentik:index:Flow wendigo-source-authentication-flow  
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6418105Z     pulumi:pulumi:Stack wendigo-authentik-dev  4 warnings
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6419400Z Diagnostics:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6420286Z   pulumi:pulumi:Stack (wendigo-authentik-dev):
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6422907Z     warning: using pulumi-language-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-language-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6426216Z     warning: refresh operation is using an older version of package '[secret]' than the specified program version: 1.1.0 < 2025.12.1
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6429395Z     warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6433105Z     warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6435121Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6435815Z Outputs:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6440341Z     applicationSlugOut        : "wendigo"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6441716Z     googleEnrollmentFlow      : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6443159Z         authentication   : "none"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6444146Z         background       : "/static/dist/assets/images/flow_background.jpg"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6445062Z         compatibilityMode: true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6445737Z         deniedAction     : "message_continue"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6446430Z         designation      : "enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6447179Z         flowId           : "wendigo-google-enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6448016Z         id               : "wendigo-google-enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6448737Z         layout           : "stacked"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6449479Z         name             : "Wendigo: Google Enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6450250Z         policyEngineMode : "any"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6450985Z         slug             : "wendigo-google-enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6451811Z         title            : "Wendigo: Google Enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6453649Z         urn              : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/flow:Flow::wendigo-google-enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6455495Z         uuid             : "d129196a-de21-4ff9-bddf-a1bb0eacf7bb"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6456188Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6465904Z     googleProfileMapping      : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6471093Z         expression                  : "info = request.context.get(\"oauth_userinfo\") or {}\nemail = info.get(\"email\") or \"\"\nusername = email.split(\"@\")[0] if \"@\" in email else (info.get(\"sub\") or \"\")\npicture = info.get(\"picture\") or \"\"\nreturn {\n    \"email\": email,\n    \"username\": username,\n    \"name\": info.get(\"name\") or info.get(\"given_name\") or username or email,\n    \"attributes\": {\n        \"picture\": picture,\n        \"avatar\": picture,\n    },\n}"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6475349Z         id                          : "2b331b8f-2d92-4075-8e60-b7eb00da1edc"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6476472Z         name                        : "Wendigo Google: profile (email, username, picture)"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6477741Z         propertyMappingSourceOauthId: "2b331b8f-2d92-4075-8e60-b7eb00da1edc"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6480206Z         urn                         : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/propertyMappingSourceOauth:PropertyMappingSourceOauth::wendigo-google-profile-mapping"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6481942Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6482404Z     googleSource              : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6484315Z         authenticationFlow: "58dca006-c6d9-42ce-ba5e-67048a8da3f1"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6485764Z         consumerKey       : "276321618988-c9gn61hqql7fspuva25g9lam4jh25mvg.apps.googleusercontent.com"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6486996Z         consumerSecret    : [secret]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6487622Z         enabled           : true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6488409Z         enrollmentFlow    : "d129196a-de21-4ff9-bddf-a1bb0eacf7bb"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6489240Z         id                : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6489853Z         name              : "Google"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6490455Z         promoted          : true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6491121Z         propertyMappings  : [
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6491788Z             [0]: "2b331b8f-2d92-4075-8e60-b7eb00da1edc"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6492411Z         ]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6493349Z         providerType      : "google"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6493993Z         slug              : "google"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6495421Z         urn               : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/sourceOauth:SourceOauth::wendigo-google-source"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6496699Z         userMatchingMode  : "identifier"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6497533Z         userPathTemplate  : "go[secret].io/sources/%(slug)s"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6498253Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6498723Z     googleSourceId            : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6499378Z     lokiDatasourceId          : "loki"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6500046Z     oidcClientIdOut           : "wendigo-dev"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6501023Z     oidcIssuerUrl             : "http://localhost:9000/application/o/wendigo/"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6501949Z     oidcPropertyMappingIds    : [
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6503411Z         [0]: "f12d63cb-3eb2-43ee-8b78-409b8a35511f"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6504248Z         [1]: "0e66bc6f-d1f3-4c36-b59c-7b5c5d390bc9"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6505020Z         [2]: "386e6bac-c324-4ae9-a98c-3f015fcc377e"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6505616Z     ]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6506052Z     oidcProvider              : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6506689Z         accessTokenValidity   : "minutes=15"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6507360Z         authentikToken        : [secret]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6508120Z         authentikUrl          : "http://localhost:9000"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6509096Z         authorizationFlow     : "d4a18cee-74a8-44db-bb52-bf03df31c130"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6509982Z         clientId              : "wendigo-dev"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6510662Z         clientType            : "public"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6519477Z         id                    : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6520193Z         includeClaimsInIdToken: true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6521054Z         invalidationFlow      : "63272268-3d9b-4446-a6ba-7aa7e428d1fb"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6522686Z         issuerMode            : "per_provider"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6523393Z         name                  : "Wendigo"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6524285Z         propertyMappings      : [
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6524986Z             [0]: "f12d63cb-3eb2-43ee-8b78-409b8a35511f"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6525756Z             [1]: "0e66bc6f-d1f3-4c36-b59c-7b5c5d390bc9"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6526524Z             [2]: "386e6bac-c324-4ae9-a98c-3f015fcc377e"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6527139Z         ]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6527585Z         redirectUris          : [
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6528123Z             [0]: {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6528615Z                 matchingMode: "strict"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6529335Z                 url         : "http://localhost:5173/"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6529985Z             }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6530394Z             [1]: {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6530883Z                 matchingMode: "strict"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6531638Z                 url         : "http://localhost:5173/login"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6532332Z             }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6532882Z         ]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6533384Z         refreshTokenValidity  : "days=30"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6534083Z         subMode               : "user_uuid"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6535441Z         urn                   : "urn:pulumi:dev::wendigo-[secret]::pulumi-nodejs:dynamic:Resource::wendigo-oidc"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6536474Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6536946Z     oidcProviderId            : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6537601Z     profileScopeMapping       : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6538827Z         description                   : "Wendigo OIDC profile: standard claims + picture from Google or user attributes"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6545462Z         expression                    : "return {\n    \"name\": request.user.name,\n    \"given_name\": request.user.name,\n    \"preferred_username\": request.user.username,\n    \"nickname\": request.user.username,\n    \"groups\": [group.name for group in request.user.ak_groups.all()],\n    \"picture\": (\n        (request.user.attributes or {}).get(\"picture\")\n        or (request.user.attributes or {}).get(\"avatar\")\n        or (request.user.attributes or {}).get(\"avatar_url\")\n        or (request.context.get(\"oauth_userinfo\") or {}).get(\"picture\")\n        or \"\"\n    ),\n}"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6550381Z         id                            : "386e6bac-c324-4ae9-a98c-3f015fcc377e"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6551414Z         name                          : "Wendigo: OpenID profile with Google picture"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6553069Z         propertyMappingProviderScopeId: "386e6bac-c324-4ae9-a98c-3f015fcc377e"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6554146Z         scopeName                     : "profile"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6556134Z         urn                           : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/propertyMappingProviderScope:PropertyMappingProviderScope::wendigo-profile-scope"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6557724Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6558229Z     prometheusDatasourceId    : "prometheus"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6558970Z     wendigoAuthenticationFlow : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6559672Z         authentication: "require_unauthenticated"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6560396Z         designation   : "authentication"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6561051Z         id            : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6561738Z         name          : "Wendigo: Google Authentication"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6562709Z         slug          : "wendigo-authentication"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6575348Z         title         : "Wendigo: Sign In"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6576806Z         urn           : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/flow:Flow::wendigo-authentication"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6577911Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6578440Z     wendigoIdentificationStage: {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6579090Z         enableRememberMe: false
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6579718Z         id              : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6580430Z         name            : "Wendigo: Google sign-in"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6581190Z         showSourceLabels: false
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6582315Z         sources         : [
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6583086Z             [0]: <null>
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6583562Z         ]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6585106Z         urn             : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/stageIdentification:StageIdentification::wendigo-google-identification"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6586901Z         userFields      : []
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6587404Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6587603Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6587803Z Resources:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6588219Z     - 13 deleted
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6588698Z     8 unchanged
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6588936Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6589138Z Duration: 3s
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:32.6589363Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:34.4594106Z Previewing update (dev):
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:34.4636842Z     pulumi:pulumi:Stack wendigo-authentik-dev  warning: using pulumi-language-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-language-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:34.7124923Z     pulumi:pulumi:Stack wendigo-authentik-dev  warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:34.7131567Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:37.0356221Z @ previewing update.....
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:37.0371653Z     pulumi:pulumi:Stack wendigo-authentik-dev running warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:42.5904487Z @ previewing update.........
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:42.5925848Z     pulumi:pulumi:Stack wendigo-authentik-dev running warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.3800541Z  +  authentik:index:Flow wendigo-authentication create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.3843186Z  +  authentik:index:StagePromptField wendigo-google-enrollment-username-field create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.3887809Z  +  authentik:index:StageUserLogin wendigo-google-source-auth-login create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.3965140Z  +  authentik:index:StageUserLogin wendigo-google-enrollment-login create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.4043965Z  +  authentik:index:StageUserLogin wendigo-google-auth-login create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.4074349Z  +  authentik:index:PropertyMappingSourceOauth wendigo-google-profile-mapping create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.4141068Z  +  authentik:index:PolicyExpression wendigo-source-auth-sso-policy create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.4195255Z  +  authentik:index:PolicyExpression wendigo-google-enrollment-sso create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.4239216Z  +  authentik:index:PolicyExpression wendigo-google-enrollment-attributes create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.4277788Z  +  authentik:index:PolicyExpression wendigo-google-enrollment-if-username create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.4322087Z  +  authentik:index:PropertyMappingProviderScope wendigo-openid-scope create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.4367289Z  +  authentik:index:PropertyMappingProviderScope wendigo-email-scope create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.4419540Z  +  authentik:index:PropertyMappingProviderScope wendigo-profile-scope create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.4783818Z @ previewing update....
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.4801258Z  +  authentik:index:StageUserWrite wendigo-google-enrollment-write create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.4953786Z  +  tls:index:PrivateKey wendigo-oidc-signing-key create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.5011791Z  +  authentik:index:StagePrompt wendigo-google-enrollment-prompt create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.5070137Z  +  authentik:index:FlowStageBinding wendigo-auth-login-binding create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.5134227Z  +  authentik:index:PolicyBinding wendigo-source-auth-sso-policy-binding create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.5161543Z  +  authentik:index:FlowStageBinding wendigo-source-auth-login-binding create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.5209590Z  +  authentik:index:FlowStageBinding wendigo-google-enrollment-login-binding create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.5254706Z  +  authentik:index:PolicyBinding wendigo-google-enrollment-sso-binding create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.5301583Z  +  authentik:index:FlowStageBinding wendigo-google-enrollment-write-binding create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.5646550Z  +  tls:index:SelfSignedCert wendigo-oidc-signing-cert create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.5724437Z  +  authentik:index:FlowStageBinding wendigo-google-enrollment-prompt-binding create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.5784391Z  +  authentik:index:PolicyBinding wendigo-google-enrollment-attributes-binding create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.5964665Z  +  authentik:index:PolicyBinding wendigo-google-enrollment-if-username-binding create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.6031606Z  +  authentik:index:SourceOauth wendigo-google-source create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.6171770Z  +  authentik:index:CertificateKeyPair wendigo-oidc-signing create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.6295888Z  +  authentik:index:StageIdentification wendigo-google-identification create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.6512938Z  +  authentik:index:FlowStageBinding wendigo-auth-identification-binding create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.6774165Z  +  pulumi-nodejs:dynamic:Resource wendigo-oidc create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.7684037Z  +  authentik:index:Application wendigo-app create 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8718009Z     pulumi:pulumi:Stack wendigo-authentik-dev  3 warnings
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8719682Z Diagnostics:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8720580Z   pulumi:pulumi:Stack (wendigo-authentik-dev):
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8723012Z     warning: using pulumi-language-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-language-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8726622Z     warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8729756Z     warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8731587Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8732074Z Outputs:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8732923Z   + googleCallbackUri         : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8733979Z   ~ googleEnrollmentFlow      : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8734857Z         authentication   : "none"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8736220Z         background       : "/static/dist/assets/images/flow_background.jpg"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8746841Z         compatibilityMode: true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8749305Z         deniedAction     : "message_continue"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8750266Z         designation      : "enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8752961Z         flowId           : "wendigo-google-enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8754054Z         id               : "wendigo-google-enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8755209Z         layout           : "stacked"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8757293Z         name             : "Wendigo: Google Enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8758373Z         policyEngineMode : "any"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8759332Z         slug             : "wendigo-google-enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8760485Z         title            : "Wendigo: Google Enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8762202Z         urn              : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/flow:Flow::wendigo-google-enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8764042Z         uuid             : "d129196a-de21-4ff9-bddf-a1bb0eacf7bb"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8765078Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8765732Z   ~ googleProfileMapping      : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8766602Z       ~ expression: 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8767266Z             ...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8767891Z                     "avatar": picture,
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8768632Z                 },
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8769206Z           - }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8769789Z           + }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8770609Z         name      : "Wendigo Google: profile (email, username, picture)"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8773093Z         urn       : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/propertyMappingSourceOauth:PropertyMappingSourceOauth::wendigo-google-profile-mapping"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8775139Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8775784Z   ~ googleSource              : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8776801Z         authenticationFlow         : "58dca006-c6d9-42ce-ba5e-67048a8da3f1"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8784596Z       + authorizationCodeAuthMethod: "basic_auth"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8790792Z         consumerKey                : "276321618988-c9gn61hqql7fspuva25g9lam4jh25mvg.apps.googleusercontent.com"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8793751Z         consumerSecret             : [secret]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8794635Z         enabled                    : true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8795871Z         enrollmentFlow             : "d129196a-de21-4ff9-bddf-a1bb0eacf7bb"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8797136Z       + groupMatchingMode          : "identifier"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8798058Z         id                         : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8799514Z         name                       : "Google"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8800474Z       + pkce                       : "none"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8801340Z       + policyEngineMode           : "any"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8802197Z         promoted                   : true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8803166Z         providerType               : "google"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8804075Z         slug                       : "google"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8805812Z         urn                        : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/sourceOauth:SourceOauth::wendigo-google-source"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8807393Z         userMatchingMode           : "identifier"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8815561Z         userPathTemplate           : "go[secret].io/sources/%(slug)s"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8817205Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8817927Z   ~ oidcProvider              : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8818860Z         accessTokenValidity   : "minutes=15"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8819803Z         authentikToken        : [secret]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8820834Z         authentikUrl          : "http://localhost:9000"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8822070Z         authorizationFlow     : "d4a18cee-74a8-44db-bb52-bf03df31c130"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8823354Z         clientId              : "wendigo-dev"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8824262Z         clientType            : "public"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8825169Z         id                    : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8826397Z         includeClaimsInIdToken: true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8827504Z         invalidationFlow      : "63272268-3d9b-4446-a6ba-7aa7e428d1fb"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8828654Z         issuerMode            : "per_provider"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8829567Z         name                  : "Wendigo"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8831295Z         redirectUris          : [
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8832100Z             [0]: {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8833032Z                 matchingMode: "strict"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8834017Z                 url         : "http://localhost:5173/"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8834904Z             }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8835561Z             [1]: {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8836299Z                 matchingMode: "strict"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8837278Z                 url         : "http://localhost:5173/login"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8838191Z             }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8838828Z         ]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8839541Z         refreshTokenValidity  : "days=30"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8840495Z         subMode               : "user_uuid"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8842074Z         urn                   : "urn:pulumi:dev::wendigo-[secret]::pulumi-nodejs:dynamic:Resource::wendigo-oidc"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8843500Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8844208Z   ~ profileScopeMapping       : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8845596Z         description: "Wendigo OIDC profile: standard claims + picture from Google or user attributes"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8846957Z       ~ expression : 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8847666Z             ...
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8848547Z                     or ""
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8849276Z                 ),
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8849963Z           - }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8850618Z           + }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8851519Z         name       : "Wendigo: OpenID profile with Google picture"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8853927Z         scopeName  : "profile"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8856110Z         urn        : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/propertyMappingProviderScope:PropertyMappingProviderScope::wendigo-profile-scope"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8858659Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8859594Z   ~ wendigoAuthenticationFlow : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8867904Z         authentication   : "require_unauthenticated"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8869856Z       + background       : "/static/dist/assets/images/flow_background.jpg"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8871086Z       + compatibilityMode: true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8872025Z       + deniedAction     : "message_continue"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8873252Z         designation      : "authentication"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8874182Z         id               : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8875047Z       + layout           : "stacked"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8876019Z         name             : "Wendigo: Google Authentication"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8877001Z       + policyEngineMode : "any"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8877922Z         slug             : "wendigo-authentication"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8878904Z         title            : "Wendigo: Sign In"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8880511Z         urn              : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/flow:Flow::wendigo-authentication"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8881855Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8882650Z   ~ wendigoIdentificationStage: {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8883568Z         enableRememberMe : false
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8884392Z         id               : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8885303Z         name             : "Wendigo: Google sign-in"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8886264Z       + pretendUserExists: true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8887093Z       + showMatchedUser  : true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8887918Z         showSourceLabels : false
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8889784Z         urn              : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/stageIdentification:StageIdentification::wendigo-google-identification"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8891431Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8891847Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8892241Z Resources:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8893352Z     + 32 to create
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8894099Z     8 unchanged
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8894527Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8894942Z Updating (dev):
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:43.8897204Z     pulumi:pulumi:Stack wendigo-authentik-dev  warning: using pulumi-language-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-language-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:44.1200003Z     pulumi:pulumi:Stack wendigo-authentik-dev  warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:44.1208529Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:45.6384972Z @ updating....
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:45.6395740Z     pulumi:pulumi:Stack wendigo-authentik-dev running warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:48.5089341Z @ updating......
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:48.5108880Z     pulumi:pulumi:Stack wendigo-authentik-dev running warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:49.2746896Z @ updating....
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:49.2773452Z  +  authentik:index:Flow wendigo-authentication creating (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:49.2775716Z  +  authentik:index:StagePromptField wendigo-google-enrollment-username-field creating (0s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:50.8005414Z @ updating....
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:50.8007907Z  +  authentik:index:Flow wendigo-authentication creating (1s) error: HTTP Error '400 Bad Request' during request 'POST /api/v3/flows/instances/': "{"slug":["Flow with this slug already exists."]}": 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:50:50.8035041Z  +  authentik:index:Flow wendigo-authentication **creating failed** error: HTTP Error '400 Bad Request' during request 'POST /api/v3/flows/instances/': "{"slug":["Flow with this slug already exists."]}": 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.4694965Z @ updating.......................................
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.4721347Z  +  authentik:index:StagePromptField wendigo-google-enrollment-username-field created (37s) 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.5096662Z     pulumi:pulumi:Stack wendigo-authentik-dev running error: update failed
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.5570978Z     pulumi:pulumi:Stack wendigo-authentik-dev **failed** 1 error; 3 warnings
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.5573207Z Diagnostics:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.5574059Z   pulumi:pulumi:Stack (wendigo-authentik-dev):
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.5576105Z     warning: using pulumi-language-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-language-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6827215Z     warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6834532Z     warning: using pulumi-resource-pulumi-nodejs from $PATH at /nix/store/h9vi02a41py0x0gmibn116lqnyqxb2zl-pulumi-nodejs-3.192.0/bin/pulumi-resource-pulumi-nodejs
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6838431Z     error: update failed
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6839192Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6840022Z   authentik:index:Flow (wendigo-authentication):
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6843766Z     error: HTTP Error '400 Bad Request' during request 'POST /api/v3/flows/instances/': "{"slug":["Flow with this slug already exists."]}": 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6846238Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6846788Z Outputs:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6847972Z   - applicationSlugOut        : "wendigo"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6849556Z   - googleEnrollmentFlow      : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6850839Z       - authentication   : "none"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6852724Z       - background       : "/static/dist/assets/images/flow_background.jpg"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6854515Z       - compatibilityMode: true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6855781Z       - deniedAction     : "message_continue"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6857137Z       - designation      : "enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6858647Z       - flowId           : "wendigo-google-enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6860253Z       - id               : "wendigo-google-enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6861655Z       - layout           : "stacked"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:26.6863238Z       - name             : "Wendigo: Google Enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1546420Z       - policyEngineMode : "any"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1548134Z       - slug             : "wendigo-google-enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1549840Z       - title            : "Wendigo: Google Enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1554624Z       - urn              : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/flow:Flow::wendigo-google-enrollment"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1557474Z       - uuid             : "d129196a-de21-4ff9-bddf-a1bb0eacf7bb"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1558711Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1559741Z   - googleProfileMapping      : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1568086Z       - expression                  : "info = request.context.get(\"oauth_userinfo\") or {}\nemail = info.get(\"email\") or \"\"\nusername = email.split(\"@\")[0] if \"@\" in email else (info.get(\"sub\") or \"\")\npicture = info.get(\"picture\") or \"\"\nreturn {\n    \"email\": email,\n    \"username\": username,\n    \"name\": info.get(\"name\") or info.get(\"given_name\") or username or email,\n    \"attributes\": {\n        \"picture\": picture,\n        \"avatar\": picture,\n    },\n}"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1576013Z       - id                          : "2b331b8f-2d92-4075-8e60-b7eb00da1edc"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1578156Z       - name                        : "Wendigo Google: profile (email, username, picture)"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1580650Z       - propertyMappingSourceOauthId: "2b331b8f-2d92-4075-8e60-b7eb00da1edc"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1585459Z       - urn                         : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/propertyMappingSourceOauth:PropertyMappingSourceOauth::wendigo-google-profile-mapping"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1588670Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1589545Z   - googleSource              : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1591174Z       - authenticationFlow: "58dca006-c6d9-42ce-ba5e-67048a8da3f1"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1594311Z       - consumerKey       : "276321618988-c9gn61hqql7fspuva25g9lam4jh25mvg.apps.googleusercontent.com"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1596647Z       - consumerSecret    : [secret]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1598730Z       - enabled           : true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.1600279Z       - enrollmentFlow    : "d129196a-de21-4ff9-bddf-a1bb0eacf7bb"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3793790Z       - id                : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3794988Z       - name              : "Google"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3795866Z       - promoted          : true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3797000Z       - propertyMappings  : [
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3799834Z       -     [0]: "2b331b8f-2d92-4075-8e60-b7eb00da1edc"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3800570Z         ]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3801079Z       - providerType      : "google"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3801731Z       - slug              : "google"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3803378Z       - urn               : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/sourceOauth:SourceOauth::wendigo-google-source"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3804767Z       - userMatchingMode  : "identifier"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3805615Z       - userPathTemplate  : "go[secret].io/sources/%(slug)s"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3806391Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3806886Z   - googleSourceId            : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3807586Z   - lokiDatasourceId          : "loki"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3809630Z   - oidcClientIdOut           : "wendigo-dev"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3811295Z   - oidcIssuerUrl             : "http://localhost:9000/application/o/wendigo/"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3812826Z   - oidcPropertyMappingIds    : [
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3813932Z   -     [0]: "f12d63cb-3eb2-43ee-8b78-409b8a35511f"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3814955Z   -     [1]: "0e66bc6f-d1f3-4c36-b59c-7b5c5d390bc9"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:27.3816123Z   -     [2]: "386e6bac-c324-4ae9-a98c-3f015fcc377e"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1008036Z     ]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1009755Z   - oidcProvider              : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1150801Z       - accessTokenValidity   : "minutes=15"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1152215Z       - authentikToken        : [secret]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1153931Z       - authentikUrl          : "http://localhost:9000"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1155203Z       - authorizationFlow     : "d4a18cee-74a8-44db-bb52-bf03df31c130"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1156378Z       - clientId              : "wendigo-dev"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1157228Z       - clientType            : "public"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1158040Z       - id                    : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1158854Z       - includeClaimsInIdToken: true
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1159926Z       - invalidationFlow      : "63272268-3d9b-4446-a6ba-7aa7e428d1fb"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1161034Z       - issuerMode            : "per_provider"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1161883Z       - name                  : "Wendigo"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1162794Z       - propertyMappings      : [
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1163692Z       -     [0]: "f12d63cb-3eb2-43ee-8b78-409b8a35511f"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1164676Z       -     [1]: "0e66bc6f-d1f3-4c36-b59c-7b5c5d390bc9"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1165641Z       -     [2]: "386e6bac-c324-4ae9-a98c-3f015fcc377e"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1166412Z         ]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1166974Z       - redirectUris          : [
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1167673Z       -     [0]: {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1168299Z               - matchingMode: "strict"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1169207Z               - url         : "http://localhost:5173/"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1170043Z             }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1170561Z       -     [1]: {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1171179Z               - matchingMode: "strict"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1172100Z               - url         : "http://localhost:5173/login"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1173036Z             }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1173536Z         ]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1174138Z       - refreshTokenValidity  : "days=30"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1174972Z       - subMode               : "user_uuid"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1176651Z       - urn                   : "urn:pulumi:dev::wendigo-[secret]::pulumi-nodejs:dynamic:Resource::wendigo-oidc"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1177939Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1178521Z   - oidcProviderId            : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1179365Z   - profileScopeMapping       : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1180925Z       - description                   : "Wendigo OIDC profile: standard claims + picture from Google or user attributes"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1189345Z       - expression                    : "return {\n    \"name\": request.user.name,\n    \"given_name\": request.user.name,\n    \"preferred_username\": request.user.username,\n    \"nickname\": request.user.username,\n    \"groups\": [group.name for group in request.user.ak_groups.all()],\n    \"picture\": (\n        (request.user.attributes or {}).get(\"picture\")\n        or (request.user.attributes or {}).get(\"avatar\")\n        or (request.user.attributes or {}).get(\"avatar_url\")\n        or (request.context.get(\"oauth_userinfo\") or {}).get(\"picture\")\n        or \"\"\n    ),\n}"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.1196545Z       - id                            : "386e6bac-c324-4ae9-a98c-3f015fcc377e"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2066189Z       - name                          : "Wendigo: OpenID profile with Google picture"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2069397Z       - propertyMappingProviderScopeId: "386e6bac-c324-4ae9-a98c-3f015fcc377e"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2071585Z       - scopeName                     : "profile"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2077599Z       - urn                           : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/propertyMappingProviderScope:PropertyMappingProviderScope::wendigo-profile-scope"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2080867Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2081900Z   - prometheusDatasourceId    : "prometheus"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2083697Z   - wendigoAuthenticationFlow : {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2085107Z       - authentication: "require_unauthenticated"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2086548Z       - designation   : "authentication"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2087807Z       - id            : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2089154Z       - name          : "Wendigo: Google Authentication"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2090699Z       - slug          : "wendigo-authentication"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2092094Z       - title         : "Wendigo: Sign In"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2095105Z       - urn           : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/flow:Flow::wendigo-authentication"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2097244Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2098200Z   - wendigoIdentificationStage: {
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2099432Z       - enableRememberMe: false
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2100606Z       - id              : [unknown]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2101925Z       - name            : "Wendigo: Google sign-in"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2104651Z       - showSourceLabels: false
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2106239Z       - sources         : [
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2107287Z       -     [0]: <null>
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2108595Z         ]
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2111550Z       - urn             : "urn:pulumi:dev::wendigo-[secret]::[secret]:index/stageIdentification:StageIdentification::wendigo-google-identification"
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2114607Z       - userFields      : []
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2115595Z     }
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2115997Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2116372Z Resources:
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2117159Z     + 1 created
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2117997Z     3 unchanged
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2118455Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2118893Z Duration: 43s
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:28.2119344Z 
+deploy	Deploy infrastructure (Docker + Pulumi)	2026-08-31T06:51:34.9803107Z ##[error]Process completed with exit code 255.
+deploy	Afficher les logs en cas d'échec	﻿2026-08-31T06:51:38.1353400Z ##[group]Run docker compose logs --tail=100 backend frontend
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:38.1356092Z [36;1mdocker compose logs --tail=100 backend frontend[0m
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:38.7181285Z shell: /usr/bin/bash -e {0}
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:38.7183127Z ##[endgroup]
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.1116232Z time="2026-08-31T06:51:41Z" level=warning msg="The \"AUTHENTIK_BOOTSTRAP_PASSWORD\" variable is not set. Defaulting to a blank string."
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.1131612Z time="2026-08-31T06:51:41Z" level=warning msg="The \"AUTHENTIK_BOOTSTRAP_PASSWORD\" variable is not set. Defaulting to a blank string."
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.3178911Z backend-1  | 2026/08/31 06:11:04 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.3426911Z backend-1  | 2026/08/31 06:11:04 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.4059848Z backend-1  | 2026/08/31 06:12:06 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.4693016Z backend-1  | 2026/08/31 06:12:06 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.4992264Z backend-1  | 2026/08/31 06:13:08 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.5394693Z backend-1  | 2026/08/31 06:13:08 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.5853928Z backend-1  | 2026/08/31 06:14:10 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.6800152Z backend-1  | 2026/08/31 06:14:10 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.7155494Z backend-1  | 2026/08/31 06:15:11 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.7911394Z backend-1  | 2026/08/31 06:15:11 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.8620861Z backend-1  | 2026/08/31 06:16:13 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9721712Z backend-1  | 2026/08/31 06:16:13 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9733449Z backend-1  | 2026/08/31 06:17:14 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9738609Z backend-1  | 2026/08/31 06:17:14 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9743663Z backend-1  | 2026/08/31 06:18:16 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9748942Z backend-1  | 2026/08/31 06:18:46 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": Get "http://authentik-server:9000/application/o/wendigo/jwks/": context deadline exceeded
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9753923Z backend-1  | 2026/08/31 06:18:50 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9758836Z backend-1  | 2026/08/31 06:18:50 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9763872Z backend-1  | 2026/08/31 06:18:59 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9769007Z backend-1  | 2026/08/31 06:19:29 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": Get "http://authentik-server:9000/application/o/wendigo/jwks/": context deadline exceeded
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9775047Z backend-1  | 2026/08/31 06:19:33 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9779922Z backend-1  | 2026/08/31 06:19:33 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9784685Z backend-1  | 2026/08/31 06:19:35 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9789563Z backend-1  | 2026/08/31 06:20:00 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 502
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9794401Z backend-1  | 2026/08/31 06:20:02 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9800032Z backend-1  | 2026/08/31 06:20:02 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9804868Z backend-1  | 2026/08/31 06:20:04 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9809777Z backend-1  | 2026/08/31 06:20:04 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9815048Z backend-1  | 2026/08/31 06:20:06 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9819950Z backend-1  | 2026/08/31 06:20:06 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9824732Z backend-1  | 2026/08/31 06:20:07 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9829653Z backend-1  | 2026/08/31 06:20:07 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9834446Z backend-1  | 2026/08/31 06:20:10 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9839318Z backend-1  | 2026/08/31 06:20:10 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9844059Z backend-1  | 2026/08/31 06:20:14 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9848930Z backend-1  | 2026/08/31 06:20:14 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9853659Z backend-1  | 2026/08/31 06:20:21 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9858740Z backend-1  | 2026/08/31 06:20:21 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9863570Z backend-1  | 2026/08/31 06:20:35 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9868461Z backend-1  | 2026/08/31 06:20:35 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9873546Z backend-1  | 2026/08/31 06:21:01 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9878567Z backend-1  | 2026/08/31 06:21:01 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9883474Z backend-1  | 2026/08/31 06:21:53 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9888425Z backend-1  | 2026/08/31 06:21:53 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9894048Z backend-1  | 2026/08/31 06:22:54 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9898990Z backend-1  | 2026/08/31 06:22:54 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9903937Z backend-1  | 2026/08/31 06:23:55 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9909051Z backend-1  | 2026/08/31 06:23:55 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9914432Z backend-1  | 2026/08/31 06:24:56 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9919310Z backend-1  | 2026/08/31 06:24:56 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9924100Z backend-1  | 2026/08/31 06:25:56 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9929001Z backend-1  | 2026/08/31 06:25:56 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9933790Z backend-1  | 2026/08/31 06:26:57 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9938672Z backend-1  | 2026/08/31 06:26:58 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9943413Z backend-1  | 2026/08/31 06:27:59 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9948316Z backend-1  | 2026/08/31 06:27:59 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9953089Z backend-1  | 2026/08/31 06:29:00 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9957988Z backend-1  | 2026/08/31 06:29:00 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9962720Z backend-1  | 2026/08/31 06:30:01 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9967626Z backend-1  | 2026/08/31 06:30:01 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9972266Z backend-1  | 2026/08/31 06:31:02 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9977321Z backend-1  | 2026/08/31 06:31:02 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9981939Z backend-1  | 2026/08/31 06:32:03 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9986944Z backend-1  | 2026/08/31 06:32:03 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9991606Z backend-1  | 2026/08/31 06:33:04 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:41.9996596Z backend-1  | 2026/08/31 06:33:04 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0001238Z backend-1  | 2026/08/31 06:34:15 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0006785Z backend-1  | 2026/08/31 06:34:15 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0011412Z backend-1  | 2026/08/31 06:35:16 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0016438Z backend-1  | 2026/08/31 06:35:16 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0021073Z backend-1  | 2026/08/31 06:36:16 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0026079Z backend-1  | 2026/08/31 06:36:16 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0031172Z backend-1  | 2026/08/31 06:37:17 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0036207Z backend-1  | 2026/08/31 06:37:17 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0040833Z backend-1  | 2026/08/31 06:38:18 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0045854Z backend-1  | 2026/08/31 06:38:18 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0050501Z backend-1  | 2026/08/31 06:39:20 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0055561Z backend-1  | 2026/08/31 06:39:20 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0060244Z backend-1  | 2026/08/31 06:40:21 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0065284Z backend-1  | 2026/08/31 06:40:21 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0069927Z backend-1  | 2026/08/31 06:41:22 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0074930Z backend-1  | 2026/08/31 06:41:22 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0079599Z backend-1  | 2026/08/31 06:42:23 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0084588Z backend-1  | 2026/08/31 06:42:23 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0089283Z backend-1  | 2026/08/31 06:43:23 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0094272Z backend-1  | 2026/08/31 06:43:24 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0098918Z backend-1  | 2026/08/31 06:44:24 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0111932Z backend-1  | 2026/08/31 06:44:24 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0152483Z backend-1  | 2026/08/31 06:45:27 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0175626Z backend-1  | 2026/08/31 06:45:28 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0182356Z backend-1  | 2026/08/31 06:46:31 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0192235Z backend-1  | 2026/08/31 06:46:31 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0195899Z backend-1  | 2026/08/31 06:47:38 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0199814Z backend-1  | 2026/08/31 06:47:38 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0203872Z backend-1  | 2026/08/31 06:48:41 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0208877Z backend-1  | 2026/08/31 06:48:42 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0213021Z backend-1  | 2026/08/31 06:49:49 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0217079Z backend-1  | 2026/08/31 06:49:49 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0221150Z backend-1  | 2026/08/31 06:50:51 postgres schema migrated (users, game_history, game_participants)
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0225464Z backend-1  | 2026/08/31 06:50:51 auth jwks: jwks get "http://authentik-server:9000/application/o/wendigo/jwks/": failed to extract response via extractor function: invalid HTTP status code: 404
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0230040Z frontend-1  | /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0232943Z frontend-1  | /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0236835Z frontend-1  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0239869Z frontend-1  | 10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0245120Z frontend-1  | 10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0247811Z frontend-1  | /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0250058Z frontend-1  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0253588Z frontend-1  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0255775Z frontend-1  | /docker-entrypoint.sh: Configuration complete; ready for start up
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0257601Z frontend-1  | 2026/08/30 22:31:57 [notice] 1#1: using the "epoll" event method
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0260328Z frontend-1  | 2026/08/30 22:31:57 [notice] 1#1: nginx/1.31.4
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0261938Z frontend-1  | 2026/08/30 22:31:57 [notice] 1#1: built by gcc 15.2.0 (Alpine 15.2.0) 
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0267874Z frontend-1  | 2026/08/30 22:31:57 [notice] 1#1: OS: Linux 7.0.0-30-generic
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0269912Z frontend-1  | 2026/08/30 22:31:57 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1024:524288
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0271632Z frontend-1  | 2026/08/30 22:31:57 [notice] 1#1: start worker processes
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0273485Z frontend-1  | 2026/08/30 22:31:57 [notice] 1#1: start worker process 28
+deploy	Afficher les logs en cas d'échec	2026-08-31T06:51:42.0275056Z frontend-1  | 2026/08/30 22:31:57 [notice] 1#1: start worker process 29
+deploy	Post Checkout repository	﻿2026-08-31T06:51:42.8066342Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+deploy	Post Checkout repository	2026-08-31T06:51:42.8075230Z Post job cleanup.
+deploy	Post Checkout repository	2026-08-31T06:51:44.6883887Z [command]/usr/bin/git version
+deploy	Post Checkout repository	2026-08-31T06:51:44.6983247Z git version 2.53.0
+deploy	Post Checkout repository	2026-08-31T06:51:44.7633874Z Temporarily overriding HOME='/home/gaston/actions-runner/_work/_temp/9903fff4-8047-4b4a-9fbf-60be05745c34' before making global git config changes
+deploy	Post Checkout repository	2026-08-31T06:51:44.7636571Z Adding repository directory to the temporary git global config as a safe directory
+deploy	Post Checkout repository	2026-08-31T06:51:44.7693860Z [command]/usr/bin/git config --global --add safe.directory /home/gaston/actions-runner/_work/WendigoGame/WendigoGame
+deploy	Post Checkout repository	2026-08-31T06:51:44.7696810Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+deploy	Post Checkout repository	2026-08-31T06:51:44.7699875Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+deploy	Post Checkout repository	2026-08-31T06:51:45.1307345Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+deploy	Post Checkout repository	2026-08-31T06:51:45.1332436Z http.https://github.com/.extraheader
+deploy	Post Checkout repository	2026-08-31T06:51:45.1358753Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+deploy	Post Checkout repository	2026-08-31T06:51:45.1691704Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+deploy	Post Checkout repository	2026-08-31T06:51:45.2122138Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+deploy	Post Checkout repository	2026-08-31T06:51:45.2179813Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+deploy	Complete job	﻿2026-08-31T06:51:45.4814685Z Cleaning up orphan processes
+deploy	Complete job	2026-08-31T06:51:46.5543996Z Terminate orphan process: pid (587182) (crashpad_handler)
+deploy	Complete job	2026-08-31T06:51:46.6123140Z Terminate orphan process: pid (592665) (terraform-provider-authentik_v2025.12.1)
+deploy	Complete job	2026-08-31T06:51:46.6831330Z Terminate orphan process: pid (592954) (terraform-provider-authentik_v2025.12.1)
+deploy	Complete job	2026-08-31T06:51:46.7091009Z Terminate orphan process: pid (593115) (terraform-provider-authentik_v2025.12.1)
+deploy	Complete job	2026-08-31T06:51:46.7927520Z Terminate orphan process: pid (593399) (terraform-provider-authentik_v2025.12.1)
+deploy	Complete job	2026-08-31T06:51:46.9866847Z Terminate orphan process: pid (593525) (terraform-provider-authentik_v2025.12.1)
+deploy	Complete job	2026-08-31T06:51:47.4800446Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

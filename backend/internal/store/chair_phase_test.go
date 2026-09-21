@@ -19,7 +19,7 @@ func TestProcessGameTick_DayChairRecallAtOneThirdRemaining(t *testing.T) {
 	st := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Host")
+	lobby, err := st.CreateLobby(ctx, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -85,7 +85,7 @@ func TestAdvanceFromChairSelection_CouncilPathSanctionsUnseated(t *testing.T) {
 	st := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "A")
+	lobby, err := st.CreateLobby(ctx, "A")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -138,7 +138,7 @@ func TestAdvanceFromChairSelection_SkipCouncilIfEmpty(t *testing.T) {
 	st := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "A")
+	lobby, err := st.CreateLobby(ctx, "A")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}

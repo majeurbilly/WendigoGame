@@ -20,7 +20,7 @@ func TestGameLoop_TicksDownAndTransitions(t *testing.T) {
 	st := store.NewForTesting(redisClient)
 	ctx := context.Background()
 
-	lobby, err := st.CreateLobby(ctx, models.GameModeLocal, "Alice")
+	lobby, err := st.CreateLobby(ctx, "Alice")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}

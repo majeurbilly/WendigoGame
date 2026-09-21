@@ -35,7 +35,7 @@ export const allowedRedirectUris = parseRedirectUris(
 export function createAuthentikProvider(): authentik.Provider {
   const configUrl = authentikConfig.get('url')?.replace(/\/+$/, '') ?? 'http://localhost:9000';
   const url = process.env.AUTHENTIK_URL?.replace(/\/+$/, '') ?? configUrl;
-  // CI: start.sh exporte AUTHENTIK_TOKEN après rotation — prioritaire sur le secret stack
+  // AUTHENTIK_TOKEN env prioritaire sur le secret stack (rotation manuelle / outils).
   // pour éviter un refresh avec le token figé dans l'état du provider.
   const token =
     process.env.AUTHENTIK_TOKEN !== undefined

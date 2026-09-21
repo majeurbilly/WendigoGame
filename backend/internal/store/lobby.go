@@ -95,15 +95,15 @@ func randomUpperCode(length int) (string, error) {
 	return string(out), nil
 }
 
-func (s *Store) CreateLobby(ctx context.Context, mode models.GameMode, hostName string) (*models.Lobby, error) {
-	return s.createLobbyWithHost(ctx, mode, uuid.Nil, hostName)
+func (s *Store) CreateLobby(ctx context.Context, hostName string) (*models.Lobby, error) {
+	return s.createLobbyWithHost(ctx, uuid.Nil, hostName)
 }
 
-func (s *Store) CreateLobbyForHost(ctx context.Context, mode models.GameMode, hostID uuid.UUID, hostName string) (*models.Lobby, error) {
-	return s.createLobbyWithHost(ctx, mode, hostID, hostName)
+func (s *Store) CreateLobbyForHost(ctx context.Context, hostID uuid.UUID, hostName string) (*models.Lobby, error) {
+	return s.createLobbyWithHost(ctx, hostID, hostName)
 }
 
-func (s *Store) createLobbyWithHost(ctx context.Context, mode models.GameMode, hostID uuid.UUID, hostName string) (*models.Lobby, error) {
+func (s *Store) createLobbyWithHost(ctx context.Context, hostID uuid.UUID, hostName string) (*models.Lobby, error) {
 	if hostID == uuid.Nil {
 		hostID = uuid.New()
 	}
@@ -124,7 +124,7 @@ func (s *Store) createLobbyWithHost(ctx context.Context, mode models.GameMode, h
 
 		lobby := &models.Lobby{
 			Code:               code,
-			Mode:               mode,
+			Mode:               models.GameModeLocal,
 			Players:            []models.Player{host},
 			CreatedAt:          time.Now().UTC(),
 			Phase:              models.GamePhaseLobby,

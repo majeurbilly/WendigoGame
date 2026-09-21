@@ -38,7 +38,7 @@ func TestWSAddsPlayerThenDisconnectKeepsHostInValkey(t *testing.T) {
 	mux := api.NewRouter(api.Config{Store: lobbyStore, Hub: connectionHub})
 
 	ctx := context.Background()
-	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Host")
+	lobby, err := lobbyStore.CreateLobby(ctx, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -132,7 +132,7 @@ func TestWS_FiveSimultaneousConnections(t *testing.T) {
 	mux := api.NewRouter(api.Config{Store: lobbyStore, Hub: connectionHub})
 
 	ctx := context.Background()
-	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Host")
+	lobby, err := lobbyStore.CreateLobby(ctx, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -251,7 +251,7 @@ func TestWS_LobbyDestroyedWhenEmpty(t *testing.T) {
 	mux := api.NewRouter(api.Config{Store: lobbyStore, Hub: connectionHub})
 
 	ctx := context.Background()
-	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Host")
+	lobby, err := lobbyStore.CreateLobby(ctx, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -319,7 +319,7 @@ func TestWS_ReceivesBroadcastOnJoin(t *testing.T) {
 	mux := api.NewRouter(api.Config{Store: lobbyStore, Hub: connectionHub})
 
 	ctx := context.Background()
-	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Host")
+	lobby, err := lobbyStore.CreateLobby(ctx, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -384,7 +384,7 @@ func TestWS_RoleFiltering(t *testing.T) {
 	mux := api.NewRouter(api.Config{Store: lobbyStore, Hub: connectionHub})
 
 	ctx := context.Background()
-	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Host")
+	lobby, err := lobbyStore.CreateLobby(ctx, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}
@@ -540,7 +540,7 @@ func TestWS_NightResolutionWithPrayerShield(t *testing.T) {
 	mux := api.NewRouter(api.Config{Store: lobbyStore, Hub: connectionHub})
 
 	ctx := context.Background()
-	lobby, err := lobbyStore.CreateLobby(ctx, models.GameModeLocal, "Host")
+	lobby, err := lobbyStore.CreateLobby(ctx, "Host")
 	if err != nil {
 		t.Fatalf("CreateLobby: %v", err)
 	}

@@ -13,8 +13,7 @@ const UnseatedChair = -1
 type GameMode string
 
 const (
-	GameModeLocal  GameMode = "local"
-	GameModeOnline GameMode = "online"
+	GameModeLocal GameMode = "local"
 )
 
 type Lobby struct {
