@@ -6,7 +6,9 @@ Push sur **`main`** (ou `workflow_dispatch`) → `.github/workflows/ci-cd.yml` :
 
 1. **Lint & Test** (`ubuntu-latest`) — backend Go + frontend lint/tsc
 2. **Build & Push** (`ubuntu-latest`) — images GHCR
-3. **Deploy** (`self-hosted`) — `kustomize edit set image` + `kubectl apply -k deploy/k8s`
+3. **Deploy** (`self-hosted`) —
+   - écrit `.env` (bootstrap Authentik depuis secrets) + `docker compose up -d`
+   - `kustomize edit set image` + `kubectl apply -k deploy/k8s`
 
 Images :
 

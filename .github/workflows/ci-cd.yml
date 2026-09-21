@@ -133,6 +133,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Amorcer Authentik avec les secrets
+        run: |
+          cat <<EOF > .env
+          AUTHENTIK_BOOTSTRAP_PASSWORD=${{ secrets.AUTHENTIK_BOOTSTRAP_PASSWORD }}
+          AUTHENTIK_BOOTSTRAP_EMAIL=admin@stringempty.dev
+          AUTHENTIK_BOOTSTRAP_TOKEN=${{ secrets.AUTHENTIK_BOOTSTRAP_TOKEN }}
+          EOF
+          docker compose up -d
+
       - name: Ensure kustomize
         run: |
           set -euo pipefail

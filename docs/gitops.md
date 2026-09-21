@@ -35,6 +35,20 @@ Pipeline : `.github/workflows/ci-cd.yml` (push sur `main`)
 
 - Runner GitHub installé sur le serveur (ou machine LAN) avec accès API k3s (`kubectl` configuré).
 - Labels : au minimum `self-hosted` (job `deploy`).
+- Docker + Compose : le job deploy écrit `.env` (secrets bootstrap) puis `docker compose up -d` pour Authentik.
+
+## Secrets GitHub Actions (Authentik)
+
+À définir dans le dépôt (Settings → Secrets) :
+
+| Secret | Usage |
+|--------|--------|
+| `AUTHENTIK_BOOTSTRAP_PASSWORD` | Mot de passe admin initial (`akadmin`) |
+| `AUTHENTIK_BOOTSTRAP_TOKEN` | Token API bootstrap Authentik |
+
+Email bootstrap fixé dans le workflow : `admin@stringempty.dev`.
+
+Compose Authentik : `docker-compose.yml` à la racine (postgres + redis + server + worker, port **9000**).
 
 ## Secret GHCR (`ghcr-creds`)
 
