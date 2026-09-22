@@ -125,7 +125,7 @@ export function deploy() {
     { dependsOn: [oidc.provider] },
   );
 
-  // Observability — Grafana datasources: provisionnés via deploy/grafana/provisioning (Zéro ClickOps)
+  // Observability — config Prometheus (fichier) ; Loki/Grafana retirés (OOM homelab)
   const prometheusConfig = new PrometheusConfigResource('prometheus-config', {
     configPath: prometheusConfigPath,
     reloadUrl: prometheusReloadUrl,

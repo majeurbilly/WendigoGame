@@ -23,6 +23,4 @@ export const googleEnrollmentFlow = stack.googleEnrollment.flow;
 export const wendigoAuthenticationFlow = stack.wendigoAuthentication.flow;
 export const wendigoIdentificationStage = stack.wendigoIdentification.stage;
 
-// Observability — UIDs fixés dans deploy/grafana/provisioning/datasources/datasources.yml
 export const prometheusDatasourceId = 'prometheus';
-export const lokiDatasourceId = 'loki';

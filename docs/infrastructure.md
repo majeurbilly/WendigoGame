@@ -65,3 +65,4 @@ Dans ce dépôt, le projet existe déjà (`Pulumi.yaml` + `sdks/authentik`).
 | Backend K8s | `AUTHENTIK_JWKS_URL` / `OIDC_*` → `http://192.168.0.157:9000/application/o/wendigo/...` |
 | CrashLoopBackOff | Résolu quand `/jwks/` répond 200 avec des clés |
 | `index.full.ts` | Ancienne stack complète — non exécutée tant que `main` = `index.ts` MVP |
+| Loki / Grafana | Retirés — plus de dépendance Pulumi ni provisioning `deploy/grafana` |

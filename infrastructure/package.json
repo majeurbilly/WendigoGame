@@ -2,7 +2,7 @@
   "name": "wendigo-authentik",
   "version": "1.0.0",
   "private": true,
-  "description": "Pulumi IaC for Wendigo infrastructure (Authentik OIDC, Grafana, Prometheus)",
+  "description": "Pulumi IaC for Wendigo infrastructure (Authentik OIDC, Prometheus)",
   "main": "index.ts",
   "scripts": {
     "build": "tsc",

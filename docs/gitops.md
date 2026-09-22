@@ -35,7 +35,7 @@ Pipeline : `.github/workflows/ci-cd.yml` (push sur `main`)
 
 - Runner GitHub installé sur le serveur (ou machine LAN) avec accès API k3s (`kubectl` configuré).
 - Labels : au minimum `self-hosted` (job `deploy`).
-- Docker + Compose : le job deploy écrit `.env` (secrets bootstrap) puis `docker compose up -d` pour Authentik.
+- Docker + Compose : démarrage **conditionnel** Authentik (skip si `/-/health/ready/` OK ; sinon `.env` + `up -d --no-recreate`).
 
 ## Secrets GitHub Actions (Authentik)
 
@@ -72,4 +72,5 @@ Si les packages GHCR sont **publics**, le secret est inutile mais inoffensif tan
 
 - **CI** : un seul workflow `ci-cd.yml` ; plus de `build-and-push-ghcr.yml` ni `argocd-app.yaml`.
 - **Frontend** : Variables repo `VITE_*` (sinon défauts localhost).
-- **Authentik / Grafana** : migration K8s toujours à planifier.
+- **Authentik** : Compose sur l’hôte ; OIDC via Pulumi MVP.
+- **Loki / Grafana / Promtail** : **retirés** du dépôt (OOM sur homelab).

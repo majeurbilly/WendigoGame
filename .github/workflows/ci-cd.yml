@@ -133,20 +133,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Amorcer Authentik avec les secrets
+      - name: Démarrage conditionnel d'Authentik
         run: |
-          cat <<EOF > .env
-          AUTHENTIK_BOOTSTRAP_PASSWORD=${{ secrets.AUTHENTIK_BOOTSTRAP_PASSWORD }}
-          AUTHENTIK_BOOTSTRAP_EMAIL=admin@stringempty.dev
-          AUTHENTIK_BOOTSTRAP_TOKEN=${{ secrets.AUTHENTIK_BOOTSTRAP_TOKEN }}
-          EOF
-          docker compose up -d
+          if curl -sSf http://192.168.0.157:9000/-/health/ready/ > /dev/null 2>&1; then
+            echo "Authentik tourne déjà et est en bonne santé. On passe l'amorçage."
+          else
+            echo "Authentik est injoignable. Démarrage en cours..."
+            cat <<EOF > .env
+            AUTHENTIK_BOOTSTRAP_PASSWORD=${{ secrets.AUTHENTIK_BOOTSTRAP_PASSWORD }}
+            AUTHENTIK_BOOTSTRAP_EMAIL=admin@stringempty.dev
+            AUTHENTIK_BOOTSTRAP_TOKEN=${{ secrets.AUTHENTIK_BOOTSTRAP_TOKEN }}
+            EOF
+            docker compose up -d --no-recreate
 
-      - name: Attendre que l'API Authentik soit prête
-        run: |
-          echo "Attente du démarrage complet d'Authentik (max 2 minutes)..."
-          timeout 120 bash -c 'until curl -sSf http://192.168.0.157:9000/-/health/ready/ > /dev/null 2>&1; do echo "En attente..."; sleep 5; done'
-          echo "Authentik est 100% prêt pour Pulumi !"
+            echo "Attente de la disponibilité de l'API (max 2 minutes)..."
+            timeout 120 bash -c 'until curl -sSf http://192.168.0.157:9000/-/health/ready/ > /dev/null 2>&1; do echo "En attente..."; sleep 5; done'
+            echo "Authentik est prêt pour Pulumi !"
+          fi
 
       - name: Déployer l'infrastructure (Pulumi)
         working-directory: ./infrastructure

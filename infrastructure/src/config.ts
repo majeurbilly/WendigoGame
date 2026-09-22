@@ -3,7 +3,6 @@ import * as authentik from '@pulumi/authentik';
 import * as pulumi from '@pulumi/pulumi';
 
 const authentikConfig = new pulumi.Config('authentik');
-const grafanaConfig = new pulumi.Config('grafana');
 const wendigoConfig = new pulumi.Config('wendigo');
 
 // Authentik IaC
@@ -54,13 +53,7 @@ export const authentikPgPass = wendigoConfig.requireSecret('authentikPgPass');
 export const authentikBootstrapPassword = wendigoConfig.requireSecret('authentikBootstrapPassword');
 export const pgPassword = wendigoConfig.requireSecret('pgPassword');
 
-// Grafana
-export const grafanaUrl = grafanaConfig.get('url') ?? 'http://localhost:3000';
-export const grafanaAdminUser = grafanaConfig.get('adminUser') ?? 'admin';
-export const grafanaAdminPassword = grafanaConfig.requireSecret('adminPassword');
-
 export const prometheusUrl = wendigoConfig.get('prometheusUrl') ?? 'http://prometheus:9090';
-export const lokiUrl = wendigoConfig.get('lokiUrl') ?? 'http://loki:3100';
 export const prometheusReloadUrl =
   wendigoConfig.get('prometheusReloadUrl') ?? 'http://localhost:9090';
 

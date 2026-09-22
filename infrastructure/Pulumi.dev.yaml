@@ -12,7 +12,5 @@ config:
   wendigo:pgPassword:
     secure: v1:PfppNrXTfNHUv2rz:9oJKH0ZU4a12hxca3ViXxU0rZNhoberZ
   wendigo:oidcIncludePropertyMappings: "true"
-  grafana:adminPassword:
-    secure: v1:nd9X4UmfyCGT88nQ:55KD27UTGtJDVqUp3w71wSBi5TDF
   authentik:token:
     secure: v1:qGdf/KJngnQOh0Pk:TBv889MnWA43zRWoN0yfSe+kPvy75HVHhQWdatuKdBwBUSkeONBUIZV0dGnX5w9FMy34Tj2FMzFzDow01cUlqchLG+bhvPrs+Lfc+g==

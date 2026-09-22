@@ -1,5 +1,7 @@
 # Audit de migration — Authentik + observabilité (WendigoGame)
 
+> **Obsolète (2026-09)** : Loki, Grafana et Promtail ont été **retirés** du dépôt (OOM homelab). Ce fichier est un historique ; voir `docs/observability.md`.
+
 Document de suivi technique. Dernière mise à jour : **Ticket 5 (OIDC frontend React)**.
 
 ---
