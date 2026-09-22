@@ -142,6 +142,24 @@ jobs:
           EOF
           docker compose up -d
 
+      - name: Attendre que l'API Authentik soit prête
+        run: |
+          echo "Attente du démarrage complet d'Authentik (max 2 minutes)..."
+          timeout 120 bash -c 'until curl -sSf http://192.168.0.157:9000/-/health/ready/ > /dev/null 2>&1; do echo "En attente..."; sleep 5; done'
+          echo "Authentik est 100% prêt pour Pulumi !"
+
+      - name: Déployer l'infrastructure (Pulumi)
+        working-directory: ./infrastructure
+        env:
+          AUTHENTIK_TOKEN: ${{ secrets.AUTHENTIK_BOOTSTRAP_TOKEN }}
+          AUTHENTIK_URL: http://192.168.0.157:9000
+          # PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }} # À décommenter si tu utilises Pulumi Cloud pour stocker l'état
+        run: |
+          pnpm install
+          pulumi login --local # Si ton état Pulumi est géré localement sur le runner
+          pulumi stack select dev || pulumi stack init dev
+          pulumi up -y
+
       - name: Ensure kustomize
         run: |
           set -euo pipefail

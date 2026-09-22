@@ -44,11 +44,13 @@ Pipeline : `.github/workflows/ci-cd.yml` (push sur `main`)
 | Secret | Usage |
 |--------|--------|
 | `AUTHENTIK_BOOTSTRAP_PASSWORD` | Mot de passe admin initial (`akadmin`) |
-| `AUTHENTIK_BOOTSTRAP_TOKEN` | Token API bootstrap Authentik |
+| `AUTHENTIK_BOOTSTRAP_TOKEN` | Token API bootstrap Authentik (+ `AUTHENTIK_TOKEN` pour Pulumi) |
 
 Email bootstrap fixé dans le workflow : `admin@stringempty.dev`.
 
 Compose Authentik : `docker-compose.yml` à la racine (postgres + redis + server + worker, port **9000**).
+
+Après Compose, le job lance **Pulumi** (`infrastructure/`, stack `dev`, état local via `pulumi login --local`) pour créer le Provider OIDC + Application `wendigo`.
 
 ## Secret GHCR (`ghcr-creds`)
 
