@@ -25,7 +25,7 @@ export interface GetOutpostArgs {
  * A collection of values returned by getOutpost.
  */
 export interface GetOutpostResult {
-    readonly id?: string;
+    readonly id: string;
     readonly name?: string;
 }
 export function getOutpostOutput(args?: GetOutpostOutputArgs, opts?: pulumi.InvokeOutputOptions): pulumi.Output<GetOutpostResult> {
@@ -41,6 +41,6 @@ export function getOutpostOutput(args?: GetOutpostOutputArgs, opts?: pulumi.Invo
  * A collection of arguments for invoking getOutpost.
  */
 export interface GetOutpostOutputArgs {
-    id?: pulumi.Input<string>;
-    name?: pulumi.Input<string>;
+    id?: pulumi.Input<string | undefined>;
+    name?: pulumi.Input<string | undefined>;
 }

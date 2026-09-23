@@ -10,6 +10,6 @@
     "outDir": "bin",
     "rootDir": "."
   },
-  "include": ["./**/*.ts"],
-  "exclude": ["node_modules", "bin", "sdks"]
+  "include": ["index.ts"],
+  "exclude": ["node_modules", "bin", "sdks", "src", "scripts"]
 }

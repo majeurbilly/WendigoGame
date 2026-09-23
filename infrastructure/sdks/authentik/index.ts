@@ -5,6 +5,11 @@ import * as pulumi from "@pulumi/pulumi";
 import * as utilities from "./utilities";
 
 // Export members:
+export { AgentArgs, AgentState } from "./agent";
+export type Agent = import("./agent").Agent;
+export const Agent: typeof import("./agent").Agent = null as any;
+utilities.lazyLoad(exports, ["Agent"], () => require("./agent"));
+
 export { ApplicationArgs, ApplicationState } from "./application";
 export type Application = import("./application").Application;
 export const Application: typeof import("./application").Application = null as any;
@@ -45,6 +50,11 @@ export type EndpointsDeviceAccessGroup = import("./endpointsDeviceAccessGroup").
 export const EndpointsDeviceAccessGroup: typeof import("./endpointsDeviceAccessGroup").EndpointsDeviceAccessGroup = null as any;
 utilities.lazyLoad(exports, ["EndpointsDeviceAccessGroup"], () => require("./endpointsDeviceAccessGroup"));
 
+export { EndpointsGoogleChromeConnectorArgs, EndpointsGoogleChromeConnectorState } from "./endpointsGoogleChromeConnector";
+export type EndpointsGoogleChromeConnector = import("./endpointsGoogleChromeConnector").EndpointsGoogleChromeConnector;
+export const EndpointsGoogleChromeConnector: typeof import("./endpointsGoogleChromeConnector").EndpointsGoogleChromeConnector = null as any;
+utilities.lazyLoad(exports, ["EndpointsGoogleChromeConnector"], () => require("./endpointsGoogleChromeConnector"));
+
 export { EnterpriseLicenseArgs, EnterpriseLicenseState } from "./enterpriseLicense";
 export type EnterpriseLicense = import("./enterpriseLicense").EnterpriseLicense;
 export const EnterpriseLicense: typeof import("./enterpriseLicense").EnterpriseLicense = null as any;
@@ -69,6 +79,11 @@ export { FlowStageBindingArgs, FlowStageBindingState } from "./flowStageBinding"
 export type FlowStageBinding = import("./flowStageBinding").FlowStageBinding;
 export const FlowStageBinding: typeof import("./flowStageBinding").FlowStageBinding = null as any;
 utilities.lazyLoad(exports, ["FlowStageBinding"], () => require("./flowStageBinding"));
+
+export { GetApplicationEntitlementArgs, GetApplicationEntitlementResult, GetApplicationEntitlementOutputArgs } from "./getApplicationEntitlement";
+export const getApplicationEntitlement: typeof import("./getApplicationEntitlement").getApplicationEntitlement = null as any;
+export const getApplicationEntitlementOutput: typeof import("./getApplicationEntitlement").getApplicationEntitlementOutput = null as any;
+utilities.lazyLoad(exports, ["getApplicationEntitlement","getApplicationEntitlementOutput"], () => require("./getApplicationEntitlement"));
 
 export { GetBrandArgs, GetBrandResult, GetBrandOutputArgs } from "./getBrand";
 export const getBrand: typeof import("./getBrand").getBrand = null as any;
@@ -99,6 +114,16 @@ export { GetOutpostArgs, GetOutpostResult, GetOutpostOutputArgs } from "./getOut
 export const getOutpost: typeof import("./getOutpost").getOutpost = null as any;
 export const getOutpostOutput: typeof import("./getOutpost").getOutpostOutput = null as any;
 utilities.lazyLoad(exports, ["getOutpost","getOutpostOutput"], () => require("./getOutpost"));
+
+export { GetPolicyBindingArgs, GetPolicyBindingResult, GetPolicyBindingOutputArgs } from "./getPolicyBinding";
+export const getPolicyBinding: typeof import("./getPolicyBinding").getPolicyBinding = null as any;
+export const getPolicyBindingOutput: typeof import("./getPolicyBinding").getPolicyBindingOutput = null as any;
+utilities.lazyLoad(exports, ["getPolicyBinding","getPolicyBindingOutput"], () => require("./getPolicyBinding"));
+
+export { GetPolicyExpressionArgs, GetPolicyExpressionResult, GetPolicyExpressionOutputArgs } from "./getPolicyExpression";
+export const getPolicyExpression: typeof import("./getPolicyExpression").getPolicyExpression = null as any;
+export const getPolicyExpressionOutput: typeof import("./getPolicyExpression").getPolicyExpressionOutput = null as any;
+utilities.lazyLoad(exports, ["getPolicyExpression","getPolicyExpressionOutput"], () => require("./getPolicyExpression"));
 
 export { GetPropertyMappingProviderRacArgs, GetPropertyMappingProviderRacResult, GetPropertyMappingProviderRacOutputArgs } from "./getPropertyMappingProviderRac";
 export const getPropertyMappingProviderRac: typeof import("./getPropertyMappingProviderRac").getPropertyMappingProviderRac = null as any;
@@ -160,6 +185,11 @@ export const getStage: typeof import("./getStage").getStage = null as any;
 export const getStageOutput: typeof import("./getStage").getStageOutput = null as any;
 utilities.lazyLoad(exports, ["getStage","getStageOutput"], () => require("./getStage"));
 
+export { GetStagePromptFieldArgs, GetStagePromptFieldResult, GetStagePromptFieldOutputArgs } from "./getStagePromptField";
+export const getStagePromptField: typeof import("./getStagePromptField").getStagePromptField = null as any;
+export const getStagePromptFieldOutput: typeof import("./getStagePromptField").getStagePromptFieldOutput = null as any;
+utilities.lazyLoad(exports, ["getStagePromptField","getStagePromptFieldOutput"], () => require("./getStagePromptField"));
+
 export { GetUserArgs, GetUserResult, GetUserOutputArgs } from "./getUser";
 export const getUser: typeof import("./getUser").getUser = null as any;
 export const getUserOutput: typeof import("./getUser").getUserOutput = null as any;
@@ -179,6 +209,11 @@ export { GroupArgs, GroupState } from "./group";
 export type Group = import("./group").Group;
 export const Group: typeof import("./group").Group = null as any;
 utilities.lazyLoad(exports, ["Group"], () => require("./group"));
+
+export { ObjectAttributeArgs, ObjectAttributeState } from "./objectAttribute";
+export type ObjectAttribute = import("./objectAttribute").ObjectAttribute;
+export const ObjectAttribute: typeof import("./objectAttribute").ObjectAttribute = null as any;
+utilities.lazyLoad(exports, ["ObjectAttribute"], () => require("./objectAttribute"));
 
 export { OutpostArgs, OutpostState } from "./outpost";
 export type Outpost = import("./outpost").Outpost;
@@ -328,6 +363,11 @@ export type ProviderOauth2 = import("./providerOauth2").ProviderOauth2;
 export const ProviderOauth2: typeof import("./providerOauth2").ProviderOauth2 = null as any;
 utilities.lazyLoad(exports, ["ProviderOauth2"], () => require("./providerOauth2"));
 
+export { ProviderOauth2DcrArgs, ProviderOauth2DcrState } from "./providerOauth2Dcr";
+export type ProviderOauth2Dcr = import("./providerOauth2Dcr").ProviderOauth2Dcr;
+export const ProviderOauth2Dcr: typeof import("./providerOauth2Dcr").ProviderOauth2Dcr = null as any;
+utilities.lazyLoad(exports, ["ProviderOauth2Dcr"], () => require("./providerOauth2Dcr"));
+
 export { ProviderProxyArgs, ProviderProxyState } from "./providerProxy";
 export type ProviderProxy = import("./providerProxy").ProviderProxy;
 export const ProviderProxy: typeof import("./providerProxy").ProviderProxy = null as any;
@@ -358,6 +398,11 @@ export type ProviderSsf = import("./providerSsf").ProviderSsf;
 export const ProviderSsf: typeof import("./providerSsf").ProviderSsf = null as any;
 utilities.lazyLoad(exports, ["ProviderSsf"], () => require("./providerSsf"));
 
+export { ProviderWsFederationArgs, ProviderWsFederationState } from "./providerWsFederation";
+export type ProviderWsFederation = import("./providerWsFederation").ProviderWsFederation;
+export const ProviderWsFederation: typeof import("./providerWsFederation").ProviderWsFederation = null as any;
+utilities.lazyLoad(exports, ["ProviderWsFederation"], () => require("./providerWsFederation"));
+
 export { RacEndpointArgs, RacEndpointState } from "./racEndpoint";
 export type RacEndpoint = import("./racEndpoint").RacEndpoint;
 export const RacEndpoint: typeof import("./racEndpoint").RacEndpoint = null as any;
@@ -382,6 +427,21 @@ export { RbacRoleArgs, RbacRoleState } from "./rbacRole";
 export type RbacRole = import("./rbacRole").RbacRole;
 export const RbacRole: typeof import("./rbacRole").RbacRole = null as any;
 utilities.lazyLoad(exports, ["RbacRole"], () => require("./rbacRole"));
+
+export { RequestRuleArgs, RequestRuleState } from "./requestRule";
+export type RequestRule = import("./requestRule").RequestRule;
+export const RequestRule: typeof import("./requestRule").RequestRule = null as any;
+utilities.lazyLoad(exports, ["RequestRule"], () => require("./requestRule"));
+
+export { RequestRuleBindingArgs, RequestRuleBindingState } from "./requestRuleBinding";
+export type RequestRuleBinding = import("./requestRuleBinding").RequestRuleBinding;
+export const RequestRuleBinding: typeof import("./requestRuleBinding").RequestRuleBinding = null as any;
+utilities.lazyLoad(exports, ["RequestRuleBinding"], () => require("./requestRuleBinding"));
+
+export { RequestRuleChildBindingArgs, RequestRuleChildBindingState } from "./requestRuleChildBinding";
+export type RequestRuleChildBinding = import("./requestRuleChildBinding").RequestRuleChildBinding;
+export const RequestRuleChildBinding: typeof import("./requestRuleChildBinding").RequestRuleChildBinding = null as any;
+utilities.lazyLoad(exports, ["RequestRuleChildBinding"], () => require("./requestRuleChildBinding"));
 
 export { ServiceConnectionDockerArgs, ServiceConnectionDockerState } from "./serviceConnectionDocker";
 export type ServiceConnectionDocker = import("./serviceConnectionDocker").ServiceConnectionDocker;
@@ -427,6 +487,11 @@ export { SourceTelegramArgs, SourceTelegramState } from "./sourceTelegram";
 export type SourceTelegram = import("./sourceTelegram").SourceTelegram;
 export const SourceTelegram: typeof import("./sourceTelegram").SourceTelegram = null as any;
 utilities.lazyLoad(exports, ["SourceTelegram"], () => require("./sourceTelegram"));
+
+export { StageAccountLockdownArgs, StageAccountLockdownState } from "./stageAccountLockdown";
+export type StageAccountLockdown = import("./stageAccountLockdown").StageAccountLockdown;
+export const StageAccountLockdown: typeof import("./stageAccountLockdown").StageAccountLockdown = null as any;
+utilities.lazyLoad(exports, ["StageAccountLockdown"], () => require("./stageAccountLockdown"));
 
 export { StageAuthenticatorDuoArgs, StageAuthenticatorDuoState } from "./stageAuthenticatorDuo";
 export type StageAuthenticatorDuo = import("./stageAuthenticatorDuo").StageAuthenticatorDuo;
@@ -578,6 +643,11 @@ export type User = import("./user").User;
 export const User: typeof import("./user").User = null as any;
 utilities.lazyLoad(exports, ["User"], () => require("./user"));
 
+export { UserOffboardingArgs, UserOffboardingState } from "./userOffboarding";
+export type UserOffboarding = import("./userOffboarding").UserOffboarding;
+export const UserOffboarding: typeof import("./userOffboarding").UserOffboarding = null as any;
+utilities.lazyLoad(exports, ["UserOffboarding"], () => require("./userOffboarding"));
+
 
 // Export sub-modules:
 import * as config from "./config";
@@ -592,6 +662,8 @@ const _module = {
     version: utilities.getVersion(),
     construct: (name: string, type: string, urn: string): pulumi.Resource => {
         switch (type) {
+            case "authentik:index/agent:Agent":
+                return new Agent(name, <any>undefined, { urn })
             case "authentik:index/application:Application":
                 return new Application(name, <any>undefined, { urn })
             case "authentik:index/applicationEntitlement:ApplicationEntitlement":
@@ -608,6 +680,8 @@ const _module = {
                 return new EndpointsConnectorAgentEnrollmentToken(name, <any>undefined, { urn })
             case "authentik:index/endpointsDeviceAccessGroup:EndpointsDeviceAccessGroup":
                 return new EndpointsDeviceAccessGroup(name, <any>undefined, { urn })
+            case "authentik:index/endpointsGoogleChromeConnector:EndpointsGoogleChromeConnector":
+                return new EndpointsGoogleChromeConnector(name, <any>undefined, { urn })
             case "authentik:index/enterpriseLicense:EnterpriseLicense":
                 return new EnterpriseLicense(name, <any>undefined, { urn })
             case "authentik:index/eventRule:EventRule":
@@ -620,6 +694,8 @@ const _module = {
                 return new FlowStageBinding(name, <any>undefined, { urn })
             case "authentik:index/group:Group":
                 return new Group(name, <any>undefined, { urn })
+            case "authentik:index/objectAttribute:ObjectAttribute":
+                return new ObjectAttribute(name, <any>undefined, { urn })
             case "authentik:index/outpost:Outpost":
                 return new Outpost(name, <any>undefined, { urn })
             case "authentik:index/outpostProviderAttachment:OutpostProviderAttachment":
@@ -678,6 +754,8 @@ const _module = {
                 return new ProviderMicrosoftEntra(name, <any>undefined, { urn })
             case "authentik:index/providerOauth2:ProviderOauth2":
                 return new ProviderOauth2(name, <any>undefined, { urn })
+            case "authentik:index/providerOauth2Dcr:ProviderOauth2Dcr":
+                return new ProviderOauth2Dcr(name, <any>undefined, { urn })
             case "authentik:index/providerProxy:ProviderProxy":
                 return new ProviderProxy(name, <any>undefined, { urn })
             case "authentik:index/providerRac:ProviderRac":
@@ -690,6 +768,8 @@ const _module = {
                 return new ProviderScim(name, <any>undefined, { urn })
             case "authentik:index/providerSsf:ProviderSsf":
                 return new ProviderSsf(name, <any>undefined, { urn })
+            case "authentik:index/providerWsFederation:ProviderWsFederation":
+                return new ProviderWsFederation(name, <any>undefined, { urn })
             case "authentik:index/racEndpoint:RacEndpoint":
                 return new RacEndpoint(name, <any>undefined, { urn })
             case "authentik:index/rbacInitialPermissions:RbacInitialPermissions":
@@ -700,6 +780,12 @@ const _module = {
                 return new RbacPermissionUser(name, <any>undefined, { urn })
             case "authentik:index/rbacRole:RbacRole":
                 return new RbacRole(name, <any>undefined, { urn })
+            case "authentik:index/requestRule:RequestRule":
+                return new RequestRule(name, <any>undefined, { urn })
+            case "authentik:index/requestRuleBinding:RequestRuleBinding":
+                return new RequestRuleBinding(name, <any>undefined, { urn })
+            case "authentik:index/requestRuleChildBinding:RequestRuleChildBinding":
+                return new RequestRuleChildBinding(name, <any>undefined, { urn })
             case "authentik:index/serviceConnectionDocker:ServiceConnectionDocker":
                 return new ServiceConnectionDocker(name, <any>undefined, { urn })
             case "authentik:index/serviceConnectionKubernetes:ServiceConnectionKubernetes":
@@ -718,6 +804,8 @@ const _module = {
                 return new SourceScim(name, <any>undefined, { urn })
             case "authentik:index/sourceTelegram:SourceTelegram":
                 return new SourceTelegram(name, <any>undefined, { urn })
+            case "authentik:index/stageAccountLockdown:StageAccountLockdown":
+                return new StageAccountLockdown(name, <any>undefined, { urn })
             case "authentik:index/stageAuthenticatorDuo:StageAuthenticatorDuo":
                 return new StageAuthenticatorDuo(name, <any>undefined, { urn })
             case "authentik:index/stageAuthenticatorEmail:StageAuthenticatorEmail":
@@ -778,11 +866,14 @@ const _module = {
                 return new Token(name, <any>undefined, { urn })
             case "authentik:index/user:User":
                 return new User(name, <any>undefined, { urn })
+            case "authentik:index/userOffboarding:UserOffboarding":
+                return new UserOffboarding(name, <any>undefined, { urn })
             default:
                 throw new Error(`unknown resource type ${type}`);
         }
     },
 };
+pulumi.runtime.registerResourceModule("authentik", "index/agent", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/application", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/applicationEntitlement", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/blueprint", _module)
@@ -791,12 +882,14 @@ pulumi.runtime.registerResourceModule("authentik", "index/certificateKeyPair", _
 pulumi.runtime.registerResourceModule("authentik", "index/endpointsConnectorAgent", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/endpointsConnectorAgentEnrollmentToken", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/endpointsDeviceAccessGroup", _module)
+pulumi.runtime.registerResourceModule("authentik", "index/endpointsGoogleChromeConnector", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/enterpriseLicense", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/eventRule", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/eventTransport", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/flow", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/flowStageBinding", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/group", _module)
+pulumi.runtime.registerResourceModule("authentik", "index/objectAttribute", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/outpost", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/outpostProviderAttachment", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/policyBinding", _module)
@@ -826,17 +919,22 @@ pulumi.runtime.registerResourceModule("authentik", "index/providerGoogleWorkspac
 pulumi.runtime.registerResourceModule("authentik", "index/providerLdap", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/providerMicrosoftEntra", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/providerOauth2", _module)
+pulumi.runtime.registerResourceModule("authentik", "index/providerOauth2Dcr", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/providerProxy", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/providerRac", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/providerRadius", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/providerSaml", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/providerScim", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/providerSsf", _module)
+pulumi.runtime.registerResourceModule("authentik", "index/providerWsFederation", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/racEndpoint", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/rbacInitialPermissions", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/rbacPermissionRole", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/rbacPermissionUser", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/rbacRole", _module)
+pulumi.runtime.registerResourceModule("authentik", "index/requestRule", _module)
+pulumi.runtime.registerResourceModule("authentik", "index/requestRuleBinding", _module)
+pulumi.runtime.registerResourceModule("authentik", "index/requestRuleChildBinding", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/serviceConnectionDocker", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/serviceConnectionKubernetes", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/sourceKerberos", _module)
@@ -846,6 +944,7 @@ pulumi.runtime.registerResourceModule("authentik", "index/sourcePlex", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/sourceSaml", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/sourceScim", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/sourceTelegram", _module)
+pulumi.runtime.registerResourceModule("authentik", "index/stageAccountLockdown", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/stageAuthenticatorDuo", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/stageAuthenticatorEmail", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/stageAuthenticatorEndpointGdtc", _module)
@@ -876,6 +975,7 @@ pulumi.runtime.registerResourceModule("authentik", "index/systemSettings", _modu
 pulumi.runtime.registerResourceModule("authentik", "index/taskSchedule", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/token", _module)
 pulumi.runtime.registerResourceModule("authentik", "index/user", _module)
+pulumi.runtime.registerResourceModule("authentik", "index/userOffboarding", _module)
 pulumi.runtime.registerResourcePackage("authentik", {
     version: utilities.getVersion(),
     constructProvider: (name: string, type: string, urn: string): pulumi.ProviderResource => {

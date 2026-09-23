@@ -32,6 +32,7 @@ export class TaskSchedule extends pulumi.CustomResource {
         return obj['__pulumiType'] === TaskSchedule.__pulumiType;
     }
 
+    declare public readonly actorName: pulumi.Output<string | undefined>;
     /**
      * Allowed values:
      *   - `authentik_tenants.domain`
@@ -40,6 +41,8 @@ export class TaskSchedule extends pulumi.CustomResource {
      *   - `authentik_core.application`
      *   - `authentik_core.applicationentitlement`
      *   - `authentik_core.token`
+     *   - `authentik_core.objectattribute`
+     *   - `authentik_core.actor`
      *   - `authentik_crypto.certificatekeypair`
      *   - `authentik_endpoints.deviceuserbinding`
      *   - `authentik_endpoints.deviceaccessgroup`
@@ -69,6 +72,7 @@ export class TaskSchedule extends pulumi.CustomResource {
      *   - `authentik_providers_ldap.ldapprovider`
      *   - `authentik_providers_oauth2.scopemapping`
      *   - `authentik_providers_oauth2.oauth2provider`
+     *   - `authentik_providers_oauth2.oauth2dynamicclientregistration`
      *   - `authentik_providers_proxy.proxyprovider`
      *   - `authentik_providers_rac.racprovider`
      *   - `authentik_providers_rac.endpoint`
@@ -139,13 +143,26 @@ export class TaskSchedule extends pulumi.CustomResource {
      *   - `authentik_tasks_schedules.schedule`
      *   - `authentik_brands.brand`
      *   - `authentik_blueprints.blueprintinstance`
+     *   - `authentik_agents.agent`
+     *   - `authentik_endpoints_connectors_fleet.fleetconnector`
+     *   - `authentik_endpoints_connectors_google_chrome.googlechromeconnector`
+     *   - `authentik_lifecycle.lifecyclerule`
+     *   - `authentik_lifecycle.lifecycleiteration`
+     *   - `authentik_lifecycle.review`
+     *   - `authentik_lifecycle.useroffboarding`
      *   - `authentik_policies_unique_password.uniquepasswordpolicy`
      *   - `authentik_providers_google_workspace.googleworkspaceprovider`
      *   - `authentik_providers_google_workspace.googleworkspaceprovidermapping`
      *   - `authentik_providers_microsoft_entra.microsoftentraprovider`
      *   - `authentik_providers_microsoft_entra.microsoftentraprovidermapping`
      *   - `authentik_providers_ssf.ssfprovider`
+     *   - `authentik_providers_ws_federation.wsfederationprovider`
      *   - `authentik_reports.dataexport`
+     *   - `authentik_requests.requestrulechildbinding`
+     *   - `authentik_requests.requestrulebinding`
+     *   - `authentik_requests.requestrule`
+     *   - `authentik_requests.grantrequest`
+     *   - `authentik_stages_account_lockdown.accountlockdownstage`
      *   - `authentik_stages_authenticator_endpoint_gdtc.authenticatorendpointgdtcstage`
      *   - `authentik_stages_mtls.mutualtlsstage`
      *   - `authentik_stages_source.sourcestage`
@@ -157,7 +174,7 @@ export class TaskSchedule extends pulumi.CustomResource {
     declare public readonly crontab: pulumi.Output<string>;
     declare public readonly modelId: pulumi.Output<string>;
     /**
-     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`">`false`</span>.
+     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
      */
     declare public readonly paused: pulumi.Output<boolean | undefined>;
     declare public readonly taskScheduleId: pulumi.Output<string>;
@@ -175,6 +192,7 @@ export class TaskSchedule extends pulumi.CustomResource {
         opts = opts || {};
         if (opts.id) {
             const state = argsOrState as TaskScheduleState | undefined;
+            resourceInputs["actorName"] = state?.actorName;
             resourceInputs["appModel"] = state?.appModel;
             resourceInputs["crontab"] = state?.crontab;
             resourceInputs["modelId"] = state?.modelId;
@@ -191,6 +209,7 @@ export class TaskSchedule extends pulumi.CustomResource {
             if (args?.modelId === undefined && !opts.urn) {
                 throw new Error("Missing required property 'modelId'");
             }
+            resourceInputs["actorName"] = args?.actorName;
             resourceInputs["appModel"] = args?.appModel;
             resourceInputs["crontab"] = args?.crontab;
             resourceInputs["modelId"] = args?.modelId;
@@ -206,6 +225,7 @@ export class TaskSchedule extends pulumi.CustomResource {
  * Input properties used for looking up and filtering TaskSchedule resources.
  */
 export interface TaskScheduleState {
+    actorName?: pulumi.Input<string | undefined>;
     /**
      * Allowed values:
      *   - `authentik_tenants.domain`
@@ -214,6 +234,8 @@ export interface TaskScheduleState {
      *   - `authentik_core.application`
      *   - `authentik_core.applicationentitlement`
      *   - `authentik_core.token`
+     *   - `authentik_core.objectattribute`
+     *   - `authentik_core.actor`
      *   - `authentik_crypto.certificatekeypair`
      *   - `authentik_endpoints.deviceuserbinding`
      *   - `authentik_endpoints.deviceaccessgroup`
@@ -243,6 +265,7 @@ export interface TaskScheduleState {
      *   - `authentik_providers_ldap.ldapprovider`
      *   - `authentik_providers_oauth2.scopemapping`
      *   - `authentik_providers_oauth2.oauth2provider`
+     *   - `authentik_providers_oauth2.oauth2dynamicclientregistration`
      *   - `authentik_providers_proxy.proxyprovider`
      *   - `authentik_providers_rac.racprovider`
      *   - `authentik_providers_rac.endpoint`
@@ -313,34 +336,48 @@ export interface TaskScheduleState {
      *   - `authentik_tasks_schedules.schedule`
      *   - `authentik_brands.brand`
      *   - `authentik_blueprints.blueprintinstance`
+     *   - `authentik_agents.agent`
+     *   - `authentik_endpoints_connectors_fleet.fleetconnector`
+     *   - `authentik_endpoints_connectors_google_chrome.googlechromeconnector`
+     *   - `authentik_lifecycle.lifecyclerule`
+     *   - `authentik_lifecycle.lifecycleiteration`
+     *   - `authentik_lifecycle.review`
+     *   - `authentik_lifecycle.useroffboarding`
      *   - `authentik_policies_unique_password.uniquepasswordpolicy`
      *   - `authentik_providers_google_workspace.googleworkspaceprovider`
      *   - `authentik_providers_google_workspace.googleworkspaceprovidermapping`
      *   - `authentik_providers_microsoft_entra.microsoftentraprovider`
      *   - `authentik_providers_microsoft_entra.microsoftentraprovidermapping`
      *   - `authentik_providers_ssf.ssfprovider`
+     *   - `authentik_providers_ws_federation.wsfederationprovider`
      *   - `authentik_reports.dataexport`
+     *   - `authentik_requests.requestrulechildbinding`
+     *   - `authentik_requests.requestrulebinding`
+     *   - `authentik_requests.requestrule`
+     *   - `authentik_requests.grantrequest`
+     *   - `authentik_stages_account_lockdown.accountlockdownstage`
      *   - `authentik_stages_authenticator_endpoint_gdtc.authenticatorendpointgdtcstage`
      *   - `authentik_stages_mtls.mutualtlsstage`
      *   - `authentik_stages_source.sourcestage`
      */
-    appModel?: pulumi.Input<string>;
+    appModel?: pulumi.Input<string | undefined>;
     /**
      * Crontab expression at which this task will run.
      */
-    crontab?: pulumi.Input<string>;
-    modelId?: pulumi.Input<string>;
+    crontab?: pulumi.Input<string | undefined>;
+    modelId?: pulumi.Input<string | undefined>;
     /**
-     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`">`false`</span>.
+     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
      */
-    paused?: pulumi.Input<boolean>;
-    taskScheduleId?: pulumi.Input<string>;
+    paused?: pulumi.Input<boolean | undefined>;
+    taskScheduleId?: pulumi.Input<string | undefined>;
 }
 
 /**
  * The set of arguments for constructing a TaskSchedule resource.
  */
 export interface TaskScheduleArgs {
+    actorName?: pulumi.Input<string | undefined>;
     /**
      * Allowed values:
      *   - `authentik_tenants.domain`
@@ -349,6 +386,8 @@ export interface TaskScheduleArgs {
      *   - `authentik_core.application`
      *   - `authentik_core.applicationentitlement`
      *   - `authentik_core.token`
+     *   - `authentik_core.objectattribute`
+     *   - `authentik_core.actor`
      *   - `authentik_crypto.certificatekeypair`
      *   - `authentik_endpoints.deviceuserbinding`
      *   - `authentik_endpoints.deviceaccessgroup`
@@ -378,6 +417,7 @@ export interface TaskScheduleArgs {
      *   - `authentik_providers_ldap.ldapprovider`
      *   - `authentik_providers_oauth2.scopemapping`
      *   - `authentik_providers_oauth2.oauth2provider`
+     *   - `authentik_providers_oauth2.oauth2dynamicclientregistration`
      *   - `authentik_providers_proxy.proxyprovider`
      *   - `authentik_providers_rac.racprovider`
      *   - `authentik_providers_rac.endpoint`
@@ -448,13 +488,26 @@ export interface TaskScheduleArgs {
      *   - `authentik_tasks_schedules.schedule`
      *   - `authentik_brands.brand`
      *   - `authentik_blueprints.blueprintinstance`
+     *   - `authentik_agents.agent`
+     *   - `authentik_endpoints_connectors_fleet.fleetconnector`
+     *   - `authentik_endpoints_connectors_google_chrome.googlechromeconnector`
+     *   - `authentik_lifecycle.lifecyclerule`
+     *   - `authentik_lifecycle.lifecycleiteration`
+     *   - `authentik_lifecycle.review`
+     *   - `authentik_lifecycle.useroffboarding`
      *   - `authentik_policies_unique_password.uniquepasswordpolicy`
      *   - `authentik_providers_google_workspace.googleworkspaceprovider`
      *   - `authentik_providers_google_workspace.googleworkspaceprovidermapping`
      *   - `authentik_providers_microsoft_entra.microsoftentraprovider`
      *   - `authentik_providers_microsoft_entra.microsoftentraprovidermapping`
      *   - `authentik_providers_ssf.ssfprovider`
+     *   - `authentik_providers_ws_federation.wsfederationprovider`
      *   - `authentik_reports.dataexport`
+     *   - `authentik_requests.requestrulechildbinding`
+     *   - `authentik_requests.requestrulebinding`
+     *   - `authentik_requests.requestrule`
+     *   - `authentik_requests.grantrequest`
+     *   - `authentik_stages_account_lockdown.accountlockdownstage`
      *   - `authentik_stages_authenticator_endpoint_gdtc.authenticatorendpointgdtcstage`
      *   - `authentik_stages_mtls.mutualtlsstage`
      *   - `authentik_stages_source.sourcestage`
@@ -466,8 +519,8 @@ export interface TaskScheduleArgs {
     crontab: pulumi.Input<string>;
     modelId: pulumi.Input<string>;
     /**
-     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`">`false`</span>.
+     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
      */
-    paused?: pulumi.Input<boolean>;
-    taskScheduleId?: pulumi.Input<string>;
+    paused?: pulumi.Input<boolean | undefined>;
+    taskScheduleId?: pulumi.Input<string | undefined>;
 }

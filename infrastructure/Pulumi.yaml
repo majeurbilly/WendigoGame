@@ -4,3 +4,16 @@ runtime:
   name: nodejs
   options:
     typescript: true
+packages:
+  authentik:
+    source: terraform-provider
+    version: 1.4.0
+    parameters:
+      - goauthentik/authentik
+      - 2026.8.0
+config:
+  authentik:url:
+    value: http://192.168.0.157:9000
+  # Token : AUTHENTIK_TOKEN (env) ou pulumi config set authentik:token --secret
+  authentik:insecure:
+    value: "true"

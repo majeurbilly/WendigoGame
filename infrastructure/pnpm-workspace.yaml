@@ -2,8 +2,6 @@ packages:
   - "."
   - "sdks/authentik"
 
-ignoredBuiltDependencies:
-  - "@pulumi/authentik"
-
-onlyBuiltDependencies:
-  - protobufjs
+allowBuilds:
+  "@pulumi/authentik": true
+  protobufjs: true

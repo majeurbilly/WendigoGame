@@ -1,20 +1,18 @@
 /**
- * Authentik OIDC — Provider OAuth2 + Application "wendigo".
- * SDK local: @pulumi/authentik (file:sdks/authentik). Auth via AUTHENTIK_TOKEN.
+ * Authentik OIDC — provider officiel du registre Pulumi
+ * (`pulumi package add terraform-provider goauthentik/authentik`).
  *
- * Ordre strict dependsOn : Provider API → cert → OAuth2 → Application.
- * Flows d'authz / invalidation : lookup des flows défaut Authentik (évite IDs manquants).
+ * Auth : AUTHENTIK_TOKEN / AUTHENTIK_URL (ou config Pulumi authentik:*).
+ * Pas de Provider explicite ni de SDK local bricolé — config native du bridge TF.
  */
 import * as authentik from '@pulumi/authentik';
 import * as pulumi from '@pulumi/pulumi';
-import * as tls from '@pulumi/tls';
 
 const authentikUrl = (
   process.env.AUTHENTIK_URL ?? 'http://192.168.0.157:9000'
 ).replace(/\/+$/, '');
 
-const authentikToken = process.env.AUTHENTIK_TOKEN;
-if (!authentikToken || authentikToken.trim() === '') {
+if (!process.env.AUTHENTIK_TOKEN || process.env.AUTHENTIK_TOKEN.trim() === '') {
   throw new Error(
     'AUTHENTIK_TOKEN is required (API token bootstrap Authentik). Example: export AUTHENTIK_TOKEN=...',
   );
@@ -27,73 +25,34 @@ const timeouts: pulumi.CustomResourceOptions = {
   customTimeouts: { create: '20m', update: '20m', delete: '10m' },
 };
 
-function withAk(
-  provider: authentik.Provider,
-  opts?: pulumi.CustomResourceOptions,
-): pulumi.CustomResourceOptions {
-  return { ...timeouts, provider, ...opts };
-}
-
-// ── 1. Authentik API provider ───────────────────────────────────────────────
-const ak = new authentik.Provider('wendigo-authentik', {
-  url: authentikUrl,
-  token: pulumi.secret(authentikToken),
-  insecure: true,
+// ── 1. Flows défaut Authentik (data sources officiels) ──────────────────────
+const authFlow = authentik.getFlow({
+  slug: 'default-provider-authorization-explicit-consent',
 });
 
-// ── 2. Flows défaut Authentik (IDs résolus avant ProviderOauth2) ─────────────
-const authFlow = authentik.getFlowOutput(
-  { slug: 'default-provider-authorization-explicit-consent' },
-  { provider: ak },
-);
-
-const invalidationFlow = authentik.getFlowOutput(
-  { slug: 'default-provider-invalidation-flow' },
-  { provider: ak },
-);
-
-// ── 3. Clé RSA + CertificateKeyPair (certificateData obligatoire) ───────────
-const oidcPrivateKey = new tls.PrivateKey('wendigo-oidc-signing-key', {
-  algorithm: 'RSA',
-  rsaBits: 2048,
+const invalidationFlow = authentik.getFlow({
+  slug: 'default-provider-invalidation-flow',
 });
 
-const oidcSelfSigned = new tls.SelfSignedCert(
-  'wendigo-oidc-signing-cert',
-  {
-    privateKeyPem: oidcPrivateKey.privateKeyPem,
-    subject: {
-      commonName: 'wendigo-oidc-signing',
-      organization: 'Wendigo',
-    },
-    validityPeriodHours: 87600,
-    allowedUses: ['key_encipherment', 'digital_signature'],
-  },
-  { dependsOn: [oidcPrivateKey] },
-);
+// ── 2. Certificat self-signed Authentik (signature OIDC / JWKS) ─────────────
+const signingCert = authentik.getCertificateKeyPair({
+  name: 'authentik Self-signed Certificate',
+  fetchKey: false,
+  fetchCertificate: false,
+});
 
-const signingKeyPair = new authentik.CertificateKeyPair(
-  'wendigo-oidc-signing',
-  {
-    name: 'Wendigo: OIDC Signing (RSA)',
-    certificateData: oidcSelfSigned.certPem,
-    keyData: oidcPrivateKey.privateKeyPem,
-  },
-  withAk(ak, { dependsOn: [oidcSelfSigned] }),
-);
-
-// ── 4. OAuth2 / OIDC Provider ───────────────────────────────────────────────
+// ── 3. Provider OAuth2 / OIDC ────────────────────────────────────────────────
 const oidcProvider = new authentik.ProviderOauth2(
   'wendigo-oauth2-provider',
   {
     name: 'wendigo-dev-provider',
     clientId,
     clientType: 'public',
-    signingKey: signingKeyPair.id,
-    authorizationFlow: authFlow.id,
-    invalidationFlow: invalidationFlow.id,
-    issuerMode: 'per_provider',
-    subMode: 'user_uuid',
+    authorizationFlow: authFlow.then((f) => f.id),
+    invalidationFlow: invalidationFlow.then((f) => f.id),
+    signingKey: signingCert.then((c) => c.id),
+    issuerMode: 'perProvider',
+    subMode: 'userUuid',
     includeClaimsInIdToken: true,
     accessTokenValidity: 'minutes=15',
     refreshTokenValidity: 'days=30',
@@ -104,16 +63,16 @@ const oidcProvider = new authentik.ProviderOauth2(
       { matchingMode: 'strict', url: 'http://localhost:5173/login' },
     ],
   },
-  withAk(ak, { dependsOn: [signingKeyPair] }),
+  timeouts,
 );
 
-// ── 5. Application liée au provider ─────────────────────────────────────────
-const wendigoApplication = new authentik.Application(
+// ── 4. Application liée (protocolProvider = ID numérique TF) ────────────────
+const wendigoApp = new authentik.Application(
   'wendigo-application',
   {
     name: 'Wendigo',
     slug: applicationSlug,
-    protocolProvider: oidcProvider.id.apply((id) => {
+    protocolProvider: oidcProvider.providerOauth2Id.apply((id) => {
       const n = Number.parseInt(String(id), 10);
       if (!Number.isFinite(n)) {
         throw new pulumi.RunError(`Invalid OIDC provider id: ${id}`);
@@ -123,14 +82,14 @@ const wendigoApplication = new authentik.Application(
     metaLaunchUrl: 'http://192.168.0.157/',
     metaPublisher: 'Wendigo Game',
   },
-  withAk(ak, { dependsOn: [oidcProvider] }),
+  { ...timeouts, dependsOn: [oidcProvider] },
 );
 
-// ── 6. Exports (backend K8s / vérif JWKS) ───────────────────────────────────
-export const OIDC_ISSUER_URL = pulumi.interpolate`${authentikUrl}/application/o/${wendigoApplication.slug}/`;
-export const AUTHENTIK_JWKS_URL = pulumi.interpolate`${authentikUrl}/application/o/${wendigoApplication.slug}/jwks/`;
+// ── 5. Exports cluster K3s / backend ────────────────────────────────────────
+export const OIDC_ISSUER_URL = pulumi.interpolate`${authentikUrl}/application/o/${wendigoApp.slug}/`;
+export const AUTHENTIK_JWKS_URL = pulumi.interpolate`${authentikUrl}/application/o/${wendigoApp.slug}/jwks/`;
 export const OIDC_EXPECTED_ISSUER = OIDC_ISSUER_URL;
 export const oidcClientId = clientId;
-export const applicationSlugOut = wendigoApplication.slug;
-export const oidcProviderId = oidcProvider.id;
-export const oidcProvisioningMode = 'pulumi';
+export const applicationSlugOut = wendigoApp.slug;
+export const oidcProviderId = oidcProvider.providerOauth2Id;
+export const oidcProvisioningMode = 'pulumi-registry';
