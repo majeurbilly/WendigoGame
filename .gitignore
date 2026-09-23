@@ -39,6 +39,9 @@ vendor/
 infrastructure/node_modules/
 infrastructure/bin/
 infrastructure/.pulumi/
+# Stack config chiffré localement — recréé en CI avec PULUMI_CONFIG_PASSPHRASE
+infrastructure/Pulumi.*.yaml
+!infrastructure/Pulumi.yaml
 
 # Script
 infrastructure/setup-pulumi.sh*Zone.Identifier*

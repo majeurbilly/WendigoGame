@@ -58,11 +58,8 @@ pulumi new typescript --name wendigo-authentik --yes
 
 Dans ce dépôt, le projet existe déjà (`Pulumi.yaml` + `sdks/authentik`).
 
-## Impacts
+## Stack `dev` (CI)
 
-| Composant | Impact |
-|-----------|--------|
-| Backend K8s | `AUTHENTIK_JWKS_URL` / `OIDC_*` → `http://192.168.0.157:9000/application/o/wendigo/...` |
-| CrashLoopBackOff | Résolu quand `/jwks/` répond 200 avec des clés |
-| `index.full.ts` | Ancienne stack complète — non exécutée tant que `main` = `index.ts` MVP |
-| Loki / Grafana | Retirés — plus de dépendance Pulumi ni provisioning `deploy/grafana` |
+`Pulumi.dev.yaml` a été **retiré du dépôt** (passphrase locale incompatible avec Moumou).
+Le stack est recréé en CI avec `PULUMI_CONFIG_PASSPHRASE=wendigo-local-state` et `AUTHENTIK_TOKEN` (env).
+Ne pas re-committer un `Pulumi.dev.yaml` chiffré avec une autre phrase.
