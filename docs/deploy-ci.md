@@ -7,8 +7,9 @@ Push sur **`main`** (ou `workflow_dispatch`) → `.github/workflows/ci-cd.yml` :
 1. **Lint & Test** (`ubuntu-latest`) — backend Go + frontend lint/tsc
 2. **Build & Push** (`ubuntu-latest`) — images GHCR
 3. **Deploy** (`self-hosted`) —
-   - démarrage **conditionnel** Authentik (`/-/health/ready/` → skip ; sinon `.env` + `compose up -d --no-recreate` + wait)
-   - `pulumi up` dans `infrastructure/` (OIDC Provider + Application)
+   - démarrage **conditionnel** Authentik (`env:` secrets bootstrap → Compose ; skip si déjà ready)
+   - healthcheck **toujours** : `/-/health/ready/` (timeout 120s)
+   - `pulumi up` avec `AUTHENTIK_TOKEN` = `secrets.AUTHENTIK_BOOTSTRAP_TOKEN`
    - `kustomize edit set image` + `kubectl apply -k deploy/k8s`
 
 Images :
