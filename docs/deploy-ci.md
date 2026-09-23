@@ -9,7 +9,7 @@ Push sur **`main`** (ou `workflow_dispatch`) → `.github/workflows/ci-cd.yml` :
 3. **Deploy** (`self-hosted`) —
    - démarrage **conditionnel** Authentik **via SSH** sur `gaston@192.168.0.157`
      (`scp docker-compose.yml` + `.env` distant + `docker compose up -d --no-recreate`)
-   - healthcheck **toujours** : `http://192.168.0.157:9000/-/health/ready/` (timeout 120s)
+   - healthcheck **toujours** : `http://192.168.0.157:9000/-/health/ready/` (timeout **600s** / 10 min — cold boot)
    - `pulumi up` avec `AUTHENTIK_TOKEN` = `secrets.AUTHENTIK_BOOTSTRAP_TOKEN`
    - `kustomize edit set image` + `kubectl apply -k deploy/k8s`
 

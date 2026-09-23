@@ -171,8 +171,8 @@ jobs:
       - name: Attendre que l'API Authentik soit prête
         run: |
           set -euo pipefail
-          echo "Attente /-/health/ready/ (max 2 minutes)..."
-          timeout 120 bash -c 'until curl -sSf http://192.168.0.157:9000/-/health/ready/ > /dev/null 2>&1; do echo "En attente..."; sleep 5; done'
+          echo "Attente /-/health/ready/ (max 10 minutes — cold boot / migrations Postgres)..."
+          timeout 600 bash -c 'until curl -sSf http://192.168.0.157:9000/-/health/ready/ > /dev/null 2>&1; do echo "En attente..."; sleep 5; done'
           echo "Authentik prêt pour Pulumi."
 
       - name: Déployer l'infrastructure (Pulumi)
