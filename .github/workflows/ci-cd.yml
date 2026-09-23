@@ -175,6 +175,21 @@ jobs:
           timeout 600 bash -c 'until curl -sSf http://192.168.0.157:9000/-/health/ready/ > /dev/null 2>&1; do echo "En attente..."; sleep 5; done'
           echo "Authentik prêt pour Pulumi."
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: infrastructure/pnpm-lock.yaml
+
+      - name: Installer Pulumi CLI
+        uses: pulumi/setup-pulumi@v2
+
       - name: Déployer l'infrastructure (Pulumi)
         working-directory: ./infrastructure
         env:
