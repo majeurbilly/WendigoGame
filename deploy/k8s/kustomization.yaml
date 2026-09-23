@@ -6,3 +6,4 @@ resources:
   - base/redis.yaml
   - apps/backend.yaml
   - apps/frontend.yaml
+  - apps/ingress.yaml

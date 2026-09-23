@@ -8,7 +8,7 @@ Déploiement **push** via GitHub Actions. ArgoCD et le modèle GitOps pull ont �
 deploy/k8s/
 ├── kustomization.yaml
 ├── base/          # namespace, postgres, redis
-└── apps/          # backend (replicas: 1), frontend
+└── apps/          # backend, frontend, ingress (Traefik → wendigo.local)
 ```
 
 Pipeline : `.github/workflows/ci-cd.yml` (push sur `main`)
@@ -30,6 +30,7 @@ Pipeline : `.github/workflows/ci-cd.yml` (push sur `main`)
 | `ALLOWED_ORIGINS=*` | CORS permissif temporaire |
 | `imagePullSecrets: ghcr-creds` | Packages GHCR privés — auth docker-registry côté cluster |
 | OIDC / JWKS → `192.168.0.157:9000` | Authentik hors cluster (LAN) ; évite les défauts Go `localhost:9000` |
+| Ingress Traefik `wendigo.local` | Frontend `/` + backend `/api` (StripPrefix) — voir `docs/ingress.md` |
 
 ## Prérequis runner self-hosted
 

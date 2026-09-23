@@ -1,0 +1,45 @@
+# Strip /api avant le backend (routes Go : /auth, /lobbies, /ws, /health…)
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-api-prefix
+  namespace: wendigo
+  labels:
+    app.kubernetes.io/part-of: wendigo
+spec:
+  stripPrefix:
+    prefixes:
+      - /api
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wendigo-ingress
+  namespace: wendigo
+  labels:
+    app.kubernetes.io/part-of: wendigo
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    # Namespace-middleware@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: wendigo-strip-api-prefix@kubernetescrd
+spec:
+  rules:
+    - host: wendigo.local
+      http:
+        paths:
+          # API + WebSocket (StripPrefix /api → /auth, /lobbies, /ws…)
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          # Frontend SPA (nginx)
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80

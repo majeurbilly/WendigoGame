@@ -31,6 +31,10 @@ entries:
       refresh_token_validity: days=30
       redirect_uris:
         - matching_mode: strict
+          url: http://wendigo.local/
+        - matching_mode: strict
+          url: http://wendigo.local/login
+        - matching_mode: strict
           url: http://192.168.0.157/
         - matching_mode: strict
           url: http://192.168.0.157/login
@@ -60,7 +64,7 @@ entries:
     attrs:
       name: Wendigo
       slug: wendigo
-      meta_launch_url: http://192.168.0.157/
+      meta_launch_url: http://wendigo.local/
       meta_publisher: Wendigo Game
       policy_engine_mode: any
       provider: !KeyOf wendigo-oauth2-provider
