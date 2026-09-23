@@ -27,11 +27,11 @@ Le job deploy force les Deployments sur le tag **SHA** (pas seulement `latest`).
 
 | Variable | Défaut CI |
 |----------|-----------|
-| `VITE_API_URL` | `http://wendigo.local/api` |
+| `VITE_API_URL` | `http://wendigo.local` |
 | `VITE_AUTHENTIK_URL` | `http://192.168.0.157:9000/application/o/wendigo/` |
 | `VITE_AUTHENTIK_CLIENT_ID` | `wendigo-dev` |
 
-Accès jeu : `http://wendigo.local` (hosts → `192.168.0.157`) — voir `docs/ingress.md`.
+Accès jeu : `http://wendigo.local` (hosts → `192.168.0.157`) — API sur les chemins natifs (`/health`, `/auth`, …), pas `/api`. Voir `docs/ingress.md`.
 
 ## Permissions
 

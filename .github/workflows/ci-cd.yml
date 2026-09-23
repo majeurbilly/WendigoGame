@@ -117,7 +117,7 @@ jobs:
             ${{ env.FRONTEND_IMAGE }}:latest
             ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
           build-args: |
-            VITE_API_URL=${{ vars.VITE_API_URL || 'http://wendigo.local/api' }}
+            VITE_API_URL=${{ vars.VITE_API_URL || 'http://wendigo.local' }}
             VITE_AUTHENTIK_URL=${{ vars.VITE_AUTHENTIK_URL || 'http://192.168.0.157:9000/application/o/wendigo/' }}
             VITE_AUTHENTIK_CLIENT_ID=${{ vars.VITE_AUTHENTIK_CLIENT_ID || 'wendigo-dev' }}
           cache-from: type=gha,scope=frontend

@@ -2,36 +2,41 @@
 
 ## État actuel
 
-`deploy/k8s/apps/ingress.yaml` expose le jeu via Traefik (ingress controller k3s) :
+`deploy/k8s/apps/ingress.yaml` route via Traefik **sans** middleware StripPrefix (évite les 404 si le CRD `traefik.io` / la ref middleware échoue).
 
-| URL | Backend |
+| URL | Service |
 |-----|---------|
-| `http://wendigo.local/` | Service `frontend:80` |
-| `http://wendigo.local/api/*` | Service `backend:8080` (middleware **StripPrefix** `/api`) |
+| `http://wendigo.local/` | `frontend:80` |
+| `http://wendigo.local/health` | `backend:8080` |
+| `http://wendigo.local/auth/*` | `backend:8080` |
+| `http://wendigo.local/lobbies/*` | `backend:8080` |
+| `http://wendigo.local/ws` | `backend:8080` |
+| `http://wendigo.local/metrics` | `backend:8080` |
 
-Le middleware `strip-api-prefix` (`traefik.io/v1alpha1`) retire `/api` avant le Go (`/auth/me`, `/lobbies`, `/ws`…).
+### Routes Go réelles (`backend/internal/api/health.go`)
 
-Inclus dans `deploy/k8s/kustomization.yaml` → appliqué par la CI (`kubectl apply -k`).
+- `GET /health`, `GET /metrics`
+- `GET /auth/me`
+- `POST /lobbies`, `POST /lobbies/{code}/start|seat`
+- `GET /ws`
+
+**Pas de** `/api`, **pas de** `/swagger` / `/docs` dans le backend → `wendigo.local/api` et `/api/swagger` resteront en 404 (attendu).
+
+## Frontend
+
+`VITE_API_URL=http://wendigo.local` (défaut CI) — axios appelle `/auth/me`, WS `ws://wendigo.local/ws`.
 
 ## Accès LAN
-
-Sur la machine cliente (`/etc/hosts` ou `C:\Windows\System32\drivers\etc\hosts`) :
 
 ```text
 192.168.0.157 wendigo.local
 ```
 
-## Build frontend (CI)
+dans `/etc/hosts` (ou hosts Windows).
 
-Défauts workflow :
+## Vérif rapide
 
-- `VITE_API_URL=http://wendigo.local/api` → axios + WS (`/api/ws` → strip → `/ws`)
-- `VITE_AUTHENTIK_URL=http://192.168.0.157:9000/application/o/wendigo/`
-
-Redirects OIDC blueprint : `http://wendigo.local/` et `/login` (plus IP / Vite).
-
-## Impacts
-
-- Pas de `port-forward` pour le jeu.
-- Authentik reste hors cluster sur `:9000`.
-- Si le CRD `traefik.io` est absent (très vieux k3s), migrer le Middleware vers `traefik.containo.us/v1alpha1`.
+```bash
+curl -sS http://wendigo.local/health
+# {"status":"ok"}
+```
