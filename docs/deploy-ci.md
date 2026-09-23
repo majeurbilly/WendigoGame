@@ -10,7 +10,7 @@ Push sur **`main`** (ou `workflow_dispatch`) → `.github/workflows/ci-cd.yml` :
    - démarrage **conditionnel** Authentik **via SSH** sur `gaston@192.168.0.157`
      (`scp docker-compose.yml` + `.env` distant + `docker compose up -d --no-recreate`)
    - healthcheck **toujours** : `http://192.168.0.157:9000/-/health/ready/` (timeout **600s** / 10 min — cold boot)
-   - setup pnpm + Node 20 + Pulumi CLI (`pulumi/setup-pulumi@v2`) sur le runner, puis `pulumi up`
+   - setup pnpm + Node 20 + Pulumi CLI ; `pnpm`/`pulumi` dans `infrastructure/` (workspace pnpm corrigé)
    - `kustomize edit set image` + `kubectl apply -k deploy/k8s`
 
 Répertoire Compose distant : `/home/gaston/WendigoGame` (surcharge possible via variable repo `AUTHENTIK_REMOTE_DIR`).

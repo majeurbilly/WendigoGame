@@ -191,7 +191,7 @@ jobs:
         uses: pulumi/setup-pulumi@v2
 
       - name: Déployer l'infrastructure (Pulumi)
-        working-directory: ./infrastructure
+        working-directory: infrastructure
         env:
           # Même secret que AUTHENTIK_BOOTSTRAP_TOKEN injecté au boot Authentik
           AUTHENTIK_TOKEN: ${{ secrets.AUTHENTIK_BOOTSTRAP_TOKEN }}
@@ -199,6 +199,9 @@ jobs:
           # PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
+          cd "${GITHUB_WORKSPACE}/infrastructure"
+          pwd
+          test -f package.json
           pnpm install
           pulumi login --local
           pulumi stack select dev || pulumi stack init dev
