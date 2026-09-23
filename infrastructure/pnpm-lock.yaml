@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@pulumi/authentik':
         specifier: file:sdks/authentik
-        version: file:sdks/authentik
+        version: link:sdks/authentik
       '@pulumi/pulumi':
         specifier: ^3.192.0
         version: 3.192.0(typescript@5.9.3)
@@ -30,6 +30,21 @@ importers:
       typescript:
         specifier: ^5.6.0
         version: 5.9.3
+
+  sdks/authentik:
+    dependencies:
+      '@pulumi/pulumi':
+        specifier: ^3.142.0
+        version: 3.192.0(typescript@4.9.5)
+      '@types/node':
+        specifier: ^18
+        version: 18.19.130
+      async-mutex:
+        specifier: ^0.5.0
+        version: 0.5.0
+      typescript:
+        specifier: ^4.3.5
+        version: 4.9.5
 
 packages:
 
@@ -280,9 +295,6 @@ packages:
 
   '@protobufjs/utf8@1.1.1':
     resolution: {integrity: sha512-oOAWABowe8EAbMyWKM0tYDKi8Yaox52D+HWZhAIJqQXbqe0xI/GV7FhLWqlEKreMkfDjshR5FKgi3mnle0h6Eg==}
-
-  '@pulumi/authentik@file:sdks/authentik':
-    resolution: {directory: sdks/authentik, type: directory}
 
   '@pulumi/pulumi@3.192.0':
     resolution: {integrity: sha512-D6UdSBTP4SeNRdgoAMnpyCOECkM0e6KG9Sw3E7oBWmyK3swgNrFQ6Nygym/mNI8MbsAh+KOw6QtjC298lbwk8Q==}
@@ -1480,17 +1492,6 @@ snapshots:
   '@protobufjs/pool@1.1.0': {}
 
   '@protobufjs/utf8@1.1.1': {}
-
-  '@pulumi/authentik@file:sdks/authentik':
-    dependencies:
-      '@pulumi/pulumi': 3.192.0(typescript@4.9.5)
-      '@types/node': 18.19.130
-      async-mutex: 0.5.0
-      typescript: 4.9.5
-    transitivePeerDependencies:
-      - bluebird
-      - supports-color
-      - ts-node
 
   '@pulumi/pulumi@3.192.0(typescript@4.9.5)':
     dependencies:
