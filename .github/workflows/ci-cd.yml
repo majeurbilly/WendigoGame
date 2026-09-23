@@ -138,20 +138,35 @@ jobs:
           AUTHENTIK_BOOTSTRAP_PASSWORD: ${{ secrets.AUTHENTIK_BOOTSTRAP_PASSWORD }}
           AUTHENTIK_BOOTSTRAP_TOKEN: ${{ secrets.AUTHENTIK_BOOTSTRAP_TOKEN }}
           AUTHENTIK_BOOTSTRAP_EMAIL: admin@stringempty.dev
+          # Runner (moumou) → hôte Docker Compose (gaston)
+          AUTHENTIK_SSH_HOST: gaston@192.168.0.157
+          AUTHENTIK_REMOTE_DIR: ${{ vars.AUTHENTIK_REMOTE_DIR }}
         run: |
           set -euo pipefail
+          REMOTE_DIR="${AUTHENTIK_REMOTE_DIR:-/home/gaston/WendigoGame}"
+          SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=accept-new)
+
           if curl -sSf http://192.168.0.157:9000/-/health/ready/ > /dev/null 2>&1; then
-            echo "Authentik tourne déjà et est en bonne santé. On passe l'amorçage Compose."
-          else
-            echo "Authentik est injoignable. Écriture .env + démarrage Compose..."
-            cat <<EOF > .env
+            echo "Authentik déjà prêt sur gaston — skip Compose distant."
+            exit 0
+          fi
+
+          echo "Authentik injoignable — déploiement Compose via SSH sur ${AUTHENTIK_SSH_HOST}:${REMOTE_DIR}"
+          command -v ssh >/dev/null || { echo "ssh introuvable sur le runner"; exit 1; }
+          command -v scp >/dev/null || { echo "scp introuvable sur le runner"; exit 1; }
+
+          ssh "${SSH_OPTS[@]}" "${AUTHENTIK_SSH_HOST}" "mkdir -p '${REMOTE_DIR}'"
+          scp "${SSH_OPTS[@]}" docker-compose.yml "${AUTHENTIK_SSH_HOST}:${REMOTE_DIR}/docker-compose.yml"
+
+          # .env écrit sur gaston (pas sur le runner)
+          ssh "${SSH_OPTS[@]}" "${AUTHENTIK_SSH_HOST}" "cat > '${REMOTE_DIR}/.env'" <<EOF
           AUTHENTIK_BOOTSTRAP_PASSWORD=${AUTHENTIK_BOOTSTRAP_PASSWORD}
           AUTHENTIK_BOOTSTRAP_EMAIL=${AUTHENTIK_BOOTSTRAP_EMAIL}
           AUTHENTIK_BOOTSTRAP_TOKEN=${AUTHENTIK_BOOTSTRAP_TOKEN}
           EOF
-            # Les vars d'env du step sont aussi lues par Compose (${AUTHENTIK_BOOTSTRAP_*})
-            docker compose up -d --no-recreate
-          fi
+
+          ssh "${SSH_OPTS[@]}" "${AUTHENTIK_SSH_HOST}" \
+            "cd '${REMOTE_DIR}' && docker compose up -d --no-recreate"
 
       - name: Attendre que l'API Authentik soit prête
         run: |

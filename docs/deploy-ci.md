@@ -7,10 +7,14 @@ Push sur **`main`** (ou `workflow_dispatch`) → `.github/workflows/ci-cd.yml` :
 1. **Lint & Test** (`ubuntu-latest`) — backend Go + frontend lint/tsc
 2. **Build & Push** (`ubuntu-latest`) — images GHCR
 3. **Deploy** (`self-hosted`) —
-   - démarrage **conditionnel** Authentik (`env:` secrets bootstrap → Compose ; skip si déjà ready)
-   - healthcheck **toujours** : `/-/health/ready/` (timeout 120s)
+   - démarrage **conditionnel** Authentik **via SSH** sur `gaston@192.168.0.157`
+     (`scp docker-compose.yml` + `.env` distant + `docker compose up -d --no-recreate`)
+   - healthcheck **toujours** : `http://192.168.0.157:9000/-/health/ready/` (timeout 120s)
    - `pulumi up` avec `AUTHENTIK_TOKEN` = `secrets.AUTHENTIK_BOOTSTRAP_TOKEN`
    - `kustomize edit set image` + `kubectl apply -k deploy/k8s`
+
+Répertoire Compose distant : `/home/gaston/WendigoGame` (surcharge possible via variable repo `AUTHENTIK_REMOTE_DIR`).
+Prérequis runner `moumou` : clé SSH vers `gaston@192.168.0.157` (BatchMode).
 
 Images :
 

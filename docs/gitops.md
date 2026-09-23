@@ -35,8 +35,8 @@ Pipeline : `.github/workflows/ci-cd.yml` (push sur `main`)
 
 - Runner GitHub installé sur le serveur (ou machine LAN) avec accès API k3s (`kubectl` configuré).
 - Labels : au minimum `self-hosted` (job `deploy`).
-- Docker + Compose : démarrage **conditionnel** Authentik ; secrets `AUTHENTIK_BOOTSTRAP_TOKEN` / `_PASSWORD` injectés via `env:` du step + `.env` ; healthcheck **toujours** avant Pulumi.
-- Pulumi : `AUTHENTIK_TOKEN` = même secret `AUTHENTIK_BOOTSTRAP_TOKEN` (bootstrap natif Authentik).
+- Docker + Compose : exécutés **sur gaston** via SSH depuis le runner (`moumou`) — pas de Docker local requis sur le runner.
+- Secrets bootstrap injectés dans `.env` distant ; healthcheck HTTP puis Pulumi (`AUTHENTIK_TOKEN` = bootstrap token).
 
 ## Secrets GitHub Actions (Authentik)
 
