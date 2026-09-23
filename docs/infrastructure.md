@@ -24,6 +24,7 @@ Chaîne des ressources :
 - Pas de `new authentik.Provider()` : le bridge lit `AUTHENTIK_TOKEN` / `AUTHENTIK_URL`.
 - Certificat défaut Authentik plutôt qu’un `tls` + `CertificateKeyPair` custom.
 - `protocolProvider` attend un `number` → conversion depuis `providerOauth2Id`.
+- Enums OAuth2 (`issuerMode`, `subMode`) : valeurs **snake_case TF** (`per_provider`, `user_uuid`) — le validateur Terraform rejette le camelCase Node (`perProvider` / `userUuid`).
 
 ## Prérequis CI
 

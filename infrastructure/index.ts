@@ -51,8 +51,9 @@ const oidcProvider = new authentik.ProviderOauth2(
     authorizationFlow: authFlow.then((f) => f.id),
     invalidationFlow: invalidationFlow.then((f) => f.id),
     signingKey: signingCert.then((c) => c.id),
-    issuerMode: 'perProvider',
-    subMode: 'userUuid',
+    // Valeurs TF snake_case (le bridge valide contre le schéma Terraform, pas le doc Node camelCase)
+    issuerMode: 'per_provider',
+    subMode: 'user_uuid',
     includeClaimsInIdToken: true,
     accessTokenValidity: 'minutes=15',
     refreshTokenValidity: 'days=30',
