@@ -196,6 +196,7 @@ jobs:
           # Même secret que AUTHENTIK_BOOTSTRAP_TOKEN injecté au boot Authentik
           AUTHENTIK_TOKEN: ${{ secrets.AUTHENTIK_BOOTSTRAP_TOKEN }}
           AUTHENTIK_URL: http://192.168.0.157:9000
+          PULUMI_CONFIG_PASSPHRASE: "wendigo-local-state"
           # PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
