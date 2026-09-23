@@ -34,7 +34,7 @@ export class StageSource extends pulumi.CustomResource {
 
     declare public readonly name: pulumi.Output<string>;
     /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=10`.
+     * Defaults to `minutes=10`.
      */
     declare public readonly resumeTimeout: pulumi.Output<string | undefined>;
     declare public readonly source: pulumi.Output<string | undefined>;
@@ -75,7 +75,7 @@ export class StageSource extends pulumi.CustomResource {
 export interface StageSourceState {
     name?: pulumi.Input<string | undefined>;
     /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=10`.
+     * Defaults to `minutes=10`.
      */
     resumeTimeout?: pulumi.Input<string | undefined>;
     source?: pulumi.Input<string | undefined>;
@@ -88,7 +88,7 @@ export interface StageSourceState {
 export interface StageSourceArgs {
     name?: pulumi.Input<string | undefined>;
     /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=10`.
+     * Defaults to `minutes=10`.
      */
     resumeTimeout?: pulumi.Input<string | undefined>;
     source?: pulumi.Input<string | undefined>;

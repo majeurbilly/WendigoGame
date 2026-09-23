@@ -33,22 +33,16 @@ export class Brand extends pulumi.CustomResource {
     }
 
     /**
-     * JSON format expected. Use `jsonencode()` to pass objects. Defaults to `{}`.
+     * JSON format expected. Use jsonencode() to pass objects. Defaults to `{}`.
      */
     declare public readonly attributes: pulumi.Output<string | undefined>;
     declare public readonly brandId: pulumi.Output<string>;
-    declare public readonly brandingCustomCss: pulumi.Output<string | undefined>;
-    /**
-     * Defaults to `/static/dist/assets/images/flow_background.jpg`.
-     */
-    declare public readonly brandingDefaultFlowBackground: pulumi.Output<string | undefined>;
     declare public readonly brandingFavicon: pulumi.Output<string | undefined>;
     declare public readonly brandingLogo: pulumi.Output<string | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`authentik`" pulumi-lang-dotnet="`Authentik`" pulumi-lang-go="`authentik`" pulumi-lang-python="`authentik`" pulumi-lang-yaml="`authentik`" pulumi-lang-java="`authentik`" pulumi-lang-hcl="`authentik`">`authentik`</span>.
      */
     declare public readonly brandingTitle: pulumi.Output<string | undefined>;
-    declare public readonly clientCertificates: pulumi.Output<string[] | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
      */
@@ -58,7 +52,6 @@ export class Brand extends pulumi.CustomResource {
     declare public readonly flowAuthentication: pulumi.Output<string | undefined>;
     declare public readonly flowDeviceCode: pulumi.Output<string | undefined>;
     declare public readonly flowInvalidation: pulumi.Output<string | undefined>;
-    declare public readonly flowLockdown: pulumi.Output<string | undefined>;
     declare public readonly flowRecovery: pulumi.Output<string | undefined>;
     declare public readonly flowUnenrollment: pulumi.Output<string | undefined>;
     declare public readonly flowUserSettings: pulumi.Output<string | undefined>;
@@ -79,19 +72,15 @@ export class Brand extends pulumi.CustomResource {
             const state = argsOrState as BrandState | undefined;
             resourceInputs["attributes"] = state?.attributes;
             resourceInputs["brandId"] = state?.brandId;
-            resourceInputs["brandingCustomCss"] = state?.brandingCustomCss;
-            resourceInputs["brandingDefaultFlowBackground"] = state?.brandingDefaultFlowBackground;
             resourceInputs["brandingFavicon"] = state?.brandingFavicon;
             resourceInputs["brandingLogo"] = state?.brandingLogo;
             resourceInputs["brandingTitle"] = state?.brandingTitle;
-            resourceInputs["clientCertificates"] = state?.clientCertificates;
             resourceInputs["default"] = state?.default;
             resourceInputs["defaultApplication"] = state?.defaultApplication;
             resourceInputs["domain"] = state?.domain;
             resourceInputs["flowAuthentication"] = state?.flowAuthentication;
             resourceInputs["flowDeviceCode"] = state?.flowDeviceCode;
             resourceInputs["flowInvalidation"] = state?.flowInvalidation;
-            resourceInputs["flowLockdown"] = state?.flowLockdown;
             resourceInputs["flowRecovery"] = state?.flowRecovery;
             resourceInputs["flowUnenrollment"] = state?.flowUnenrollment;
             resourceInputs["flowUserSettings"] = state?.flowUserSettings;
@@ -103,19 +92,15 @@ export class Brand extends pulumi.CustomResource {
             }
             resourceInputs["attributes"] = args?.attributes;
             resourceInputs["brandId"] = args?.brandId;
-            resourceInputs["brandingCustomCss"] = args?.brandingCustomCss;
-            resourceInputs["brandingDefaultFlowBackground"] = args?.brandingDefaultFlowBackground;
             resourceInputs["brandingFavicon"] = args?.brandingFavicon;
             resourceInputs["brandingLogo"] = args?.brandingLogo;
             resourceInputs["brandingTitle"] = args?.brandingTitle;
-            resourceInputs["clientCertificates"] = args?.clientCertificates;
             resourceInputs["default"] = args?.default;
             resourceInputs["defaultApplication"] = args?.defaultApplication;
             resourceInputs["domain"] = args?.domain;
             resourceInputs["flowAuthentication"] = args?.flowAuthentication;
             resourceInputs["flowDeviceCode"] = args?.flowDeviceCode;
             resourceInputs["flowInvalidation"] = args?.flowInvalidation;
-            resourceInputs["flowLockdown"] = args?.flowLockdown;
             resourceInputs["flowRecovery"] = args?.flowRecovery;
             resourceInputs["flowUnenrollment"] = args?.flowUnenrollment;
             resourceInputs["flowUserSettings"] = args?.flowUserSettings;
@@ -131,22 +116,16 @@ export class Brand extends pulumi.CustomResource {
  */
 export interface BrandState {
     /**
-     * JSON format expected. Use `jsonencode()` to pass objects. Defaults to `{}`.
+     * JSON format expected. Use jsonencode() to pass objects. Defaults to `{}`.
      */
     attributes?: pulumi.Input<string | undefined>;
     brandId?: pulumi.Input<string | undefined>;
-    brandingCustomCss?: pulumi.Input<string | undefined>;
-    /**
-     * Defaults to `/static/dist/assets/images/flow_background.jpg`.
-     */
-    brandingDefaultFlowBackground?: pulumi.Input<string | undefined>;
     brandingFavicon?: pulumi.Input<string | undefined>;
     brandingLogo?: pulumi.Input<string | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`authentik`" pulumi-lang-dotnet="`Authentik`" pulumi-lang-go="`authentik`" pulumi-lang-python="`authentik`" pulumi-lang-yaml="`authentik`" pulumi-lang-java="`authentik`" pulumi-lang-hcl="`authentik`">`authentik`</span>.
      */
     brandingTitle?: pulumi.Input<string | undefined>;
-    clientCertificates?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
      */
@@ -156,7 +135,6 @@ export interface BrandState {
     flowAuthentication?: pulumi.Input<string | undefined>;
     flowDeviceCode?: pulumi.Input<string | undefined>;
     flowInvalidation?: pulumi.Input<string | undefined>;
-    flowLockdown?: pulumi.Input<string | undefined>;
     flowRecovery?: pulumi.Input<string | undefined>;
     flowUnenrollment?: pulumi.Input<string | undefined>;
     flowUserSettings?: pulumi.Input<string | undefined>;
@@ -168,22 +146,16 @@ export interface BrandState {
  */
 export interface BrandArgs {
     /**
-     * JSON format expected. Use `jsonencode()` to pass objects. Defaults to `{}`.
+     * JSON format expected. Use jsonencode() to pass objects. Defaults to `{}`.
      */
     attributes?: pulumi.Input<string | undefined>;
     brandId?: pulumi.Input<string | undefined>;
-    brandingCustomCss?: pulumi.Input<string | undefined>;
-    /**
-     * Defaults to `/static/dist/assets/images/flow_background.jpg`.
-     */
-    brandingDefaultFlowBackground?: pulumi.Input<string | undefined>;
     brandingFavicon?: pulumi.Input<string | undefined>;
     brandingLogo?: pulumi.Input<string | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`authentik`" pulumi-lang-dotnet="`Authentik`" pulumi-lang-go="`authentik`" pulumi-lang-python="`authentik`" pulumi-lang-yaml="`authentik`" pulumi-lang-java="`authentik`" pulumi-lang-hcl="`authentik`">`authentik`</span>.
      */
     brandingTitle?: pulumi.Input<string | undefined>;
-    clientCertificates?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
      */
@@ -193,7 +165,6 @@ export interface BrandArgs {
     flowAuthentication?: pulumi.Input<string | undefined>;
     flowDeviceCode?: pulumi.Input<string | undefined>;
     flowInvalidation?: pulumi.Input<string | undefined>;
-    flowLockdown?: pulumi.Input<string | undefined>;
     flowRecovery?: pulumi.Input<string | undefined>;
     flowUnenrollment?: pulumi.Input<string | undefined>;
     flowUserSettings?: pulumi.Input<string | undefined>;

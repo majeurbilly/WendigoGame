@@ -35,7 +35,7 @@ export class Blueprint extends pulumi.CustomResource {
     declare public readonly blueprintId: pulumi.Output<string>;
     declare public readonly content: pulumi.Output<string | undefined>;
     /**
-     * JSON format expected. Use `jsonencode()` to pass objects. Defaults to `{}`.
+     * JSON format expected. Use jsonencode() to pass objects. Defaults to `{}`.
      */
     declare public readonly context: pulumi.Output<string | undefined>;
     /**
@@ -85,7 +85,7 @@ export interface BlueprintState {
     blueprintId?: pulumi.Input<string | undefined>;
     content?: pulumi.Input<string | undefined>;
     /**
-     * JSON format expected. Use `jsonencode()` to pass objects. Defaults to `{}`.
+     * JSON format expected. Use jsonencode() to pass objects. Defaults to `{}`.
      */
     context?: pulumi.Input<string | undefined>;
     /**
@@ -103,7 +103,7 @@ export interface BlueprintArgs {
     blueprintId?: pulumi.Input<string | undefined>;
     content?: pulumi.Input<string | undefined>;
     /**
-     * JSON format expected. Use `jsonencode()` to pass objects. Defaults to `{}`.
+     * JSON format expected. Use jsonencode() to pass objects. Defaults to `{}`.
      */
     context?: pulumi.Input<string | undefined>;
     /**

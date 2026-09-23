@@ -32,15 +32,8 @@ export class EventRule extends pulumi.CustomResource {
         return obj['__pulumiType'] === EventRule.__pulumiType;
     }
 
-    /**
-     * Send notification to event user Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
-     */
-    declare public readonly destinationEventUser: pulumi.Output<boolean | undefined>;
-    /**
-     * Group to send notification to
-     */
-    declare public readonly destinationGroup: pulumi.Output<string | undefined>;
     declare public readonly eventRuleId: pulumi.Output<string>;
+    declare public readonly group: pulumi.Output<string | undefined>;
     declare public readonly name: pulumi.Output<string>;
     /**
      * Allowed values:
@@ -51,6 +44,7 @@ export class EventRule extends pulumi.CustomResource {
      */
     declare public readonly severity: pulumi.Output<string | undefined>;
     declare public readonly transports: pulumi.Output<string[]>;
+    declare public readonly webhookMapping: pulumi.Output<string | undefined>;
 
     /**
      * Create a EventRule resource with the given unique name, arguments, and options.
@@ -65,23 +59,23 @@ export class EventRule extends pulumi.CustomResource {
         opts = opts || {};
         if (opts.id) {
             const state = argsOrState as EventRuleState | undefined;
-            resourceInputs["destinationEventUser"] = state?.destinationEventUser;
-            resourceInputs["destinationGroup"] = state?.destinationGroup;
             resourceInputs["eventRuleId"] = state?.eventRuleId;
+            resourceInputs["group"] = state?.group;
             resourceInputs["name"] = state?.name;
             resourceInputs["severity"] = state?.severity;
             resourceInputs["transports"] = state?.transports;
+            resourceInputs["webhookMapping"] = state?.webhookMapping;
         } else {
             const args = argsOrState as EventRuleArgs | undefined;
             if (args?.transports === undefined && !opts.urn) {
                 throw new Error("Missing required property 'transports'");
             }
-            resourceInputs["destinationEventUser"] = args?.destinationEventUser;
-            resourceInputs["destinationGroup"] = args?.destinationGroup;
             resourceInputs["eventRuleId"] = args?.eventRuleId;
+            resourceInputs["group"] = args?.group;
             resourceInputs["name"] = args?.name;
             resourceInputs["severity"] = args?.severity;
             resourceInputs["transports"] = args?.transports;
+            resourceInputs["webhookMapping"] = args?.webhookMapping;
         }
         opts = pulumi.mergeOptions(utilities.resourceOptsDefaults(), opts);
         super(EventRule.__pulumiType, name, resourceInputs, opts, false /*dependency*/, utilities.getPackage());
@@ -92,15 +86,8 @@ export class EventRule extends pulumi.CustomResource {
  * Input properties used for looking up and filtering EventRule resources.
  */
 export interface EventRuleState {
-    /**
-     * Send notification to event user Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
-     */
-    destinationEventUser?: pulumi.Input<boolean | undefined>;
-    /**
-     * Group to send notification to
-     */
-    destinationGroup?: pulumi.Input<string | undefined>;
     eventRuleId?: pulumi.Input<string | undefined>;
+    group?: pulumi.Input<string | undefined>;
     name?: pulumi.Input<string | undefined>;
     /**
      * Allowed values:
@@ -111,21 +98,15 @@ export interface EventRuleState {
      */
     severity?: pulumi.Input<string | undefined>;
     transports?: pulumi.Input<pulumi.Input<string>[] | undefined>;
+    webhookMapping?: pulumi.Input<string | undefined>;
 }
 
 /**
  * The set of arguments for constructing a EventRule resource.
  */
 export interface EventRuleArgs {
-    /**
-     * Send notification to event user Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
-     */
-    destinationEventUser?: pulumi.Input<boolean | undefined>;
-    /**
-     * Group to send notification to
-     */
-    destinationGroup?: pulumi.Input<string | undefined>;
     eventRuleId?: pulumi.Input<string | undefined>;
+    group?: pulumi.Input<string | undefined>;
     name?: pulumi.Input<string | undefined>;
     /**
      * Allowed values:
@@ -136,4 +117,5 @@ export interface EventRuleArgs {
      */
     severity?: pulumi.Input<string | undefined>;
     transports: pulumi.Input<pulumi.Input<string>[]>;
+    webhookMapping?: pulumi.Input<string | undefined>;
 }

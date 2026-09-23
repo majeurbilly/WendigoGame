@@ -34,10 +34,6 @@ export class StageIdentification extends pulumi.CustomResource {
 
     declare public readonly captchaStage: pulumi.Output<string | undefined>;
     declare public readonly caseInsensitiveMatching: pulumi.Output<boolean | undefined>;
-    /**
-     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
-     */
-    declare public readonly enableRememberMe: pulumi.Output<boolean | undefined>;
     declare public readonly enrollmentFlow: pulumi.Output<string | undefined>;
     declare public readonly name: pulumi.Output<string>;
     declare public readonly passwordStage: pulumi.Output<string | undefined>;
@@ -58,7 +54,6 @@ export class StageIdentification extends pulumi.CustomResource {
     declare public readonly sources: pulumi.Output<string[] | undefined>;
     declare public readonly stageIdentificationId: pulumi.Output<string>;
     declare public readonly userFields: pulumi.Output<string[] | undefined>;
-    declare public readonly webauthnStage: pulumi.Output<string | undefined>;
 
     /**
      * Create a StageIdentification resource with the given unique name, arguments, and options.
@@ -75,7 +70,6 @@ export class StageIdentification extends pulumi.CustomResource {
             const state = argsOrState as StageIdentificationState | undefined;
             resourceInputs["captchaStage"] = state?.captchaStage;
             resourceInputs["caseInsensitiveMatching"] = state?.caseInsensitiveMatching;
-            resourceInputs["enableRememberMe"] = state?.enableRememberMe;
             resourceInputs["enrollmentFlow"] = state?.enrollmentFlow;
             resourceInputs["name"] = state?.name;
             resourceInputs["passwordStage"] = state?.passwordStage;
@@ -87,12 +81,10 @@ export class StageIdentification extends pulumi.CustomResource {
             resourceInputs["sources"] = state?.sources;
             resourceInputs["stageIdentificationId"] = state?.stageIdentificationId;
             resourceInputs["userFields"] = state?.userFields;
-            resourceInputs["webauthnStage"] = state?.webauthnStage;
         } else {
             const args = argsOrState as StageIdentificationArgs | undefined;
             resourceInputs["captchaStage"] = args?.captchaStage;
             resourceInputs["caseInsensitiveMatching"] = args?.caseInsensitiveMatching;
-            resourceInputs["enableRememberMe"] = args?.enableRememberMe;
             resourceInputs["enrollmentFlow"] = args?.enrollmentFlow;
             resourceInputs["name"] = args?.name;
             resourceInputs["passwordStage"] = args?.passwordStage;
@@ -104,7 +96,6 @@ export class StageIdentification extends pulumi.CustomResource {
             resourceInputs["sources"] = args?.sources;
             resourceInputs["stageIdentificationId"] = args?.stageIdentificationId;
             resourceInputs["userFields"] = args?.userFields;
-            resourceInputs["webauthnStage"] = args?.webauthnStage;
         }
         opts = pulumi.mergeOptions(utilities.resourceOptsDefaults(), opts);
         super(StageIdentification.__pulumiType, name, resourceInputs, opts, false /*dependency*/, utilities.getPackage());
@@ -117,10 +108,6 @@ export class StageIdentification extends pulumi.CustomResource {
 export interface StageIdentificationState {
     captchaStage?: pulumi.Input<string | undefined>;
     caseInsensitiveMatching?: pulumi.Input<boolean | undefined>;
-    /**
-     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
-     */
-    enableRememberMe?: pulumi.Input<boolean | undefined>;
     enrollmentFlow?: pulumi.Input<string | undefined>;
     name?: pulumi.Input<string | undefined>;
     passwordStage?: pulumi.Input<string | undefined>;
@@ -141,7 +128,6 @@ export interface StageIdentificationState {
     sources?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     stageIdentificationId?: pulumi.Input<string | undefined>;
     userFields?: pulumi.Input<pulumi.Input<string>[] | undefined>;
-    webauthnStage?: pulumi.Input<string | undefined>;
 }
 
 /**
@@ -150,10 +136,6 @@ export interface StageIdentificationState {
 export interface StageIdentificationArgs {
     captchaStage?: pulumi.Input<string | undefined>;
     caseInsensitiveMatching?: pulumi.Input<boolean | undefined>;
-    /**
-     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
-     */
-    enableRememberMe?: pulumi.Input<boolean | undefined>;
     enrollmentFlow?: pulumi.Input<string | undefined>;
     name?: pulumi.Input<string | undefined>;
     passwordStage?: pulumi.Input<string | undefined>;
@@ -174,5 +156,4 @@ export interface StageIdentificationArgs {
     sources?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     stageIdentificationId?: pulumi.Input<string | undefined>;
     userFields?: pulumi.Input<pulumi.Input<string>[] | undefined>;
-    webauthnStage?: pulumi.Input<string | undefined>;
 }

@@ -33,15 +33,14 @@ export class ProviderGoogleWorkspace extends pulumi.CustomResource {
     }
 
     /**
-     * JSON format expected. Use `jsonencode()` to pass objects. Defaults to `{}`.
+     * JSON format expected. Use jsonencode() to pass objects. Defaults to `{}`.
      */
     declare public readonly credentials: pulumi.Output<string | undefined>;
     declare public readonly defaultGroupEmailDomain: pulumi.Output<string>;
-    declare public readonly delegatedSubject: pulumi.Output<string | undefined>;
     /**
-     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
+     * Defaults to `seconds=0`.
      */
-    declare public readonly dryRun: pulumi.Output<boolean | undefined>;
+    declare public readonly delegatedSubject: pulumi.Output<string | undefined>;
     declare public readonly excludeUsersServiceAccount: pulumi.Output<boolean | undefined>;
     declare public readonly filterGroup: pulumi.Output<string | undefined>;
     /**
@@ -55,14 +54,6 @@ export class ProviderGoogleWorkspace extends pulumi.CustomResource {
     declare public readonly propertyMappings: pulumi.Output<string[] | undefined>;
     declare public readonly propertyMappingsGroups: pulumi.Output<string[] | undefined>;
     declare public readonly providerGoogleWorkspaceId: pulumi.Output<string>;
-    /**
-     * Defaults to <span pulumi-lang-nodejs="`100`" pulumi-lang-dotnet="`100`" pulumi-lang-go="`100`" pulumi-lang-python="`100`" pulumi-lang-yaml="`100`" pulumi-lang-java="`100`" pulumi-lang-hcl="`100`">`100`</span>.
-     */
-    declare public readonly syncPageSize: pulumi.Output<number | undefined>;
-    /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=30`.
-     */
-    declare public readonly syncPageTimeout: pulumi.Output<string | undefined>;
     /**
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`doNothing`" pulumi-lang-dotnet="`DoNothing`" pulumi-lang-go="`doNothing`" pulumi-lang-python="`do_nothing`" pulumi-lang-yaml="`doNothing`" pulumi-lang-java="`doNothing`" pulumi-lang-hcl="`do_nothing`">`doNothing`</span>
@@ -88,7 +79,6 @@ export class ProviderGoogleWorkspace extends pulumi.CustomResource {
             resourceInputs["credentials"] = state?.credentials;
             resourceInputs["defaultGroupEmailDomain"] = state?.defaultGroupEmailDomain;
             resourceInputs["delegatedSubject"] = state?.delegatedSubject;
-            resourceInputs["dryRun"] = state?.dryRun;
             resourceInputs["excludeUsersServiceAccount"] = state?.excludeUsersServiceAccount;
             resourceInputs["filterGroup"] = state?.filterGroup;
             resourceInputs["groupDeleteAction"] = state?.groupDeleteAction;
@@ -96,8 +86,6 @@ export class ProviderGoogleWorkspace extends pulumi.CustomResource {
             resourceInputs["propertyMappings"] = state?.propertyMappings;
             resourceInputs["propertyMappingsGroups"] = state?.propertyMappingsGroups;
             resourceInputs["providerGoogleWorkspaceId"] = state?.providerGoogleWorkspaceId;
-            resourceInputs["syncPageSize"] = state?.syncPageSize;
-            resourceInputs["syncPageTimeout"] = state?.syncPageTimeout;
             resourceInputs["userDeleteAction"] = state?.userDeleteAction;
         } else {
             const args = argsOrState as ProviderGoogleWorkspaceArgs | undefined;
@@ -107,7 +95,6 @@ export class ProviderGoogleWorkspace extends pulumi.CustomResource {
             resourceInputs["credentials"] = args?.credentials;
             resourceInputs["defaultGroupEmailDomain"] = args?.defaultGroupEmailDomain;
             resourceInputs["delegatedSubject"] = args?.delegatedSubject;
-            resourceInputs["dryRun"] = args?.dryRun;
             resourceInputs["excludeUsersServiceAccount"] = args?.excludeUsersServiceAccount;
             resourceInputs["filterGroup"] = args?.filterGroup;
             resourceInputs["groupDeleteAction"] = args?.groupDeleteAction;
@@ -115,8 +102,6 @@ export class ProviderGoogleWorkspace extends pulumi.CustomResource {
             resourceInputs["propertyMappings"] = args?.propertyMappings;
             resourceInputs["propertyMappingsGroups"] = args?.propertyMappingsGroups;
             resourceInputs["providerGoogleWorkspaceId"] = args?.providerGoogleWorkspaceId;
-            resourceInputs["syncPageSize"] = args?.syncPageSize;
-            resourceInputs["syncPageTimeout"] = args?.syncPageTimeout;
             resourceInputs["userDeleteAction"] = args?.userDeleteAction;
         }
         opts = pulumi.mergeOptions(utilities.resourceOptsDefaults(), opts);
@@ -129,15 +114,14 @@ export class ProviderGoogleWorkspace extends pulumi.CustomResource {
  */
 export interface ProviderGoogleWorkspaceState {
     /**
-     * JSON format expected. Use `jsonencode()` to pass objects. Defaults to `{}`.
+     * JSON format expected. Use jsonencode() to pass objects. Defaults to `{}`.
      */
     credentials?: pulumi.Input<string | undefined>;
     defaultGroupEmailDomain?: pulumi.Input<string | undefined>;
-    delegatedSubject?: pulumi.Input<string | undefined>;
     /**
-     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
+     * Defaults to `seconds=0`.
      */
-    dryRun?: pulumi.Input<boolean | undefined>;
+    delegatedSubject?: pulumi.Input<string | undefined>;
     excludeUsersServiceAccount?: pulumi.Input<boolean | undefined>;
     filterGroup?: pulumi.Input<string | undefined>;
     /**
@@ -151,14 +135,6 @@ export interface ProviderGoogleWorkspaceState {
     propertyMappings?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     propertyMappingsGroups?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     providerGoogleWorkspaceId?: pulumi.Input<string | undefined>;
-    /**
-     * Defaults to <span pulumi-lang-nodejs="`100`" pulumi-lang-dotnet="`100`" pulumi-lang-go="`100`" pulumi-lang-python="`100`" pulumi-lang-yaml="`100`" pulumi-lang-java="`100`" pulumi-lang-hcl="`100`">`100`</span>.
-     */
-    syncPageSize?: pulumi.Input<number | undefined>;
-    /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=30`.
-     */
-    syncPageTimeout?: pulumi.Input<string | undefined>;
     /**
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`doNothing`" pulumi-lang-dotnet="`DoNothing`" pulumi-lang-go="`doNothing`" pulumi-lang-python="`do_nothing`" pulumi-lang-yaml="`doNothing`" pulumi-lang-java="`doNothing`" pulumi-lang-hcl="`do_nothing`">`doNothing`</span>
@@ -174,15 +150,14 @@ export interface ProviderGoogleWorkspaceState {
  */
 export interface ProviderGoogleWorkspaceArgs {
     /**
-     * JSON format expected. Use `jsonencode()` to pass objects. Defaults to `{}`.
+     * JSON format expected. Use jsonencode() to pass objects. Defaults to `{}`.
      */
     credentials?: pulumi.Input<string | undefined>;
     defaultGroupEmailDomain: pulumi.Input<string>;
-    delegatedSubject?: pulumi.Input<string | undefined>;
     /**
-     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
+     * Defaults to `seconds=0`.
      */
-    dryRun?: pulumi.Input<boolean | undefined>;
+    delegatedSubject?: pulumi.Input<string | undefined>;
     excludeUsersServiceAccount?: pulumi.Input<boolean | undefined>;
     filterGroup?: pulumi.Input<string | undefined>;
     /**
@@ -196,14 +171,6 @@ export interface ProviderGoogleWorkspaceArgs {
     propertyMappings?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     propertyMappingsGroups?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     providerGoogleWorkspaceId?: pulumi.Input<string | undefined>;
-    /**
-     * Defaults to <span pulumi-lang-nodejs="`100`" pulumi-lang-dotnet="`100`" pulumi-lang-go="`100`" pulumi-lang-python="`100`" pulumi-lang-yaml="`100`" pulumi-lang-java="`100`" pulumi-lang-hcl="`100`">`100`</span>.
-     */
-    syncPageSize?: pulumi.Input<number | undefined>;
-    /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=30`.
-     */
-    syncPageTimeout?: pulumi.Input<string | undefined>;
     /**
      * Allowed values:
      *   - <span pulumi-lang-nodejs="`doNothing`" pulumi-lang-dotnet="`DoNothing`" pulumi-lang-go="`doNothing`" pulumi-lang-python="`do_nothing`" pulumi-lang-yaml="`doNothing`" pulumi-lang-java="`doNothing`" pulumi-lang-hcl="`do_nothing`">`doNothing`</span>

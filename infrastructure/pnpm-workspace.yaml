@@ -3,5 +3,6 @@ packages:
   - "sdks/authentik"
 
 allowBuilds:
-  "@pulumi/authentik": true
+  '@pulumi/authentik': true
+  '@pulumi/authentik@file:sdks/authentik': true
   protobufjs: true

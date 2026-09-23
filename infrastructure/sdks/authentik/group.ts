@@ -33,7 +33,7 @@ export class Group extends pulumi.CustomResource {
     }
 
     /**
-     * JSON format expected. Use `jsonencode()` to pass objects. Defaults to `{}`.
+     * JSON format expected. Use jsonencode() to pass objects. Defaults to `{}`.
      */
     declare public readonly attributes: pulumi.Output<string | undefined>;
     declare public readonly groupId: pulumi.Output<string>;
@@ -42,7 +42,7 @@ export class Group extends pulumi.CustomResource {
      */
     declare public readonly isSuperuser: pulumi.Output<boolean | undefined>;
     declare public readonly name: pulumi.Output<string>;
-    declare public readonly parents: pulumi.Output<string[] | undefined>;
+    declare public readonly parent: pulumi.Output<string | undefined>;
     declare public readonly roles: pulumi.Output<string[] | undefined>;
     /**
      * Generated.
@@ -66,7 +66,7 @@ export class Group extends pulumi.CustomResource {
             resourceInputs["groupId"] = state?.groupId;
             resourceInputs["isSuperuser"] = state?.isSuperuser;
             resourceInputs["name"] = state?.name;
-            resourceInputs["parents"] = state?.parents;
+            resourceInputs["parent"] = state?.parent;
             resourceInputs["roles"] = state?.roles;
             resourceInputs["users"] = state?.users;
         } else {
@@ -75,7 +75,7 @@ export class Group extends pulumi.CustomResource {
             resourceInputs["groupId"] = args?.groupId;
             resourceInputs["isSuperuser"] = args?.isSuperuser;
             resourceInputs["name"] = args?.name;
-            resourceInputs["parents"] = args?.parents;
+            resourceInputs["parent"] = args?.parent;
             resourceInputs["roles"] = args?.roles;
             resourceInputs["users"] = args?.users;
         }
@@ -89,7 +89,7 @@ export class Group extends pulumi.CustomResource {
  */
 export interface GroupState {
     /**
-     * JSON format expected. Use `jsonencode()` to pass objects. Defaults to `{}`.
+     * JSON format expected. Use jsonencode() to pass objects. Defaults to `{}`.
      */
     attributes?: pulumi.Input<string | undefined>;
     groupId?: pulumi.Input<string | undefined>;
@@ -98,7 +98,7 @@ export interface GroupState {
      */
     isSuperuser?: pulumi.Input<boolean | undefined>;
     name?: pulumi.Input<string | undefined>;
-    parents?: pulumi.Input<pulumi.Input<string>[] | undefined>;
+    parent?: pulumi.Input<string | undefined>;
     roles?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     /**
      * Generated.
@@ -111,7 +111,7 @@ export interface GroupState {
  */
 export interface GroupArgs {
     /**
-     * JSON format expected. Use `jsonencode()` to pass objects. Defaults to `{}`.
+     * JSON format expected. Use jsonencode() to pass objects. Defaults to `{}`.
      */
     attributes?: pulumi.Input<string | undefined>;
     groupId?: pulumi.Input<string | undefined>;
@@ -120,7 +120,7 @@ export interface GroupArgs {
      */
     isSuperuser?: pulumi.Input<boolean | undefined>;
     name?: pulumi.Input<string | undefined>;
-    parents?: pulumi.Input<pulumi.Input<string>[] | undefined>;
+    parent?: pulumi.Input<string | undefined>;
     roles?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     /**
      * Generated.

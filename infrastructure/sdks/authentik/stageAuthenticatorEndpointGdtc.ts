@@ -34,9 +34,6 @@ export class StageAuthenticatorEndpointGdtc extends pulumi.CustomResource {
 
     declare public readonly configureFlow: pulumi.Output<string | undefined>;
     declare public readonly credentials: pulumi.Output<string>;
-    /**
-     * Defaults to ``.
-     */
     declare public readonly friendlyName: pulumi.Output<string | undefined>;
     declare public readonly name: pulumi.Output<string>;
     declare public readonly stageAuthenticatorEndpointGdtcId: pulumi.Output<string>;
@@ -83,9 +80,6 @@ export class StageAuthenticatorEndpointGdtc extends pulumi.CustomResource {
 export interface StageAuthenticatorEndpointGdtcState {
     configureFlow?: pulumi.Input<string | undefined>;
     credentials?: pulumi.Input<string | undefined>;
-    /**
-     * Defaults to ``.
-     */
     friendlyName?: pulumi.Input<string | undefined>;
     name?: pulumi.Input<string | undefined>;
     stageAuthenticatorEndpointGdtcId?: pulumi.Input<string | undefined>;
@@ -97,9 +91,6 @@ export interface StageAuthenticatorEndpointGdtcState {
 export interface StageAuthenticatorEndpointGdtcArgs {
     configureFlow?: pulumi.Input<string | undefined>;
     credentials: pulumi.Input<string>;
-    /**
-     * Defaults to ``.
-     */
     friendlyName?: pulumi.Input<string | undefined>;
     name?: pulumi.Input<string | undefined>;
     stageAuthenticatorEndpointGdtcId?: pulumi.Input<string | undefined>;

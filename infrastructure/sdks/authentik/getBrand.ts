@@ -8,12 +8,9 @@ export function getBrand(args?: GetBrandArgs, opts?: pulumi.InvokeOptions): Prom
     args = args || {};
     opts = pulumi.mergeOptions(utilities.resourceOptsDefaults(), opts || {});
     return pulumi.runtime.invoke("authentik:index/getBrand:getBrand", {
-        "brandingCustomCss": args.brandingCustomCss,
-        "brandingDefaultFlowBackground": args.brandingDefaultFlowBackground,
         "brandingFavicon": args.brandingFavicon,
         "brandingLogo": args.brandingLogo,
         "brandingTitle": args.brandingTitle,
-        "clientCertificates": args.clientCertificates,
         "default": args.default,
         "defaultApplication": args.defaultApplication,
         "domain": args.domain,
@@ -32,12 +29,9 @@ export function getBrand(args?: GetBrandArgs, opts?: pulumi.InvokeOptions): Prom
  * A collection of arguments for invoking getBrand.
  */
 export interface GetBrandArgs {
-    brandingCustomCss?: string;
-    brandingDefaultFlowBackground?: string;
     brandingFavicon?: string;
     brandingLogo?: string;
     brandingTitle?: string;
-    clientCertificates?: string[];
     default?: boolean;
     defaultApplication?: string;
     domain?: string;
@@ -55,12 +49,9 @@ export interface GetBrandArgs {
  * A collection of values returned by getBrand.
  */
 export interface GetBrandResult {
-    readonly brandingCustomCss: string;
-    readonly brandingDefaultFlowBackground: string;
     readonly brandingFavicon: string;
     readonly brandingLogo: string;
     readonly brandingTitle: string;
-    readonly clientCertificates?: string[];
     readonly default: boolean;
     readonly defaultApplication: string;
     readonly domain: string;
@@ -77,12 +68,9 @@ export function getBrandOutput(args?: GetBrandOutputArgs, opts?: pulumi.InvokeOu
     args = args || {};
     opts = pulumi.mergeOptions(utilities.resourceOptsDefaults(), opts || {});
     return pulumi.runtime.invokeOutput("authentik:index/getBrand:getBrand", {
-        "brandingCustomCss": args.brandingCustomCss,
-        "brandingDefaultFlowBackground": args.brandingDefaultFlowBackground,
         "brandingFavicon": args.brandingFavicon,
         "brandingLogo": args.brandingLogo,
         "brandingTitle": args.brandingTitle,
-        "clientCertificates": args.clientCertificates,
         "default": args.default,
         "defaultApplication": args.defaultApplication,
         "domain": args.domain,
@@ -101,12 +89,9 @@ export function getBrandOutput(args?: GetBrandOutputArgs, opts?: pulumi.InvokeOu
  * A collection of arguments for invoking getBrand.
  */
 export interface GetBrandOutputArgs {
-    brandingCustomCss?: pulumi.Input<string | undefined>;
-    brandingDefaultFlowBackground?: pulumi.Input<string | undefined>;
     brandingFavicon?: pulumi.Input<string | undefined>;
     brandingLogo?: pulumi.Input<string | undefined>;
     brandingTitle?: pulumi.Input<string | undefined>;
-    clientCertificates?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     default?: pulumi.Input<boolean | undefined>;
     defaultApplication?: pulumi.Input<string | undefined>;
     domain?: pulumi.Input<string | undefined>;

@@ -44,10 +44,6 @@ export class SourceLdap extends pulumi.CustomResource {
     declare public readonly bindCn: pulumi.Output<string>;
     declare public readonly bindPassword: pulumi.Output<string>;
     /**
-     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
-     */
-    declare public readonly deleteNotFoundObjects: pulumi.Output<boolean | undefined>;
-    /**
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
     declare public readonly enabled: pulumi.Output<boolean | undefined>;
@@ -59,10 +55,6 @@ export class SourceLdap extends pulumi.CustomResource {
      * Defaults to `(objectClass=group)`.
      */
     declare public readonly groupObjectFilter: pulumi.Output<string | undefined>;
-    /**
-     * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
-     */
-    declare public readonly lookupGroupsFromUser: pulumi.Output<boolean | undefined>;
     declare public readonly name: pulumi.Output<string>;
     /**
      * Defaults to `objectSid`.
@@ -89,14 +81,6 @@ export class SourceLdap extends pulumi.CustomResource {
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
     declare public readonly syncGroups: pulumi.Output<boolean | undefined>;
-    /**
-     * Allowed values:
-     *   - <span pulumi-lang-nodejs="`none`" pulumi-lang-dotnet="`None`" pulumi-lang-go="`none`" pulumi-lang-python="`none`" pulumi-lang-yaml="`none`" pulumi-lang-java="`none`" pulumi-lang-hcl="`none`">`none`</span>
-     *   - <span pulumi-lang-nodejs="`immediate`" pulumi-lang-dotnet="`Immediate`" pulumi-lang-go="`immediate`" pulumi-lang-python="`immediate`" pulumi-lang-yaml="`immediate`" pulumi-lang-java="`immediate`" pulumi-lang-hcl="`immediate`">`immediate`</span>
-     *   - <span pulumi-lang-nodejs="`deferredEnd`" pulumi-lang-dotnet="`DeferredEnd`" pulumi-lang-go="`deferredEnd`" pulumi-lang-python="`deferred_end`" pulumi-lang-yaml="`deferredEnd`" pulumi-lang-java="`deferredEnd`" pulumi-lang-hcl="`deferred_end`">`deferredEnd`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`deferredEnd`" pulumi-lang-dotnet="`DeferredEnd`" pulumi-lang-go="`deferredEnd`" pulumi-lang-python="`deferred_end`" pulumi-lang-yaml="`deferredEnd`" pulumi-lang-java="`deferredEnd`" pulumi-lang-hcl="`deferred_end`">`deferredEnd`</span>.
-     */
-    declare public readonly syncOutgoingTriggerMode: pulumi.Output<string | undefined>;
     declare public readonly syncParentGroup: pulumi.Output<string | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
@@ -106,10 +90,6 @@ export class SourceLdap extends pulumi.CustomResource {
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
     declare public readonly syncUsersPassword: pulumi.Output<boolean | undefined>;
-    /**
-     * Defaults to `distinguishedName`.
-     */
-    declare public readonly userMembershipAttribute: pulumi.Output<string | undefined>;
     /**
      * Defaults to `(objectClass=person)`.
      */
@@ -141,11 +121,9 @@ export class SourceLdap extends pulumi.CustomResource {
             resourceInputs["baseDn"] = state?.baseDn;
             resourceInputs["bindCn"] = state?.bindCn;
             resourceInputs["bindPassword"] = state?.bindPassword;
-            resourceInputs["deleteNotFoundObjects"] = state?.deleteNotFoundObjects;
             resourceInputs["enabled"] = state?.enabled;
             resourceInputs["groupMembershipField"] = state?.groupMembershipField;
             resourceInputs["groupObjectFilter"] = state?.groupObjectFilter;
-            resourceInputs["lookupGroupsFromUser"] = state?.lookupGroupsFromUser;
             resourceInputs["name"] = state?.name;
             resourceInputs["objectUniquenessField"] = state?.objectUniquenessField;
             resourceInputs["passwordLoginUpdateInternalPassword"] = state?.passwordLoginUpdateInternalPassword;
@@ -157,11 +135,9 @@ export class SourceLdap extends pulumi.CustomResource {
             resourceInputs["sourceLdapId"] = state?.sourceLdapId;
             resourceInputs["startTls"] = state?.startTls;
             resourceInputs["syncGroups"] = state?.syncGroups;
-            resourceInputs["syncOutgoingTriggerMode"] = state?.syncOutgoingTriggerMode;
             resourceInputs["syncParentGroup"] = state?.syncParentGroup;
             resourceInputs["syncUsers"] = state?.syncUsers;
             resourceInputs["syncUsersPassword"] = state?.syncUsersPassword;
-            resourceInputs["userMembershipAttribute"] = state?.userMembershipAttribute;
             resourceInputs["userObjectFilter"] = state?.userObjectFilter;
             resourceInputs["userPathTemplate"] = state?.userPathTemplate;
             resourceInputs["uuid"] = state?.uuid;
@@ -187,11 +163,9 @@ export class SourceLdap extends pulumi.CustomResource {
             resourceInputs["baseDn"] = args?.baseDn;
             resourceInputs["bindCn"] = args?.bindCn;
             resourceInputs["bindPassword"] = args?.bindPassword ? pulumi.secret(args.bindPassword) : undefined;
-            resourceInputs["deleteNotFoundObjects"] = args?.deleteNotFoundObjects;
             resourceInputs["enabled"] = args?.enabled;
             resourceInputs["groupMembershipField"] = args?.groupMembershipField;
             resourceInputs["groupObjectFilter"] = args?.groupObjectFilter;
-            resourceInputs["lookupGroupsFromUser"] = args?.lookupGroupsFromUser;
             resourceInputs["name"] = args?.name;
             resourceInputs["objectUniquenessField"] = args?.objectUniquenessField;
             resourceInputs["passwordLoginUpdateInternalPassword"] = args?.passwordLoginUpdateInternalPassword;
@@ -203,11 +177,9 @@ export class SourceLdap extends pulumi.CustomResource {
             resourceInputs["sourceLdapId"] = args?.sourceLdapId;
             resourceInputs["startTls"] = args?.startTls;
             resourceInputs["syncGroups"] = args?.syncGroups;
-            resourceInputs["syncOutgoingTriggerMode"] = args?.syncOutgoingTriggerMode;
             resourceInputs["syncParentGroup"] = args?.syncParentGroup;
             resourceInputs["syncUsers"] = args?.syncUsers;
             resourceInputs["syncUsersPassword"] = args?.syncUsersPassword;
-            resourceInputs["userMembershipAttribute"] = args?.userMembershipAttribute;
             resourceInputs["userObjectFilter"] = args?.userObjectFilter;
             resourceInputs["userPathTemplate"] = args?.userPathTemplate;
             resourceInputs["uuid"] = args?.uuid;
@@ -235,10 +207,6 @@ export interface SourceLdapState {
     bindCn?: pulumi.Input<string | undefined>;
     bindPassword?: pulumi.Input<string | undefined>;
     /**
-     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
-     */
-    deleteNotFoundObjects?: pulumi.Input<boolean | undefined>;
-    /**
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
     enabled?: pulumi.Input<boolean | undefined>;
@@ -250,10 +218,6 @@ export interface SourceLdapState {
      * Defaults to `(objectClass=group)`.
      */
     groupObjectFilter?: pulumi.Input<string | undefined>;
-    /**
-     * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
-     */
-    lookupGroupsFromUser?: pulumi.Input<boolean | undefined>;
     name?: pulumi.Input<string | undefined>;
     /**
      * Defaults to `objectSid`.
@@ -280,14 +244,6 @@ export interface SourceLdapState {
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
     syncGroups?: pulumi.Input<boolean | undefined>;
-    /**
-     * Allowed values:
-     *   - <span pulumi-lang-nodejs="`none`" pulumi-lang-dotnet="`None`" pulumi-lang-go="`none`" pulumi-lang-python="`none`" pulumi-lang-yaml="`none`" pulumi-lang-java="`none`" pulumi-lang-hcl="`none`">`none`</span>
-     *   - <span pulumi-lang-nodejs="`immediate`" pulumi-lang-dotnet="`Immediate`" pulumi-lang-go="`immediate`" pulumi-lang-python="`immediate`" pulumi-lang-yaml="`immediate`" pulumi-lang-java="`immediate`" pulumi-lang-hcl="`immediate`">`immediate`</span>
-     *   - <span pulumi-lang-nodejs="`deferredEnd`" pulumi-lang-dotnet="`DeferredEnd`" pulumi-lang-go="`deferredEnd`" pulumi-lang-python="`deferred_end`" pulumi-lang-yaml="`deferredEnd`" pulumi-lang-java="`deferredEnd`" pulumi-lang-hcl="`deferred_end`">`deferredEnd`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`deferredEnd`" pulumi-lang-dotnet="`DeferredEnd`" pulumi-lang-go="`deferredEnd`" pulumi-lang-python="`deferred_end`" pulumi-lang-yaml="`deferredEnd`" pulumi-lang-java="`deferredEnd`" pulumi-lang-hcl="`deferred_end`">`deferredEnd`</span>.
-     */
-    syncOutgoingTriggerMode?: pulumi.Input<string | undefined>;
     syncParentGroup?: pulumi.Input<string | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
@@ -297,10 +253,6 @@ export interface SourceLdapState {
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
     syncUsersPassword?: pulumi.Input<boolean | undefined>;
-    /**
-     * Defaults to `distinguishedName`.
-     */
-    userMembershipAttribute?: pulumi.Input<string | undefined>;
     /**
      * Defaults to `(objectClass=person)`.
      */
@@ -331,10 +283,6 @@ export interface SourceLdapArgs {
     bindCn: pulumi.Input<string>;
     bindPassword: pulumi.Input<string>;
     /**
-     * Defaults to <span pulumi-lang-nodejs="`false`" pulumi-lang-dotnet="`False`" pulumi-lang-go="`false`" pulumi-lang-python="`false`" pulumi-lang-yaml="`false`" pulumi-lang-java="`false`" pulumi-lang-hcl="`false`">`false`</span>.
-     */
-    deleteNotFoundObjects?: pulumi.Input<boolean | undefined>;
-    /**
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
     enabled?: pulumi.Input<boolean | undefined>;
@@ -346,10 +294,6 @@ export interface SourceLdapArgs {
      * Defaults to `(objectClass=group)`.
      */
     groupObjectFilter?: pulumi.Input<string | undefined>;
-    /**
-     * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
-     */
-    lookupGroupsFromUser?: pulumi.Input<boolean | undefined>;
     name?: pulumi.Input<string | undefined>;
     /**
      * Defaults to `objectSid`.
@@ -376,14 +320,6 @@ export interface SourceLdapArgs {
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
     syncGroups?: pulumi.Input<boolean | undefined>;
-    /**
-     * Allowed values:
-     *   - <span pulumi-lang-nodejs="`none`" pulumi-lang-dotnet="`None`" pulumi-lang-go="`none`" pulumi-lang-python="`none`" pulumi-lang-yaml="`none`" pulumi-lang-java="`none`" pulumi-lang-hcl="`none`">`none`</span>
-     *   - <span pulumi-lang-nodejs="`immediate`" pulumi-lang-dotnet="`Immediate`" pulumi-lang-go="`immediate`" pulumi-lang-python="`immediate`" pulumi-lang-yaml="`immediate`" pulumi-lang-java="`immediate`" pulumi-lang-hcl="`immediate`">`immediate`</span>
-     *   - <span pulumi-lang-nodejs="`deferredEnd`" pulumi-lang-dotnet="`DeferredEnd`" pulumi-lang-go="`deferredEnd`" pulumi-lang-python="`deferred_end`" pulumi-lang-yaml="`deferredEnd`" pulumi-lang-java="`deferredEnd`" pulumi-lang-hcl="`deferred_end`">`deferredEnd`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`deferredEnd`" pulumi-lang-dotnet="`DeferredEnd`" pulumi-lang-go="`deferredEnd`" pulumi-lang-python="`deferred_end`" pulumi-lang-yaml="`deferredEnd`" pulumi-lang-java="`deferredEnd`" pulumi-lang-hcl="`deferred_end`">`deferredEnd`</span>.
-     */
-    syncOutgoingTriggerMode?: pulumi.Input<string | undefined>;
     syncParentGroup?: pulumi.Input<string | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
@@ -393,10 +329,6 @@ export interface SourceLdapArgs {
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
     syncUsersPassword?: pulumi.Input<boolean | undefined>;
-    /**
-     * Defaults to `distinguishedName`.
-     */
-    userMembershipAttribute?: pulumi.Input<string | undefined>;
     /**
      * Defaults to `(objectClass=person)`.
      */

@@ -5,8 +5,10 @@
 `infrastructure/index.ts` provisionne l’OIDC via le provider **Any Terraform Provider** du registre Pulumi (`goauthentik/authentik`), généré par :
 
 ```bash
-pulumi package add terraform-provider goauthentik/authentik 2026.8.0
+pulumi package add terraform-provider goauthentik/authentik 2024.12.1
 ```
+
+**Alignement de version** : Compose déploie Authentik `2024.12.5` → provider TF pinné à `2024.12.1` (même ligne majeure/mineure). Évite les erreurs de désérialisation API du type `no value given for required property autocomplete` (schéma 2026.x trop récent pour l’instance).
 
 Chaîne des ressources :
 
@@ -18,17 +20,16 @@ Chaîne des ressources :
 
 ## Choix techniques
 
-- **Plus de SDK local désynchronisé** : le SDK sous `sdks/authentik` est celui généré par `pulumi package add` (version TF `2026.8.0`), déclaré dans `Pulumi.yaml` → `packages.authentik`.
-- **Pas de `new authentik.Provider()`** : le bridge lit `AUTHENTIK_TOKEN` / `AUTHENTIK_URL` (ou la config Pulumi). Évite le mismatch de schéma qui provoquait `error reading from server: EOF`.
-- **Certificat défaut Authentik** plutôt qu’un `tls.PrivateKey` + `CertificateKeyPair` custom : aligné sur la doc registre, JWKS déjà peuplé par l’instance.
-- **`protocolProvider`** attend un `number` → conversion depuis `providerOauth2Id`.
+- SDK sous `sdks/authentik` généré par `pulumi package add`, déclaré dans `Pulumi.yaml` → `packages.authentik` (`2024.12.1`).
+- Pas de `new authentik.Provider()` : le bridge lit `AUTHENTIK_TOKEN` / `AUTHENTIK_URL`.
+- Certificat défaut Authentik plutôt qu’un `tls` + `CertificateKeyPair` custom.
+- `protocolProvider` attend un `number` → conversion depuis `providerOauth2Id`.
 
 ## Prérequis CI
 
 - `AUTHENTIK_TOKEN` = bootstrap token (même secret Compose)
 - `AUTHENTIK_URL=http://192.168.0.157:9000`
 - `PULUMI_CONFIG_PASSPHRASE` pour état local
-- Si des ressources manuelles existent déjà (même slug / client_id), les supprimer ou importer avant `pulumi up`.
 
 ## Vérification
 

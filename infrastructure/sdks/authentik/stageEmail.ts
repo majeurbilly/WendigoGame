@@ -50,14 +50,6 @@ export class StageEmail extends pulumi.CustomResource {
      * Defaults to <span pulumi-lang-nodejs="`25`" pulumi-lang-dotnet="`25`" pulumi-lang-go="`25`" pulumi-lang-python="`25`" pulumi-lang-yaml="`25`" pulumi-lang-java="`25`" pulumi-lang-hcl="`25`">`25`</span>.
      */
     declare public readonly port: pulumi.Output<number | undefined>;
-    /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=5`.
-     */
-    declare public readonly recoveryCacheTimeout: pulumi.Output<string | undefined>;
-    /**
-     * Defaults to <span pulumi-lang-nodejs="`5`" pulumi-lang-dotnet="`5`" pulumi-lang-go="`5`" pulumi-lang-python="`5`" pulumi-lang-yaml="`5`" pulumi-lang-java="`5`" pulumi-lang-hcl="`5`">`5`</span>.
-     */
-    declare public readonly recoveryMaxAttempts: pulumi.Output<number | undefined>;
     declare public readonly stageEmailId: pulumi.Output<string>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`authentik`" pulumi-lang-dotnet="`Authentik`" pulumi-lang-go="`authentik`" pulumi-lang-python="`authentik`" pulumi-lang-yaml="`authentik`" pulumi-lang-java="`authentik`" pulumi-lang-hcl="`authentik`">`authentik`</span>.
@@ -72,9 +64,9 @@ export class StageEmail extends pulumi.CustomResource {
      */
     declare public readonly timeout: pulumi.Output<number | undefined>;
     /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=30`.
+     * Defaults to <span pulumi-lang-nodejs="`30`" pulumi-lang-dotnet="`30`" pulumi-lang-go="`30`" pulumi-lang-python="`30`" pulumi-lang-yaml="`30`" pulumi-lang-java="`30`" pulumi-lang-hcl="`30`">`30`</span>.
      */
-    declare public readonly tokenExpiry: pulumi.Output<string | undefined>;
+    declare public readonly tokenExpiry: pulumi.Output<number | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
@@ -102,8 +94,6 @@ export class StageEmail extends pulumi.CustomResource {
             resourceInputs["name"] = state?.name;
             resourceInputs["password"] = state?.password;
             resourceInputs["port"] = state?.port;
-            resourceInputs["recoveryCacheTimeout"] = state?.recoveryCacheTimeout;
-            resourceInputs["recoveryMaxAttempts"] = state?.recoveryMaxAttempts;
             resourceInputs["stageEmailId"] = state?.stageEmailId;
             resourceInputs["subject"] = state?.subject;
             resourceInputs["template"] = state?.template;
@@ -121,8 +111,6 @@ export class StageEmail extends pulumi.CustomResource {
             resourceInputs["name"] = args?.name;
             resourceInputs["password"] = args?.password ? pulumi.secret(args.password) : undefined;
             resourceInputs["port"] = args?.port;
-            resourceInputs["recoveryCacheTimeout"] = args?.recoveryCacheTimeout;
-            resourceInputs["recoveryMaxAttempts"] = args?.recoveryMaxAttempts;
             resourceInputs["stageEmailId"] = args?.stageEmailId;
             resourceInputs["subject"] = args?.subject;
             resourceInputs["template"] = args?.template;
@@ -162,14 +150,6 @@ export interface StageEmailState {
      * Defaults to <span pulumi-lang-nodejs="`25`" pulumi-lang-dotnet="`25`" pulumi-lang-go="`25`" pulumi-lang-python="`25`" pulumi-lang-yaml="`25`" pulumi-lang-java="`25`" pulumi-lang-hcl="`25`">`25`</span>.
      */
     port?: pulumi.Input<number | undefined>;
-    /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=5`.
-     */
-    recoveryCacheTimeout?: pulumi.Input<string | undefined>;
-    /**
-     * Defaults to <span pulumi-lang-nodejs="`5`" pulumi-lang-dotnet="`5`" pulumi-lang-go="`5`" pulumi-lang-python="`5`" pulumi-lang-yaml="`5`" pulumi-lang-java="`5`" pulumi-lang-hcl="`5`">`5`</span>.
-     */
-    recoveryMaxAttempts?: pulumi.Input<number | undefined>;
     stageEmailId?: pulumi.Input<string | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`authentik`" pulumi-lang-dotnet="`Authentik`" pulumi-lang-go="`authentik`" pulumi-lang-python="`authentik`" pulumi-lang-yaml="`authentik`" pulumi-lang-java="`authentik`" pulumi-lang-hcl="`authentik`">`authentik`</span>.
@@ -184,9 +164,9 @@ export interface StageEmailState {
      */
     timeout?: pulumi.Input<number | undefined>;
     /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=30`.
+     * Defaults to <span pulumi-lang-nodejs="`30`" pulumi-lang-dotnet="`30`" pulumi-lang-go="`30`" pulumi-lang-python="`30`" pulumi-lang-yaml="`30`" pulumi-lang-java="`30`" pulumi-lang-hcl="`30`">`30`</span>.
      */
-    tokenExpiry?: pulumi.Input<string | undefined>;
+    tokenExpiry?: pulumi.Input<number | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
@@ -218,14 +198,6 @@ export interface StageEmailArgs {
      * Defaults to <span pulumi-lang-nodejs="`25`" pulumi-lang-dotnet="`25`" pulumi-lang-go="`25`" pulumi-lang-python="`25`" pulumi-lang-yaml="`25`" pulumi-lang-java="`25`" pulumi-lang-hcl="`25`">`25`</span>.
      */
     port?: pulumi.Input<number | undefined>;
-    /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=5`.
-     */
-    recoveryCacheTimeout?: pulumi.Input<string | undefined>;
-    /**
-     * Defaults to <span pulumi-lang-nodejs="`5`" pulumi-lang-dotnet="`5`" pulumi-lang-go="`5`" pulumi-lang-python="`5`" pulumi-lang-yaml="`5`" pulumi-lang-java="`5`" pulumi-lang-hcl="`5`">`5`</span>.
-     */
-    recoveryMaxAttempts?: pulumi.Input<number | undefined>;
     stageEmailId?: pulumi.Input<string | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`authentik`" pulumi-lang-dotnet="`Authentik`" pulumi-lang-go="`authentik`" pulumi-lang-python="`authentik`" pulumi-lang-yaml="`authentik`" pulumi-lang-java="`authentik`" pulumi-lang-hcl="`authentik`">`authentik`</span>.
@@ -240,9 +212,9 @@ export interface StageEmailArgs {
      */
     timeout?: pulumi.Input<number | undefined>;
     /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=30`.
+     * Defaults to <span pulumi-lang-nodejs="`30`" pulumi-lang-dotnet="`30`" pulumi-lang-go="`30`" pulumi-lang-python="`30`" pulumi-lang-yaml="`30`" pulumi-lang-java="`30`" pulumi-lang-hcl="`30`">`30`</span>.
      */
-    tokenExpiry?: pulumi.Input<string | undefined>;
+    tokenExpiry?: pulumi.Input<number | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */

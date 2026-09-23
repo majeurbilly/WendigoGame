@@ -33,11 +33,11 @@ export class ProviderOauth2 extends pulumi.CustomResource {
     }
 
     /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=1`.
+     * Defaults to `minutes=1`.
      */
     declare public readonly accessCodeValidity: pulumi.Output<string | undefined>;
     /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=10`.
+     * Defaults to `minutes=10`.
      */
     declare public readonly accessTokenValidity: pulumi.Output<string | undefined>;
     declare public readonly allowedRedirectUris: pulumi.Output<{[key: string]: string}[] | undefined>;
@@ -56,10 +56,6 @@ export class ProviderOauth2 extends pulumi.CustomResource {
      */
     declare public readonly clientType: pulumi.Output<string | undefined>;
     declare public readonly encryptionKey: pulumi.Output<string | undefined>;
-    /**
-     * Generated.
-     */
-    declare public readonly grantTypes: pulumi.Output<string[]>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
@@ -84,23 +80,11 @@ export class ProviderOauth2 extends pulumi.CustomResource {
      * JWTs issued by keys configured in any of the selected sources can be used to authenticate on behalf of this provider.
      */
     declare public readonly jwtFederationSources: pulumi.Output<string[] | undefined>;
-    /**
-     * Allowed values:
-     *   - <span pulumi-lang-nodejs="`backchannel`" pulumi-lang-dotnet="`Backchannel`" pulumi-lang-go="`backchannel`" pulumi-lang-python="`backchannel`" pulumi-lang-yaml="`backchannel`" pulumi-lang-java="`backchannel`" pulumi-lang-hcl="`backchannel`">`backchannel`</span>
-     *   - <span pulumi-lang-nodejs="`frontchannel`" pulumi-lang-dotnet="`Frontchannel`" pulumi-lang-go="`frontchannel`" pulumi-lang-python="`frontchannel`" pulumi-lang-yaml="`frontchannel`" pulumi-lang-java="`frontchannel`" pulumi-lang-hcl="`frontchannel`">`frontchannel`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`backchannel`" pulumi-lang-dotnet="`Backchannel`" pulumi-lang-go="`backchannel`" pulumi-lang-python="`backchannel`" pulumi-lang-yaml="`backchannel`" pulumi-lang-java="`backchannel`" pulumi-lang-hcl="`backchannel`">`backchannel`</span>.
-     */
-    declare public readonly logoutMethod: pulumi.Output<string | undefined>;
-    declare public readonly logoutUri: pulumi.Output<string | undefined>;
     declare public readonly name: pulumi.Output<string>;
     declare public readonly propertyMappings: pulumi.Output<string[] | undefined>;
     declare public readonly providerOauth2Id: pulumi.Output<string>;
     /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `seconds=0`.
-     */
-    declare public readonly refreshTokenThreshold: pulumi.Output<string | undefined>;
-    /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `days=30`.
+     * Defaults to `days=30`.
      */
     declare public readonly refreshTokenValidity: pulumi.Output<string | undefined>;
     declare public readonly signingKey: pulumi.Output<string | undefined>;
@@ -138,19 +122,15 @@ export class ProviderOauth2 extends pulumi.CustomResource {
             resourceInputs["clientSecret"] = state?.clientSecret;
             resourceInputs["clientType"] = state?.clientType;
             resourceInputs["encryptionKey"] = state?.encryptionKey;
-            resourceInputs["grantTypes"] = state?.grantTypes;
             resourceInputs["includeClaimsInIdToken"] = state?.includeClaimsInIdToken;
             resourceInputs["invalidationFlow"] = state?.invalidationFlow;
             resourceInputs["issuerMode"] = state?.issuerMode;
             resourceInputs["jwksSources"] = state?.jwksSources;
             resourceInputs["jwtFederationProviders"] = state?.jwtFederationProviders;
             resourceInputs["jwtFederationSources"] = state?.jwtFederationSources;
-            resourceInputs["logoutMethod"] = state?.logoutMethod;
-            resourceInputs["logoutUri"] = state?.logoutUri;
             resourceInputs["name"] = state?.name;
             resourceInputs["propertyMappings"] = state?.propertyMappings;
             resourceInputs["providerOauth2Id"] = state?.providerOauth2Id;
-            resourceInputs["refreshTokenThreshold"] = state?.refreshTokenThreshold;
             resourceInputs["refreshTokenValidity"] = state?.refreshTokenValidity;
             resourceInputs["signingKey"] = state?.signingKey;
             resourceInputs["subMode"] = state?.subMode;
@@ -174,19 +154,15 @@ export class ProviderOauth2 extends pulumi.CustomResource {
             resourceInputs["clientSecret"] = args?.clientSecret ? pulumi.secret(args.clientSecret) : undefined;
             resourceInputs["clientType"] = args?.clientType;
             resourceInputs["encryptionKey"] = args?.encryptionKey;
-            resourceInputs["grantTypes"] = args?.grantTypes;
             resourceInputs["includeClaimsInIdToken"] = args?.includeClaimsInIdToken;
             resourceInputs["invalidationFlow"] = args?.invalidationFlow;
             resourceInputs["issuerMode"] = args?.issuerMode;
             resourceInputs["jwksSources"] = args?.jwksSources;
             resourceInputs["jwtFederationProviders"] = args?.jwtFederationProviders;
             resourceInputs["jwtFederationSources"] = args?.jwtFederationSources;
-            resourceInputs["logoutMethod"] = args?.logoutMethod;
-            resourceInputs["logoutUri"] = args?.logoutUri;
             resourceInputs["name"] = args?.name;
             resourceInputs["propertyMappings"] = args?.propertyMappings;
             resourceInputs["providerOauth2Id"] = args?.providerOauth2Id;
-            resourceInputs["refreshTokenThreshold"] = args?.refreshTokenThreshold;
             resourceInputs["refreshTokenValidity"] = args?.refreshTokenValidity;
             resourceInputs["signingKey"] = args?.signingKey;
             resourceInputs["subMode"] = args?.subMode;
@@ -203,11 +179,11 @@ export class ProviderOauth2 extends pulumi.CustomResource {
  */
 export interface ProviderOauth2State {
     /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=1`.
+     * Defaults to `minutes=1`.
      */
     accessCodeValidity?: pulumi.Input<string | undefined>;
     /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=10`.
+     * Defaults to `minutes=10`.
      */
     accessTokenValidity?: pulumi.Input<string | undefined>;
     allowedRedirectUris?: pulumi.Input<pulumi.Input<{[key: string]: pulumi.Input<string>}>[] | undefined>;
@@ -226,10 +202,6 @@ export interface ProviderOauth2State {
      */
     clientType?: pulumi.Input<string | undefined>;
     encryptionKey?: pulumi.Input<string | undefined>;
-    /**
-     * Generated.
-     */
-    grantTypes?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
@@ -254,23 +226,11 @@ export interface ProviderOauth2State {
      * JWTs issued by keys configured in any of the selected sources can be used to authenticate on behalf of this provider.
      */
     jwtFederationSources?: pulumi.Input<pulumi.Input<string>[] | undefined>;
-    /**
-     * Allowed values:
-     *   - <span pulumi-lang-nodejs="`backchannel`" pulumi-lang-dotnet="`Backchannel`" pulumi-lang-go="`backchannel`" pulumi-lang-python="`backchannel`" pulumi-lang-yaml="`backchannel`" pulumi-lang-java="`backchannel`" pulumi-lang-hcl="`backchannel`">`backchannel`</span>
-     *   - <span pulumi-lang-nodejs="`frontchannel`" pulumi-lang-dotnet="`Frontchannel`" pulumi-lang-go="`frontchannel`" pulumi-lang-python="`frontchannel`" pulumi-lang-yaml="`frontchannel`" pulumi-lang-java="`frontchannel`" pulumi-lang-hcl="`frontchannel`">`frontchannel`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`backchannel`" pulumi-lang-dotnet="`Backchannel`" pulumi-lang-go="`backchannel`" pulumi-lang-python="`backchannel`" pulumi-lang-yaml="`backchannel`" pulumi-lang-java="`backchannel`" pulumi-lang-hcl="`backchannel`">`backchannel`</span>.
-     */
-    logoutMethod?: pulumi.Input<string | undefined>;
-    logoutUri?: pulumi.Input<string | undefined>;
     name?: pulumi.Input<string | undefined>;
     propertyMappings?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     providerOauth2Id?: pulumi.Input<string | undefined>;
     /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `seconds=0`.
-     */
-    refreshTokenThreshold?: pulumi.Input<string | undefined>;
-    /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `days=30`.
+     * Defaults to `days=30`.
      */
     refreshTokenValidity?: pulumi.Input<string | undefined>;
     signingKey?: pulumi.Input<string | undefined>;
@@ -292,11 +252,11 @@ export interface ProviderOauth2State {
  */
 export interface ProviderOauth2Args {
     /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=1`.
+     * Defaults to `minutes=1`.
      */
     accessCodeValidity?: pulumi.Input<string | undefined>;
     /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `minutes=10`.
+     * Defaults to `minutes=10`.
      */
     accessTokenValidity?: pulumi.Input<string | undefined>;
     allowedRedirectUris?: pulumi.Input<pulumi.Input<{[key: string]: pulumi.Input<string>}>[] | undefined>;
@@ -315,10 +275,6 @@ export interface ProviderOauth2Args {
      */
     clientType?: pulumi.Input<string | undefined>;
     encryptionKey?: pulumi.Input<string | undefined>;
-    /**
-     * Generated.
-     */
-    grantTypes?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     /**
      * Defaults to <span pulumi-lang-nodejs="`true`" pulumi-lang-dotnet="`True`" pulumi-lang-go="`true`" pulumi-lang-python="`true`" pulumi-lang-yaml="`true`" pulumi-lang-java="`true`" pulumi-lang-hcl="`true`">`true`</span>.
      */
@@ -343,23 +299,11 @@ export interface ProviderOauth2Args {
      * JWTs issued by keys configured in any of the selected sources can be used to authenticate on behalf of this provider.
      */
     jwtFederationSources?: pulumi.Input<pulumi.Input<string>[] | undefined>;
-    /**
-     * Allowed values:
-     *   - <span pulumi-lang-nodejs="`backchannel`" pulumi-lang-dotnet="`Backchannel`" pulumi-lang-go="`backchannel`" pulumi-lang-python="`backchannel`" pulumi-lang-yaml="`backchannel`" pulumi-lang-java="`backchannel`" pulumi-lang-hcl="`backchannel`">`backchannel`</span>
-     *   - <span pulumi-lang-nodejs="`frontchannel`" pulumi-lang-dotnet="`Frontchannel`" pulumi-lang-go="`frontchannel`" pulumi-lang-python="`frontchannel`" pulumi-lang-yaml="`frontchannel`" pulumi-lang-java="`frontchannel`" pulumi-lang-hcl="`frontchannel`">`frontchannel`</span>
-     *      Defaults to <span pulumi-lang-nodejs="`backchannel`" pulumi-lang-dotnet="`Backchannel`" pulumi-lang-go="`backchannel`" pulumi-lang-python="`backchannel`" pulumi-lang-yaml="`backchannel`" pulumi-lang-java="`backchannel`" pulumi-lang-hcl="`backchannel`">`backchannel`</span>.
-     */
-    logoutMethod?: pulumi.Input<string | undefined>;
-    logoutUri?: pulumi.Input<string | undefined>;
     name?: pulumi.Input<string | undefined>;
     propertyMappings?: pulumi.Input<pulumi.Input<string>[] | undefined>;
     providerOauth2Id?: pulumi.Input<string | undefined>;
     /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `seconds=0`.
-     */
-    refreshTokenThreshold?: pulumi.Input<string | undefined>;
-    /**
-     * Format: hours=1;minutes=2;seconds=3. Defaults to `days=30`.
+     * Defaults to `days=30`.
      */
     refreshTokenValidity?: pulumi.Input<string | undefined>;
     signingKey?: pulumi.Input<string | undefined>;
