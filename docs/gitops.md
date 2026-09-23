@@ -37,6 +37,7 @@ Pipeline : `.github/workflows/ci-cd.yml` (push sur `main`)
 - Labels : au minimum `self-hosted` (job `deploy`).
 - Docker + Compose : exécutés **sur gaston** via SSH depuis le runner (`moumou`) — pas de Docker local requis sur le runner.
 - Secrets bootstrap injectés dans `.env` distant ; healthcheck HTTP puis Pulumi (`AUTHENTIK_TOKEN` = bootstrap token).
+- Sync `authentik/blueprints/` vers gaston (volume Compose `/blueprints/custom`).
 
 ## Secrets GitHub Actions (Authentik)
 
@@ -49,9 +50,9 @@ Pipeline : `.github/workflows/ci-cd.yml` (push sur `main`)
 
 Email bootstrap fixé dans le workflow : `admin@stringempty.dev`.
 
-Compose Authentik : `docker-compose.yml` à la racine (postgres + redis + server + worker, port **9000**).
+Compose Authentik : `docker-compose.yml` à la racine (postgres + redis + server + worker, port **9000**) + mount blueprints OIDC.
 
-Après Compose, le job lance **Pulumi** (`infrastructure/`, stack `dev`, état local via `pulumi login --local`) pour créer le Provider OIDC + Application `wendigo`.
+Après Compose, le job attend le JWKS `/application/o/wendigo/jwks/` puis lance **Pulumi** en **lookup** (`getProviderOauth2Config`) — plus de création `ProviderOauth2` via le bridge TF.
 
 ## Secret GHCR (`ghcr-creds`)
 
@@ -73,5 +74,5 @@ Si les packages GHCR sont **publics**, le secret est inutile mais inoffensif tan
 
 - **CI** : un seul workflow `ci-cd.yml` ; plus de `build-and-push-ghcr.yml` ni `argocd-app.yaml`.
 - **Frontend** : Variables repo `VITE_*` (sinon défauts localhost).
-- **Authentik** : Compose sur l’hôte ; OIDC via Pulumi MVP.
+- **Authentik** : Compose sur l’hôte ; OIDC via blueprint + lookup Pulumi.
 - **Loki / Grafana / Promtail** : **retirés** du dépôt (OOM sur homelab).

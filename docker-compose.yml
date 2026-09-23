@@ -52,6 +52,8 @@ services:
       AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:?set AUTHENTIK_BOOTSTRAP_TOKEN}
     volumes:
       - authentik_media:/media
+      # Blueprints custom (OIDC Wendigo) — découverts sous /blueprints
+      - ./authentik/blueprints:/blueprints/custom:ro
     ports:
       - "${AUTHENTIK_HTTP_PORT:-9000}:9000"
       - "${AUTHENTIK_HTTPS_PORT:-9443}:9443"
@@ -79,6 +81,8 @@ services:
       AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:?set AUTHENTIK_BOOTSTRAP_TOKEN}
     volumes:
       - authentik_media:/media
+      # Worker applique / surveille les blueprints
+      - ./authentik/blueprints:/blueprints/custom:ro
     depends_on:
       authentik-postgresql:
         condition: service_healthy

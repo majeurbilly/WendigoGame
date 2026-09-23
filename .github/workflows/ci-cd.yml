@@ -133,7 +133,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Démarrage conditionnel d'Authentik
+      - name: Sync Authentik Compose + blueprints (gaston)
         env:
           AUTHENTIK_BOOTSTRAP_PASSWORD: ${{ secrets.AUTHENTIK_BOOTSTRAP_PASSWORD }}
           AUTHENTIK_BOOTSTRAP_TOKEN: ${{ secrets.AUTHENTIK_BOOTSTRAP_TOKEN }}
@@ -146,17 +146,14 @@ jobs:
           REMOTE_DIR="${AUTHENTIK_REMOTE_DIR:-/home/gaston/WendigoGame}"
           SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=accept-new)
 
-          if curl -sSf http://192.168.0.157:9000/-/health/ready/ > /dev/null 2>&1; then
-            echo "Authentik déjà prêt sur gaston — skip Compose distant."
-            exit 0
-          fi
-
-          echo "Authentik injoignable — déploiement Compose via SSH sur ${AUTHENTIK_SSH_HOST}:${REMOTE_DIR}"
           command -v ssh >/dev/null || { echo "ssh introuvable sur le runner"; exit 1; }
           command -v scp >/dev/null || { echo "scp introuvable sur le runner"; exit 1; }
 
-          ssh "${SSH_OPTS[@]}" "${AUTHENTIK_SSH_HOST}" "mkdir -p '${REMOTE_DIR}'"
+          # Toujours synchroniser Compose + blueprints (volume /blueprints/custom)
+          ssh "${SSH_OPTS[@]}" "${AUTHENTIK_SSH_HOST}" "mkdir -p '${REMOTE_DIR}/authentik/blueprints'"
           scp "${SSH_OPTS[@]}" docker-compose.yml "${AUTHENTIK_SSH_HOST}:${REMOTE_DIR}/docker-compose.yml"
+          scp "${SSH_OPTS[@]}" authentik/blueprints/*.yaml \
+            "${AUTHENTIK_SSH_HOST}:${REMOTE_DIR}/authentik/blueprints/"
 
           # .env écrit sur gaston (pas sur le runner)
           ssh "${SSH_OPTS[@]}" "${AUTHENTIK_SSH_HOST}" "cat > '${REMOTE_DIR}/.env'" <<EOF
@@ -165,15 +162,19 @@ jobs:
           AUTHENTIK_BOOTSTRAP_TOKEN=${AUTHENTIK_BOOTSTRAP_TOKEN}
           EOF
 
+          # up -d : applique le mount blueprints même si Authentik était déjà up
+          echo "docker compose up -d sur ${AUTHENTIK_SSH_HOST}:${REMOTE_DIR}"
           ssh "${SSH_OPTS[@]}" "${AUTHENTIK_SSH_HOST}" \
-            "cd '${REMOTE_DIR}' && docker compose up -d --no-recreate"
+            "cd '${REMOTE_DIR}' && docker compose up -d"
 
       - name: Attendre que l'API Authentik soit prête
         run: |
           set -euo pipefail
           echo "Attente /-/health/ready/ (max 10 minutes — cold boot / migrations Postgres)..."
           timeout 600 bash -c 'until curl -sSf http://192.168.0.157:9000/-/health/ready/ > /dev/null 2>&1; do echo "En attente..."; sleep 5; done'
-          echo "Authentik prêt pour Pulumi."
+          echo "Attente JWKS blueprint Wendigo (max 3 minutes)..."
+          timeout 180 bash -c 'until curl -sS http://192.168.0.157:9000/application/o/wendigo/jwks/ 2>/dev/null | grep -q "\"keys\""; do echo "Blueprint OIDC en attente..."; sleep 5; done'
+          echo "Authentik + blueprint OIDC prêts pour Pulumi (lookup)."
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4

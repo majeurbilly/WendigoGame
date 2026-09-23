@@ -1,40 +1,37 @@
-# Authentik OIDC via Pulumi (registre officiel)
+# Authentik OIDC — Blueprints + lookup Pulumi
 
 ## État actuel
 
-`infrastructure/index.ts` provisionne l’OIDC via le provider **Any Terraform Provider** du registre Pulumi (`goauthentik/authentik`), généré par :
+Provisioning OIDC **hors** création de ressources Terraform/Pulumi (évite le crash `EOF` du bridge) :
 
-```bash
-pulumi package add terraform-provider goauthentik/authentik 2024.12.1
-```
-
-**Alignement de version** : Compose déploie Authentik `2024.12.5` → provider TF pinné à `2024.12.1` (même ligne majeure/mineure). Évite les erreurs de désérialisation API du type `no value given for required property autocomplete` (schéma 2026.x trop récent pour l’instance).
-
-Chaîne des ressources :
-
-1. Config native `authentik:url` / `authentik:insecure` (`Pulumi.yaml`) + `AUTHENTIK_TOKEN` (env CI)
-2. `authentik.getFlow` — `default-provider-authorization-explicit-consent` et `default-provider-invalidation-flow`
-3. `authentik.getCertificateKeyPair` — `authentik Self-signed Certificate` (`fetchKey`/`fetchCertificate: false`)
-4. `authentik.ProviderOauth2` (`client_id: wendigo-dev`) → `authentik.Application` slug `wendigo` via `protocolProvider` (`providerOauth2Id`)
-5. Exports `OIDC_ISSUER_URL` / `AUTHENTIK_JWKS_URL`
+1. **Blueprint natif** `authentik/blueprints/wendigo-oidc.yaml` monté dans Compose (`/blueprints/custom`)
+2. Crée `oauth2provider` (`client_id: wendigo-dev`, public) + `Application` slug `wendigo`
+3. **Pulumi** (`infrastructure/index.ts`) ne fait qu’un **lookup** : `authentik.getProviderOauth2Config({ name: "wendigo-dev-provider" })`
+4. Exports `OIDC_ISSUER_URL` / `AUTHENTIK_JWKS_URL` depuis les URLs officielles renvoyées par l’API
 
 ## Choix techniques
 
-- SDK sous `sdks/authentik` généré par `pulumi package add`, déclaré dans `Pulumi.yaml` → `packages.authentik` (`2024.12.1`).
-- Pas de `new authentik.Provider()` : le bridge lit `AUTHENTIK_TOKEN` / `AUTHENTIK_URL`.
-- Certificat défaut Authentik plutôt qu’un `tls` + `CertificateKeyPair` custom.
-- `protocolProvider` attend un `number` → conversion depuis `providerOauth2Id`.
-- Enums OAuth2 (`issuerMode`, `subMode`) : valeurs **snake_case TF** (`per_provider`, `user_uuid`) — le validateur Terraform rejette le camelCase Node (`perProvider` / `userUuid`).
+| Couche | Rôle |
+|--------|------|
+| Blueprint Authentik | Source de vérité OIDC (flows défaut, cert self-signed, scopes, redirects) |
+| Compose volume `./authentik/blueprints:/blueprints/custom:ro` | Découverte auto (server + worker) |
+| Pulumi `getProviderOauth2Config` | Lecture safe — pas de `ProviderOauth2` / `Application` |
+| Provider TF `2024.12.1` | Aligné Compose `2024.12.5` (data sources uniquement) |
 
 ## Prérequis CI
 
-- `AUTHENTIK_TOKEN` = bootstrap token (même secret Compose)
-- `AUTHENTIK_URL=http://192.168.0.157:9000`
-- `PULUMI_CONFIG_PASSPHRASE` pour état local
+- Sync SSH : `docker-compose.yml` + `authentik/blueprints/*.yaml` puis `docker compose up -d`
+- Attente `/-/health/ready/` puis JWKS `/application/o/wendigo/jwks/`
+- `AUTHENTIK_TOKEN` = bootstrap token (lookup API)
 
-## Vérification
+## Migration depuis ProviderOauth2 Pulumi
+
+Si le stack `dev` contient encore d’anciennes ressources `ProviderOauth2` / `Application`, `pulumi up` tentera de les **supprimer** via l’API (risque EOF). Dans ce cas, retirer les URNs du state sans appeler Authentik :
 
 ```bash
-curl -sS http://192.168.0.157:9000/application/o/wendigo/jwks/
-# "keys": [ ... ] non vide
+cd infrastructure
+pulumi stack select dev
+pulumi state delete '<urn ProviderOauth2>'
+pulumi state delete '<urn Application>'
+# puis pulumi up -y (lookup only)
 ```
