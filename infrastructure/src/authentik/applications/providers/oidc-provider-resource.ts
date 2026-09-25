@@ -201,8 +201,9 @@ export interface OidcProviderResourceArgs {
  * `authentik.ProviderOauth2` (plugin Go / TF 2024.12.x).
  */
 export class OidcProviderResource extends pulumi.dynamic.Resource {
-  public readonly pk!: pulumi.Output<number>;
-  public readonly clientSecret!: pulumi.Output<string>;
+  /** `declare` : évite que useDefineForClassFields écrase les Outputs Pulumi après super(). */
+  declare public readonly pk: pulumi.Output<number>;
+  declare public readonly clientSecret: pulumi.Output<string>;
 
   constructor(name: string, args: OidcProviderResourceArgs, opts?: pulumi.CustomResourceOptions) {
     super(
