@@ -16,7 +16,8 @@
 |--------|------|
 | Helm `goauthentik/authentik` | Server + worker in-cluster |
 | Pulumi `ProviderOauth2` / `Application` | Source de vérité OIDC (GitOps) |
-| Lookups différés (cert + scopes) | Attente post-Helm, évite EOF / cold boot |
+| `CertificateKeyPair` + `@pulumi/tls` | Signing key explicite (évite EOF crypto à la volée) |
+| Lookups différés (scopes) | Attente post-Helm pour openid/email/profile/offline_access |
 | Timeouts create 20m | Bridge TF Authentik parfois lent |
 
 ## Impacts

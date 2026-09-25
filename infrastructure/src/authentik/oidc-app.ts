@@ -1,9 +1,14 @@
 /**
  * Étape 6 — OIDC Wendigo via provider Authentik natif (@pulumi/authentik).
  * Remplace le blueprint YAML `authentik/blueprints/wendigo-oidc.yaml`.
+ *
+ * Signing key : générée en local (@pulumi/tls) puis uploadée via CertificateKeyPair.
+ * (Le SDK 2024.12.1 n’a pas `generate: true` — évite aussi l’EOF du POST OAuth2
+ * quand Authentik génère une clé RSA pendant la requête HTTP.)
  */
 import * as authentik from '@pulumi/authentik';
 import * as pulumi from '@pulumi/pulumi';
+import * as tls from '@pulumi/tls';
 import { akInvokeOpts, akOpts } from '../utils';
 
 export const APPLICATION_NAME = 'Wendigo';
@@ -34,6 +39,7 @@ export interface WendigoOidcArgs {
 export interface WendigoOidcResult {
   authorizationFlow: authentik.Flow;
   invalidationFlow: authentik.Flow;
+  signingCertificate: authentik.CertificateKeyPair;
   oidcProvider: authentik.ProviderOauth2;
   application: authentik.Application;
   oidcClientId: string;
@@ -53,25 +59,16 @@ function parseRedirectUris(
     .map((url) => ({ matchingMode: 'strict', url }));
 }
 
-async function waitForBuiltinOidcDeps(
+async function waitForBuiltinScopes(
   provider: authentik.Provider,
   timeoutMs = 180_000,
-): Promise<{ signingKeyId: string; propertyMappingIds: string[] }> {
+): Promise<string[]> {
   const invokeOpts = akInvokeOpts(provider);
   const deadline = Date.now() + timeoutMs;
   let lastError: unknown;
 
   while (Date.now() < deadline) {
     try {
-      const signing = await authentik.getCertificateKeyPair(
-        {
-          name: 'authentik Self-signed Certificate',
-          fetchCertificate: false,
-          fetchKey: false,
-        },
-        invokeOpts,
-      );
-
       const propertyMappingIds: string[] = [];
       for (const scopeName of BUILTIN_SCOPES) {
         const scope = await authentik.getPropertyMappingProviderScope(
@@ -80,8 +77,7 @@ async function waitForBuiltinOidcDeps(
         );
         propertyMappingIds.push(scope.id);
       }
-
-      return { signingKeyId: signing.id, propertyMappingIds };
+      return propertyMappingIds;
     } catch (err) {
       lastError = err;
       await new Promise((r) => setTimeout(r, 5_000));
@@ -89,12 +85,53 @@ async function waitForBuiltinOidcDeps(
   }
 
   throw new Error(
-    `Authentik builtins (signing cert / OIDC scopes) indisponibles. Dernière erreur: ${String(lastError)}`,
+    `Scopes OIDC built-in Authentik indisponibles. Dernière erreur: ${String(lastError)}`,
+  );
+}
+
+function createOidcSigningCertificate(
+  provider: authentik.Provider,
+  dependsOn: pulumi.Input<pulumi.Resource>[],
+): authentik.CertificateKeyPair {
+  const privateKey = new tls.PrivateKey(
+    'wendigo-oidc-signing-key',
+    {
+      algorithm: 'RSA',
+      rsaBits: 2048,
+    },
+    { dependsOn },
+  );
+
+  const selfSigned = new tls.SelfSignedCert(
+    'wendigo-oidc-signing-cert',
+    {
+      privateKeyPem: privateKey.privateKeyPem,
+      subject: {
+        commonName: 'wendigo-oidc-signing',
+        organization: 'Wendigo',
+      },
+      validityPeriodHours: 87600,
+      allowedUses: ['key_encipherment', 'digital_signature'],
+    },
+    { dependsOn: [privateKey] },
+  );
+
+  return new authentik.CertificateKeyPair(
+    'wendigo-jwt-key',
+    {
+      name: 'Wendigo: OIDC Signing (RSA)',
+      certificateData: selfSigned.certPem,
+      keyData: privateKey.privateKeyPem,
+    },
+    akOpts(provider, {
+      dependsOn: [...dependsOn, selfSigned],
+      customTimeouts: { create: '10m', update: '10m', delete: '5m' },
+    }),
   );
 }
 
 /**
- * Flows + ProviderOauth2 + Application — idempotent via state Pulumi.
+ * Flows + CertificateKeyPair + ProviderOauth2 + Application — idempotent via state Pulumi.
  */
 export function provisionWendigoOidc(args: WendigoOidcArgs): WendigoOidcResult {
   const { authentikProvider, authentikUrl } = args;
@@ -131,10 +168,16 @@ export function provisionWendigoOidc(args: WendigoOidcArgs): WendigoOidcResult {
     baseOpts,
   );
 
-  // Lookups différés après Helm (+ flows) pour éviter les invokes trop tôt (cold boot).
-  const builtins = pulumi
-    .all([authorizationFlow.id, invalidationFlow.id])
-    .apply(async () => waitForBuiltinOidcDeps(authentikProvider));
+  const signingCertificate = createOidcSigningCertificate(authentikProvider, [
+    ...dependsOn,
+    authorizationFlow,
+    invalidationFlow,
+  ]);
+
+  // Scopes built-in : lookup différé (pas de génération crypto côté Authentik).
+  const propertyMappings = pulumi
+    .all([authorizationFlow.id, invalidationFlow.id, signingCertificate.id])
+    .apply(async () => waitForBuiltinScopes(authentikProvider));
 
   const oidcProvider = new authentik.ProviderOauth2(
     'wendigo-oidc',
@@ -144,17 +187,22 @@ export function provisionWendigoOidc(args: WendigoOidcArgs): WendigoOidcResult {
       clientType: 'public',
       authorizationFlow: authorizationFlow.id,
       invalidationFlow: invalidationFlow.id,
-      signingKey: builtins.signingKeyId,
+      signingKey: signingCertificate.id,
       issuerMode: 'per_provider',
       subMode: 'user_uuid',
       includeClaimsInIdToken: true,
       accessTokenValidity: 'minutes=15',
       refreshTokenValidity: 'days=30',
       allowedRedirectUris: redirectUris,
-      propertyMappings: builtins.propertyMappingIds,
+      propertyMappings,
     },
     akOpts(authentikProvider, {
-      dependsOn: [...dependsOn, authorizationFlow, invalidationFlow],
+      dependsOn: [
+        ...dependsOn,
+        authorizationFlow,
+        invalidationFlow,
+        signingCertificate,
+      ],
       customTimeouts: { create: '20m', update: '20m', delete: '10m' },
     }),
   );
@@ -189,6 +237,7 @@ export function provisionWendigoOidc(args: WendigoOidcArgs): WendigoOidcResult {
   return {
     authorizationFlow,
     invalidationFlow,
+    signingCertificate,
     oidcProvider,
     application,
     oidcClientId: OIDC_CLIENT_ID,
