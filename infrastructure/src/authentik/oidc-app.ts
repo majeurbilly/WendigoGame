@@ -1,14 +1,14 @@
 /**
- * Étape 6 — OIDC Wendigo via provider Authentik natif (@pulumi/authentik).
- * Remplace le blueprint YAML `authentik/blueprints/wendigo-oidc.yaml`.
+ * Étape 6 — OIDC Wendigo via API Authentik (dynamic resource) + CertificateKeyPair.
  *
- * Signing key : générée en local (@pulumi/tls) puis uploadée via CertificateKeyPair.
- * (Le SDK 2024.12.1 n’a pas `generate: true` — évite aussi l’EOF du POST OAuth2
- * quand Authentik génère une clé RSA pendant la requête HTTP.)
+ * Pourquoi pas `authentik.ProviderOauth2` ?
+ * Le bridge TF 2024.12.x plante en EOF côté plugin Pulumi (pas de POST visible
+ * dans les logs Authentik). On utilise `OidcProviderResource` (HTTP + adopt/EOF recovery).
  */
 import * as authentik from '@pulumi/authentik';
 import * as pulumi from '@pulumi/pulumi';
 import * as tls from '@pulumi/tls';
+import { OidcProviderResource } from './applications/providers/oidc-provider-resource';
 import { akInvokeOpts, akOpts } from '../utils';
 
 export const APPLICATION_NAME = 'Wendigo';
@@ -29,9 +29,8 @@ const BUILTIN_SCOPES = ['openid', 'email', 'profile', 'offline_access'] as const
 
 export interface WendigoOidcArgs {
   authentikProvider: authentik.Provider;
-  /** URL publique Authentik (issuer / JWKS exports). */
   authentikUrl: string;
-  /** Typiquement le Helm Release — l'API doit être joignable avant create. */
+  authentikToken: pulumi.Input<string>;
   dependsOn: pulumi.Input<pulumi.Resource> | pulumi.Input<pulumi.Resource>[];
   redirectUris?: string[];
 }
@@ -40,7 +39,7 @@ export interface WendigoOidcResult {
   authorizationFlow: authentik.Flow;
   invalidationFlow: authentik.Flow;
   signingCertificate: authentik.CertificateKeyPair;
-  oidcProvider: authentik.ProviderOauth2;
+  oidcProvider: OidcProviderResource;
   application: authentik.Application;
   oidcClientId: string;
   oidcProviderId: pulumi.Output<string>;
@@ -95,10 +94,7 @@ function createOidcSigningCertificate(
 ): authentik.CertificateKeyPair {
   const privateKey = new tls.PrivateKey(
     'wendigo-oidc-signing-key',
-    {
-      algorithm: 'RSA',
-      rsaBits: 2048,
-    },
+    { algorithm: 'RSA', rsaBits: 2048 },
     { dependsOn },
   );
 
@@ -130,11 +126,21 @@ function createOidcSigningCertificate(
   );
 }
 
-/**
- * Flows + CertificateKeyPair + ProviderOauth2 + Application — idempotent via state Pulumi.
- */
+export function resolveAuthentikApiToken(): pulumi.Input<string> {
+  const authentikConfig = new pulumi.Config('authentik');
+  const wendigoConfig = new pulumi.Config('wendigo');
+  if (process.env.AUTHENTIK_TOKEN && process.env.AUTHENTIK_TOKEN.trim() !== '') {
+    return pulumi.secret(process.env.AUTHENTIK_TOKEN);
+  }
+  try {
+    return wendigoConfig.requireSecret('authentikBootstrapToken');
+  } catch {
+    return authentikConfig.requireSecret('token');
+  }
+}
+
 export function provisionWendigoOidc(args: WendigoOidcArgs): WendigoOidcResult {
-  const { authentikProvider, authentikUrl } = args;
+  const { authentikProvider, authentikUrl, authentikToken } = args;
   const dependsOn = Array.isArray(args.dependsOn) ? args.dependsOn : [args.dependsOn];
   const baseOpts = akOpts(authentikProvider, { dependsOn });
 
@@ -174,14 +180,15 @@ export function provisionWendigoOidc(args: WendigoOidcArgs): WendigoOidcResult {
     invalidationFlow,
   ]);
 
-  // Scopes built-in : lookup différé (pas de génération crypto côté Authentik).
   const propertyMappings = pulumi
     .all([authorizationFlow.id, invalidationFlow.id, signingCertificate.id])
     .apply(async () => waitForBuiltinScopes(authentikProvider));
 
-  const oidcProvider = new authentik.ProviderOauth2(
+  const oidcProvider = new OidcProviderResource(
     'wendigo-oidc',
     {
+      authentikUrl,
+      authentikToken,
       name: OIDC_PROVIDER_NAME,
       clientId: OIDC_CLIENT_ID,
       clientType: 'public',
@@ -193,10 +200,10 @@ export function provisionWendigoOidc(args: WendigoOidcArgs): WendigoOidcResult {
       includeClaimsInIdToken: true,
       accessTokenValidity: 'minutes=15',
       refreshTokenValidity: 'days=30',
-      allowedRedirectUris: redirectUris,
+      redirectUris,
       propertyMappings,
     },
-    akOpts(authentikProvider, {
+    {
       dependsOn: [
         ...dependsOn,
         authorizationFlow,
@@ -204,7 +211,7 @@ export function provisionWendigoOidc(args: WendigoOidcArgs): WendigoOidcResult {
         signingCertificate,
       ],
       customTimeouts: { create: '20m', update: '20m', delete: '10m' },
-    }),
+    },
   );
 
   const application = new authentik.Application(
@@ -212,15 +219,7 @@ export function provisionWendigoOidc(args: WendigoOidcArgs): WendigoOidcResult {
     {
       name: APPLICATION_NAME,
       slug: APPLICATION_SLUG,
-      protocolProvider: oidcProvider.providerOauth2Id.apply((id) => {
-        const n = Number.parseInt(String(id), 10);
-        if (!Number.isFinite(n)) {
-          throw new pulumi.RunError(
-            `Invalid OIDC provider ID from ProviderOauth2: ${String(id)}`,
-          );
-        }
-        return n;
-      }),
+      protocolProvider: oidcProvider.pk,
       metaLaunchUrl: 'http://wendigo.local/',
       metaPublisher: 'Wendigo Game',
       policyEngineMode: 'any',
@@ -241,7 +240,7 @@ export function provisionWendigoOidc(args: WendigoOidcArgs): WendigoOidcResult {
     oidcProvider,
     application,
     oidcClientId: OIDC_CLIENT_ID,
-    oidcProviderId: oidcProvider.providerOauth2Id,
+    oidcProviderId: oidcProvider.pk.apply(String),
     oidcProviderName: OIDC_PROVIDER_NAME,
     applicationSlug: APPLICATION_SLUG,
     oidcIssuerUrl,
@@ -249,34 +248,17 @@ export function provisionWendigoOidc(args: WendigoOidcArgs): WendigoOidcResult {
   };
 }
 
-/**
- * Provider API Authentik (URL + token bootstrap).
- * Token : AUTHENTIK_TOKEN (env/CI) > wendigo:authentikBootstrapToken > authentik:token
- */
 export function createAuthentikApiProvider(): authentik.Provider {
   const authentikConfig = new pulumi.Config('authentik');
-  const wendigoConfig = new pulumi.Config('wendigo');
-
   const url = (
     process.env.AUTHENTIK_URL ??
     authentikConfig.get('url') ??
     'http://192.168.0.157:30900'
   ).replace(/\/+$/, '');
 
-  let token: pulumi.Input<string>;
-  if (process.env.AUTHENTIK_TOKEN && process.env.AUTHENTIK_TOKEN.trim() !== '') {
-    token = pulumi.secret(process.env.AUTHENTIK_TOKEN);
-  } else {
-    try {
-      token = wendigoConfig.requireSecret('authentikBootstrapToken');
-    } catch {
-      token = authentikConfig.requireSecret('token');
-    }
-  }
-
   return new authentik.Provider('wendigo-authentik-api', {
     url,
-    token,
+    token: resolveAuthentikApiToken(),
     insecure: authentikConfig.getBoolean('insecure') ?? true,
   });
 }

@@ -14,6 +14,7 @@
     "index.ts",
     "src/k8s/**/*.ts",
     "src/authentik/oidc-app.ts",
+    "src/authentik/applications/providers/oidc-provider-resource.ts",
     "src/utils.ts"
   ],
   "exclude": ["node_modules", "bin", "sdks", "scripts"]

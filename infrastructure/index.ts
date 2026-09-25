@@ -6,6 +6,7 @@ import * as pulumi from '@pulumi/pulumi';
 import {
   createAuthentikApiProvider,
   provisionWendigoOidc,
+  resolveAuthentikApiToken,
 } from './src/authentik/oidc-app';
 import { deployAuthentikHelm } from './src/k8s/authentik';
 
@@ -18,7 +19,6 @@ const authentikUrl = (
 ).replace(/\/+$/, '');
 
 if (!process.env.AUTHENTIK_TOKEN || process.env.AUTHENTIK_TOKEN.trim() === '') {
-  // CI injecte AUTHENTIK_TOKEN ; en local, wendigo:authentikBootstrapToken suffit via createAuthentikApiProvider.
   const wendigo = new pulumi.Config('wendigo');
   if (!wendigo.getSecret('authentikBootstrapToken')) {
     throw new Error(
@@ -27,14 +27,12 @@ if (!process.env.AUTHENTIK_TOKEN || process.env.AUTHENTIK_TOKEN.trim() === '') {
   }
 }
 
-// --- Runtime K8s (Helm) ---
 const authentikStack = deployAuthentikHelm();
-
-// --- Config OIDC native (étape 6) ---
 const authentikApi = createAuthentikApiProvider();
 const oidc = provisionWendigoOidc({
   authentikProvider: authentikApi,
   authentikUrl,
+  authentikToken: resolveAuthentikApiToken(),
   dependsOn: [authentikStack.release],
 });
 

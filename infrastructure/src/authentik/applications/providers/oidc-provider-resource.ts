@@ -8,7 +8,7 @@ interface OidcProviderInputs {
   clientType: string;
   authorizationFlow: string;
   invalidationFlow: string;
-  authenticationFlow: string;
+  authenticationFlow?: string;
   signingKey?: string;
   redirectUris: Array<{ matchingMode: string; url: string }>;
   issuerMode: string;
@@ -31,7 +31,6 @@ function toApiBody(inputs: OidcProviderInputs): Record<string, unknown> {
     client_type: inputs.clientType,
     authorization_flow: inputs.authorizationFlow,
     invalidation_flow: inputs.invalidationFlow,
-    authentication_flow: inputs.authenticationFlow,
     redirect_uris: inputs.redirectUris.map((u) => ({
       matching_mode: u.matchingMode,
       url: u.url,
@@ -39,6 +38,7 @@ function toApiBody(inputs: OidcProviderInputs): Record<string, unknown> {
     issuer_mode: inputs.issuerMode,
     sub_mode: inputs.subMode,
   };
+  if (inputs.authenticationFlow) body.authentication_flow = inputs.authenticationFlow;
   if (inputs.signingKey) body.signing_key = inputs.signingKey;
   if (inputs.propertyMappings?.length) body.property_mappings = inputs.propertyMappings;
   if (inputs.includeClaimsInIdToken !== undefined)
@@ -63,8 +63,7 @@ async function apiRequest(
   });
 }
 
-// If the POST drops the connection (Authentik EOF bug), check whether the resource
-// was actually created before the server closed the socket.
+/** Lookup par client_id — recovery EOF / adopt d'un provider blueprint existant. */
 async function findByClientId(
   base: string,
   token: string,
@@ -86,6 +85,25 @@ const oidcProviderResourceImpl: pulumi.dynamic.ResourceProvider = {
     let pk: number | undefined;
     let clientSecret = '';
 
+    // Adopt si déjà présent (ex: ancien blueprint / create partiel + EOF)
+    pk = await findByClientId(base, token, inputs.clientId);
+    if (pk !== undefined) {
+      const patch = await apiRequest(
+        `${base}/api/v3/providers/oauth2/${pk}/`,
+        token,
+        'PATCH',
+        toApiBody(inputs),
+      );
+      if (patch.ok) {
+        const data = (await patch.json()) as { pk: number; client_secret?: string };
+        clientSecret = data.client_secret ?? '';
+      }
+      return {
+        id: String(pk),
+        outs: { ...inputs, pk, clientSecret } satisfies OidcProviderOutputs,
+      };
+    }
+
     try {
       const res = await apiRequest(
         `${base}/api/v3/providers/oauth2/`,
@@ -98,17 +116,22 @@ const oidcProviderResourceImpl: pulumi.dynamic.ResourceProvider = {
         pk = data.pk;
         clientSecret = data.client_secret ?? '';
       } else {
-        throw new Error(`Authentik API ${res.status}: ${await res.text()}`);
+        // Conflit possible → retry lookup
+        pk = await findByClientId(base, token, inputs.clientId);
+        if (pk === undefined) {
+          throw new Error(`Authentik API ${res.status}: ${await res.text()}`);
+        }
       }
-    } catch {
-      // POST failed â€” Authentik may have created the provider before dropping the connection.
+    } catch (err) {
+      // POST dropped (EOF) — Authentik may have created the provider anyway.
       pk = await findByClientId(base, token, inputs.clientId);
-    }
-
-    if (pk === undefined) {
-      throw new Error(
-        `Failed to create OIDC provider "${inputs.name}" and no existing provider found with client_id "${inputs.clientId}".`,
-      );
+      if (pk === undefined) {
+        throw err instanceof Error
+          ? err
+          : new Error(
+              `Failed to create OIDC provider "${inputs.name}" (client_id "${inputs.clientId}").`,
+            );
+      }
     }
 
     return {
@@ -162,7 +185,7 @@ export interface OidcProviderResourceArgs {
   clientType: pulumi.Input<string>;
   authorizationFlow: pulumi.Input<string>;
   invalidationFlow: pulumi.Input<string>;
-  authenticationFlow: pulumi.Input<string>;
+  authenticationFlow?: pulumi.Input<string>;
   signingKey?: pulumi.Input<string>;
   redirectUris: pulumi.Input<Array<{ matchingMode: string; url: string }>>;
   issuerMode: pulumi.Input<string>;
@@ -173,6 +196,10 @@ export interface OidcProviderResourceArgs {
   refreshTokenValidity?: pulumi.Input<string>;
 }
 
+/**
+ * Provider OAuth2 via API HTTP — contourne le EOF du bridge Terraform
+ * `authentik.ProviderOauth2` (plugin Go / TF 2024.12.x).
+ */
 export class OidcProviderResource extends pulumi.dynamic.Resource {
   public readonly pk!: pulumi.Output<number>;
   public readonly clientSecret!: pulumi.Output<string>;
