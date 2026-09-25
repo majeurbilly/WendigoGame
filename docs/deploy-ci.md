@@ -12,7 +12,7 @@ Push sur **`main`** (ou `workflow_dispatch`) → `.github/workflows/ci-cd.yml` :
    - healthcheck NodePort : `/-/health/ready/` + JWKS blueprint
    - `kustomize edit set image` + `kubectl apply -k deploy/k8s`
 
-Prérequis : secrets Pulumi stack `dev` (`wendigo:authentik*`, `wendigo:pgPassword`) — voir `docs/authentik-k8s.md`.
+Prérequis : secrets GitHub repo (`AUTHENTIK_*`, `PULUMI_PG_PASSWORD`) — injectés automatiquement dans Pulumi à chaque deploy (voir `docs/gitops.md`).
 
 Images :
 

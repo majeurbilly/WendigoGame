@@ -10,6 +10,11 @@
     "outDir": "bin",
     "rootDir": "."
   },
-  "include": ["index.ts", "src/k8s/**/*.ts"],
+  "include": [
+    "index.ts",
+    "src/k8s/**/*.ts",
+    "src/authentik/oidc-app.ts",
+    "src/utils.ts"
+  ],
   "exclude": ["node_modules", "bin", "sdks", "scripts"]
 }

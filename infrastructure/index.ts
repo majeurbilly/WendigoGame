@@ -1,19 +1,15 @@
 /**
- * Authentik Full K8s — Helm (chart officiel) + lookup OIDC blueprint.
- * Postgres/Redis : services partagés du namespace `wendigo` (pas de DB Compose).
+ * Authentik Full K8s — Helm + OIDC natif Pulumi (@pulumi/authentik).
+ * Postgres/Redis partagés (namespace wendigo). Plus de blueprints YAML.
  */
-import * as authentik from '@pulumi/authentik';
 import * as pulumi from '@pulumi/pulumi';
+import {
+  createAuthentikApiProvider,
+  provisionWendigoOidc,
+} from './src/authentik/oidc-app';
 import { deployAuthentikHelm } from './src/k8s/authentik';
 
 const authentikConfig = new pulumi.Config('authentik');
-
-const applicationSlug = 'wendigo';
-const clientId = 'wendigo-dev';
-const providerName = 'wendigo-dev-provider';
-
-// --- Étape 3 : Authentik dans K3s via Helm ---
-const authentikStack = deployAuthentikHelm();
 
 const authentikUrl = (
   process.env.AUTHENTIK_URL ??
@@ -22,35 +18,24 @@ const authentikUrl = (
 ).replace(/\/+$/, '');
 
 if (!process.env.AUTHENTIK_TOKEN || process.env.AUTHENTIK_TOKEN.trim() === '') {
-  throw new Error(
-    'AUTHENTIK_TOKEN is required (même valeur que wendigo:authentikBootstrapToken). Example: export AUTHENTIK_TOKEN=...',
-  );
+  // CI injecte AUTHENTIK_TOKEN ; en local, wendigo:authentikBootstrapToken suffit via createAuthentikApiProvider.
+  const wendigo = new pulumi.Config('wendigo');
+  if (!wendigo.getSecret('authentikBootstrapToken')) {
+    throw new Error(
+      'AUTHENTIK_TOKEN (env) ou wendigo:authentikBootstrapToken requis pour le provider API Authentik.',
+    );
+  }
 }
 
-/**
- * Lookup différé après le Release Helm pour que l'API / blueprints soient prêts.
- * Les Invokes classiques s'exécutent trop tôt (avant le create).
- */
-const oidcConfig = authentikStack.release.status.apply(async (status) => {
-  if (!status) {
-    throw new Error('Authentik Helm release status unavailable');
-  }
-  const deadline = Date.now() + 180_000;
-  let lastError: unknown;
-  while (Date.now() < deadline) {
-    try {
-      const cfg = await authentik.getProviderOauth2Config({ name: providerName });
-      if (cfg.providerId || cfg.issuerUrl) {
-        return cfg;
-      }
-    } catch (err) {
-      lastError = err;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 5_000));
-  }
-  throw new Error(
-    `Provider OIDC "${providerName}" introuvable après déploiement Helm. Dernière erreur: ${String(lastError)}`,
-  );
+// --- Runtime K8s (Helm) ---
+const authentikStack = deployAuthentikHelm();
+
+// --- Config OIDC native (étape 6) ---
+const authentikApi = createAuthentikApiProvider();
+const oidc = provisionWendigoOidc({
+  authentikProvider: authentikApi,
+  authentikUrl,
+  dependsOn: [authentikStack.release],
 });
 
 export const authentikNamespace = authentikStack.namespace;
@@ -59,15 +44,12 @@ export const authentikPublicUrl = authentikStack.publicUrl;
 export const authentikIngressHost = authentikStack.ingressHost;
 export const authentikHelmStatus = authentikStack.release.status;
 
-export const OIDC_ISSUER_URL = oidcConfig.apply(
-  (c) => c.issuerUrl || `${authentikUrl}/application/o/${applicationSlug}/`,
-);
-export const AUTHENTIK_JWKS_URL = oidcConfig.apply(
-  (c) => c.jwksUrl || `${authentikUrl}/application/o/${applicationSlug}/jwks/`,
-);
+export const OIDC_ISSUER_URL = oidc.oidcIssuerUrl;
+export const AUTHENTIK_JWKS_URL = oidc.authentikJwksUrl;
 export const OIDC_EXPECTED_ISSUER = OIDC_ISSUER_URL;
-export const oidcClientId = clientId;
-export const applicationSlugOut = applicationSlug;
-export const oidcProviderId = oidcConfig.apply((c) => String(c.providerId ?? c.id));
-export const oidcProviderName = providerName;
-export const oidcProvisioningMode = 'authentik-helm+blueprint';
+export const oidcClientId = oidc.oidcClientId;
+export const applicationSlugOut = oidc.applicationSlug;
+export const oidcProviderId = oidc.oidcProviderId;
+export const oidcProviderName = oidc.oidcProviderName;
+export const oidcApplicationId = oidc.application.id;
+export const oidcProvisioningMode = 'authentik-helm+pulumi-native';

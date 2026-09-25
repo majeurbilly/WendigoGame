@@ -1,10 +1,9 @@
 /**
  * Authentik via chart Helm officiel — Postgres/Redis partagés du namespace wendigo.
  * Pas de Postgres/Redis Bitnami embarqués (postgresql.enabled / redis.enabled = false).
+ * OIDC : provisionné en Pulumi natif (`src/authentik/oidc-app.ts`), pas via blueprints.
  */
 import * as crypto from 'node:crypto';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
 import * as k8s from '@pulumi/kubernetes';
 import * as pulumi from '@pulumi/pulumi';
 
@@ -20,29 +19,12 @@ export interface AuthentikHelmResult {
   release: k8s.helm.v3.Release;
   credentials: k8s.core.v1.Secret;
   dbInit: k8s.batch.v1.Job;
-  blueprint: k8s.core.v1.ConfigMap;
   namespace: string;
   /** URL ClusterIP (pods du cluster). */
   internalUrl: string;
   /** URL LAN via NodePort (Pulumi / navigateurs hors cluster). */
   publicUrl: pulumi.Output<string>;
   ingressHost: string;
-}
-
-function resolveBlueprintPath(): string {
-  const candidates = [
-    path.resolve(process.cwd(), '../authentik/blueprints/wendigo-oidc.yaml'),
-    path.resolve(process.cwd(), 'authentik/blueprints/wendigo-oidc.yaml'),
-    path.resolve(__dirname, '../../../authentik/blueprints/wendigo-oidc.yaml'),
-  ];
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) {
-      return candidate;
-    }
-  }
-  throw new Error(
-    `Blueprint OIDC introuvable. Cherché: ${candidates.join(', ')}`,
-  );
 }
 
 export function deployAuthentikHelm(args: AuthentikHelmArgs = {}): AuthentikHelmResult {
@@ -160,22 +142,6 @@ export function deployAuthentikHelm(args: AuthentikHelmArgs = {}): AuthentikHelm
     },
   );
 
-  const blueprintYaml = fs.readFileSync(resolveBlueprintPath(), 'utf8');
-  const blueprint = new k8s.core.v1.ConfigMap('wendigo-oidc-blueprint', {
-    metadata: {
-      name: 'wendigo-oidc-blueprint',
-      namespace,
-      labels: {
-        'app.kubernetes.io/name': 'authentik',
-        'app.kubernetes.io/part-of': 'wendigo',
-        'app.kubernetes.io/component': 'blueprints',
-      },
-    },
-    data: {
-      'wendigo-oidc.yaml': blueprintYaml,
-    },
-  });
-
   const postgresCredVolume = {
     name: 'postgres-creds',
     secret: { secretName: 'authentik-credentials' },
@@ -239,9 +205,9 @@ export function deployAuthentikHelm(args: AuthentikHelmArgs = {}): AuthentikHelm
         // Postgres / Redis Bitnami désactivés — instance centrale wendigo
         postgresql: { enabled: false },
         redis: { enabled: false },
-
+        // OIDC géré par Pulumi natif (src/authentik/oidc-app.ts) — plus de ConfigMap blueprint
         blueprints: {
-          configMaps: ['wendigo-oidc-blueprint'],
+          configMaps: [],
         },
 
         authentik: {
@@ -275,7 +241,6 @@ export function deployAuthentikHelm(args: AuthentikHelmArgs = {}): AuthentikHelm
             servicePortHttp: 80,
           },
           // Ingress géré en Kustomize : deploy/k8s/apps/authentik-ingress.yaml
-          // (host auth.wendigo.local → authentik-server:80) — évite un doublon Helm.
           ingress: {
             enabled: false,
           },
@@ -287,7 +252,7 @@ export function deployAuthentikHelm(args: AuthentikHelmArgs = {}): AuthentikHelm
       },
     },
     {
-      dependsOn: [credentials, dbInit, blueprint],
+      dependsOn: [credentials, dbInit],
     },
   );
 
@@ -298,7 +263,6 @@ export function deployAuthentikHelm(args: AuthentikHelmArgs = {}): AuthentikHelm
     release,
     credentials,
     dbInit,
-    blueprint,
     namespace,
     internalUrl,
     publicUrl,

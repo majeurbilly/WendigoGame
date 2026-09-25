@@ -41,12 +41,17 @@ Pipeline : `.github/workflows/ci-cd.yml` (push sur `main`)
 - Stack Pulumi `dev` avec secrets `wendigo:authentik*` et `wendigo:pgPassword` (voir `docs/authentik-k8s.md`).
 - `AUTHENTIK_TOKEN` CI = `AUTHENTIK_BOOTSTRAP_TOKEN` (secret GitHub).
 
-## Secrets GitHub Actions (Authentik)
+## Secrets GitHub Actions (Authentik / Pulumi)
 
-| Secret | Usage |
-|--------|--------|
-| `AUTHENTIK_BOOTSTRAP_PASSWORD` | Mot de passe admin initial + config Pulumi |
-| `AUTHENTIK_BOOTSTRAP_TOKEN` | Token API bootstrap (+ `AUTHENTIK_TOKEN` pour lookup) |
+Source de vérité pour un runner neuf — injectés à chaque deploy via `pulumi config set --secret` :
+
+| Secret GitHub | Clé Pulumi stack | Usage |
+|---------------|------------------|--------|
+| `AUTHENTIK_BOOTSTRAP_PASSWORD` | `wendigo:authentikBootstrapPassword` | Admin Authentik initial |
+| `AUTHENTIK_BOOTSTRAP_TOKEN` | `wendigo:authentikBootstrapToken` (+ env `AUTHENTIK_TOKEN`) | API bootstrap / lookup OIDC |
+| `AUTHENTIK_SECRET_KEY` | `wendigo:authentikSecretKey` | Cookie / crypto Authentik (≥50 chars) |
+| `AUTHENTIK_PG_PASS` | `wendigo:authentikPgPass` | Mot de passe rôle Postgres `authentik` |
+| `PULUMI_PG_PASSWORD` | `wendigo:pgPassword` | Admin Postgres `wendigo` (Job db-init ; aligné `postgres.yaml`) |
 
 Email bootstrap : `admin@stringempty.dev` (Secret K8s / values Helm).
 
@@ -62,7 +67,7 @@ kubectl -n wendigo create secret docker-registry ghcr-creds \
 
 ## Impacts
 
-- **CI** : Authentik via Pulumi Helm — `docker-compose.yml` retiré du dépôt.
+- **CI** : Authentik via Pulumi Helm + OIDC natif — `docker-compose.yml` / blueprints YAML retirés.
 - **Frontend** : Variables repo `VITE_*` (défaut Authentik `:30900`).
 - **Loki / Grafana / Promtail** : retirés (OOM homelab).
 

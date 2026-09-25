@@ -9,11 +9,10 @@ Authentik tourne **dans K3s** (namespace `wendigo`) via le chart Helm officiel `
 | Runtime Authentik (server + worker) | `infrastructure/src/k8s/authentik.ts` → `helm.v3.Release` |
 | Postgres | Service partagé `postgres` (DB/role dédiés `authentik`) — Job `authentik-db-init` |
 | Redis | Service partagé `redis` (chart Bitnami redis **désactivé**) |
-| Secrets | Secret K8s `authentik-credentials` + config Pulumi `--secret` |
-| OIDC app | Blueprint `authentik/blueprints/wendigo-oidc.yaml` monté via ConfigMap |
-| Lookup issuer/JWKS | `infrastructure/index.ts` (après status Helm) |
+| Secrets | Secret K8s `authentik-credentials` + config Pulumi / GitHub Secrets |
+| OIDC app | Pulumi natif `src/authentik/oidc-app.ts` (`ProviderOauth2` + `Application`) |
 
-`docker-compose.yml` a été **supprimé** de la racine du dépôt — Authentik n’est plus déployé hors cluster.
+`docker-compose.yml` et les blueprints YAML OIDC ont été **supprimés**.
 
 ## Choix techniques
 
@@ -27,21 +26,21 @@ Authentik tourne **dans K3s** (namespace `wendigo`) via le chart Helm officiel `
 ## Impacts
 
 - Backend : JWKS en ClusterIP ; `OIDC_EXPECTED_ISSUER` = URL NodePort publique.
-- CI : plus de SSH Compose ; `pulumi up` déploie le Helm après Postgres/Redis.
+- CI : `pulumi up` = Helm + OIDC natif ; healthcheck JWKS après coup.
 - Frontend build : défaut `VITE_AUTHENTIK_URL` → `:30900`.
+- Étape 6 : plus de blueprint YAML — si provider/app existent déjà, `pulumi import` ou suppression UI avant le 1er create.
 
-## Secrets Pulumi (une fois)
+## Secrets (CI = source de vérité)
 
-```bash
-cd infrastructure
-pulumi stack select dev   # ou pulumi stack init dev
-pulumi config set --secret wendigo:authentikSecretKey "$(openssl rand -base64 48)"
-pulumi config set --secret wendigo:authentikPgPass "$(openssl rand -hex 24)"
-pulumi config set --secret wendigo:authentikBootstrapPassword '<admin-password>'
-pulumi config set --secret wendigo:authentikBootstrapToken '<api-token>'
-# Doit matcher POSTGRES_PASSWORD dans deploy/k8s/base/postgres.yaml
-pulumi config set --secret wendigo:pgPassword '74c1683725b72d02b0a7ef7146e1e0b45efae36f7cd4a8e4'
-```
+En local, tu peux encore `pulumi config set --secret …`. En CI, les secrets GitHub suivants sont mappés à chaque `pulumi up` :
+
+| GitHub Secret | Pulumi |
+|---------------|--------|
+| `AUTHENTIK_SECRET_KEY` | `wendigo:authentikSecretKey` |
+| `AUTHENTIK_PG_PASS` | `wendigo:authentikPgPass` |
+| `AUTHENTIK_BOOTSTRAP_PASSWORD` | `wendigo:authentikBootstrapPassword` |
+| `AUTHENTIK_BOOTSTRAP_TOKEN` | `wendigo:authentikBootstrapToken` (+ `AUTHENTIK_TOKEN`) |
+| `PULUMI_PG_PASSWORD` | `wendigo:pgPassword` (doit matcher `postgres.yaml`) |
 
 ## Preview / apply
 

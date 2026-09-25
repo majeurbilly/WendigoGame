@@ -163,31 +163,36 @@ jobs:
       - name: Déployer Authentik Helm + lookup OIDC (Pulumi)
         working-directory: infrastructure
         env:
+          # Lookup OIDC (provider TF) — même valeur que le token bootstrap
           AUTHENTIK_TOKEN: ${{ secrets.AUTHENTIK_BOOTSTRAP_TOKEN }}
           AUTHENTIK_URL: http://192.168.0.157:30900
           PULUMI_CONFIG_PASSPHRASE: "wendigo-local-state"
+          # Secrets GitHub → Pulumi config (server-agnostic)
+          AUTHENTIK_BOOTSTRAP_PASSWORD: ${{ secrets.AUTHENTIK_BOOTSTRAP_PASSWORD }}
+          AUTHENTIK_SECRET_KEY: ${{ secrets.AUTHENTIK_SECRET_KEY }}
+          AUTHENTIK_PG_PASS: ${{ secrets.AUTHENTIK_PG_PASS }}
+          PULUMI_PG_PASSWORD: ${{ secrets.PULUMI_PG_PASSWORD }}
         run: |
           set -euo pipefail
           cd "${GITHUB_WORKSPACE}/infrastructure"
           pnpm install
           pulumi login --local
           pulumi stack select dev || pulumi stack init dev
-          # Secrets runtime (idempotent) — bootstrap token = AUTHENTIK_TOKEN
+
+          # Prérequis : tous les secrets repo doivent être définis
+          : "${AUTHENTIK_TOKEN:?secret AUTHENTIK_BOOTSTRAP_TOKEN manquant}"
+          : "${AUTHENTIK_BOOTSTRAP_PASSWORD:?secret AUTHENTIK_BOOTSTRAP_PASSWORD manquant}"
+          : "${AUTHENTIK_SECRET_KEY:?secret AUTHENTIK_SECRET_KEY manquant}"
+          : "${AUTHENTIK_PG_PASS:?secret AUTHENTIK_PG_PASS manquant}"
+          : "${PULUMI_PG_PASSWORD:?secret PULUMI_PG_PASSWORD manquant}"
+
+          # Source de vérité = GitHub Secrets (idempotent à chaque deploy)
           pulumi config set --secret wendigo:authentikBootstrapToken "${AUTHENTIK_TOKEN}"
-          pulumi config set --secret wendigo:authentikBootstrapPassword "${{ secrets.AUTHENTIK_BOOTSTRAP_PASSWORD }}"
-          # pgPassword doit correspondre à deploy/k8s/base/postgres.yaml
-          if ! pulumi config get wendigo:pgPassword >/dev/null 2>&1; then
-            echo "wendigo:pgPassword manquant dans le stack Pulumi — le définir une fois (secret)."
-            exit 1
-          fi
-          if ! pulumi config get wendigo:authentikSecretKey >/dev/null 2>&1; then
-            echo "wendigo:authentikSecretKey manquant — le définir une fois (secret, ≥50 chars)."
-            exit 1
-          fi
-          if ! pulumi config get wendigo:authentikPgPass >/dev/null 2>&1; then
-            echo "wendigo:authentikPgPass manquant — le définir une fois (secret)."
-            exit 1
-          fi
+          pulumi config set --secret wendigo:authentikBootstrapPassword "${AUTHENTIK_BOOTSTRAP_PASSWORD}"
+          pulumi config set --secret wendigo:authentikSecretKey "${AUTHENTIK_SECRET_KEY}"
+          pulumi config set --secret wendigo:authentikPgPass "${AUTHENTIK_PG_PASS}"
+          pulumi config set --secret wendigo:pgPassword "${PULUMI_PG_PASSWORD}"
+
           pulumi up -y
 
       - name: Attendre Authentik (NodePort) + blueprint JWKS
@@ -196,9 +201,9 @@ jobs:
           AK_URL="http://192.168.0.157:30900"
           echo "Attente ${AK_URL}/-/health/ready/ (max 10 minutes)..."
           timeout 600 bash -c "until curl -sSf ${AK_URL}/-/health/ready/ > /dev/null 2>&1; do echo En attente...; sleep 5; done"
-          echo "Attente JWKS blueprint Wendigo (max 3 minutes)..."
-          timeout 180 bash -c "until curl -sS ${AK_URL}/application/o/wendigo/jwks/ 2>/dev/null | grep -q '\"keys\"'; do echo Blueprint OIDC en attente...; sleep 5; done"
-          echo "Authentik K8s + blueprint OIDC prêts."
+          echo "Attente JWKS OIDC Wendigo (max 3 minutes)..."
+          timeout 180 bash -c "until curl -sS ${AK_URL}/application/o/wendigo/jwks/ 2>/dev/null | grep -q '\"keys\"'; do echo Provider OIDC en attente...; sleep 5; done"
+          echo "Authentik K8s + OIDC Pulumi prêts."
 
       - name: Ensure kustomize
         run: |

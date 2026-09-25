@@ -1,25 +1,27 @@
-# Authentik OIDC — Helm K8s + lookup Pulumi
+# Authentik OIDC — Helm K8s + Pulumi natif
 
 ## État actuel
 
-1. **Runtime** : chart Helm Authentik dans K3s (`infrastructure/src/k8s/authentik.ts`) — Postgres/Redis **partagés** `wendigo`
-2. **Blueprint** `authentik/blueprints/wendigo-oidc.yaml` via ConfigMap `wendigo-oidc-blueprint`
-3. **Pulumi** (`infrastructure/index.ts`) : deploy Helm puis **lookup** différé `getProviderOauth2Config`
-4. Exports `OIDC_ISSUER_URL` / `AUTHENTIK_JWKS_URL`
-
-Détail opérationnel (secrets, preview/up) : **`docs/authentik-k8s.md`**.
+1. **Runtime** : chart Helm Authentik dans K3s (`infrastructure/src/k8s/authentik.ts`)
+2. **OIDC** : ressources natives `@pulumi/authentik` (`infrastructure/src/authentik/oidc-app.ts`)
+   - `Provider` API (URL NodePort / `AUTHENTIK_URL` + bootstrap token)
+   - `Flow` authorization + invalidation
+   - `ProviderOauth2` (`wendigo-dev-provider`, client `wendigo-dev`, public)
+   - `Application` slug `wendigo`
+3. **Plus de blueprints YAML** pour OIDC (`authentik/blueprints/` → README only)
 
 ## Choix techniques
 
 | Couche | Rôle |
 |--------|------|
-| Helm `goauthentik/authentik` 2024.12.3 | Server + worker in-cluster |
-| Job `authentik-db-init` | Crée rôle/DB `authentik` sur Postgres central |
-| Secret `authentik-credentials` | PG user/pass, bootstrap, secret-key |
-| Blueprint + lookup | OIDC sans `ProviderOauth2` TF (évite EOF) |
-| `docker-compose.yml` | **Supprimé** — runtime 100 % K3s / Helm |
+| Helm `goauthentik/authentik` | Server + worker in-cluster |
+| Pulumi `ProviderOauth2` / `Application` | Source de vérité OIDC (GitOps) |
+| Lookups différés (cert + scopes) | Attente post-Helm, évite EOF / cold boot |
+| Timeouts create 20m | Bridge TF Authentik parfois lent |
 
 ## Impacts
 
-- CI : Authentik via Pulumi Helm uniquement — voir `docs/gitops.md`
-- URL LAN Authentik : **NodePort 30900**
+- CI : healthcheck JWKS après `pulumi up` (création OIDC dans le même `up`)
+- Migration : si l’app/provider existent déjà (ancien blueprint), importer dans le state ou supprimer dans l’UI Authentik avant le premier `up` natif
+
+Détail ops : `docs/authentik-k8s.md`.
