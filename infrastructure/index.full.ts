@@ -22,5 +22,3 @@ export const googleSourceId = stack.googleSourceId;
 export const googleEnrollmentFlow = stack.googleEnrollment.flow;
 export const wendigoAuthenticationFlow = stack.wendigoAuthentication.flow;
 export const wendigoIdentificationStage = stack.wendigoIdentification.stage;
-
-export const prometheusDatasourceId = 'prometheus';

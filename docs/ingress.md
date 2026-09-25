@@ -1,8 +1,10 @@
-# Ingress Traefik (k3s) — wendigo.local
+# Ingress Traefik (k3s) — wendigo.local + auth.wendigo.local
 
 ## État actuel
 
-`deploy/k8s/apps/ingress.yaml` route via Traefik **sans** middleware StripPrefix (évite les 404 si le CRD `traefik.io` / la ref middleware échoue).
+Deux Ingress dans `deploy/k8s/apps/` (entrypoint Traefik `web`, `ingressClassName: traefik`) :
+
+### Jeu — `wendigo-ingress` (`ingress.yaml`)
 
 | URL | Service |
 |-----|---------|
@@ -13,30 +15,29 @@
 | `http://wendigo.local/ws` | `backend:8080` |
 | `http://wendigo.local/metrics` | `backend:8080` |
 
-### Routes Go réelles (`backend/internal/api/health.go`)
+Chemins Go natifs (pas de StripPrefix). **Pas de** `/api` côté backend.
 
-- `GET /health`, `GET /metrics`
-- `GET /auth/me`
-- `POST /lobbies`, `POST /lobbies/{code}/start|seat`
-- `GET /ws`
+### Authentik — `authentik-ingress` (`authentik-ingress.yaml`)
 
-**Pas de** `/api`, **pas de** `/swagger` / `/docs` dans le backend → `wendigo.local/api` et `/api/swagger` resteront en 404 (attendu).
+| URL | Service |
+|-----|---------|
+| `http://auth.wendigo.local/` | `authentik-server:80` (Helm Pulumi) |
 
-## Frontend
-
-`VITE_API_URL=http://wendigo.local` (défaut CI) — axios appelle `/auth/me`, WS `ws://wendigo.local/ws`.
+UI admin + endpoints OIDC (`/application/o/wendigo/`, JWKS, etc.). L’Ingress Helm du chart est **désactivé** pour éviter un doublon.
 
 ## Accès LAN
 
 ```text
 192.168.0.157 wendigo.local
+192.168.0.157 auth.wendigo.local
 ```
 
-dans `/etc/hosts` (ou hosts Windows).
+NodePort **30900** reste un accès de secours / CI sans hosts.
 
-## Vérif rapide
+## Vérif
 
 ```bash
 curl -sS http://wendigo.local/health
-# {"status":"ok"}
+curl -sSf http://auth.wendigo.local/-/health/ready/
+kubectl -n wendigo get ingress
 ```

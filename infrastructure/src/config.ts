@@ -1,13 +1,12 @@
-import * as path from 'node:path';
 import * as authentik from '@pulumi/authentik';
 import * as pulumi from '@pulumi/pulumi';
 
 const authentikConfig = new pulumi.Config('authentik');
 const wendigoConfig = new pulumi.Config('wendigo');
 
-// Authentik IaC
+// Authentik API (lookup OIDC / stack complète)
 export const authentikBaseUrl =
-  authentikConfig.get('url')?.replace(/\/+$/, '') ?? 'http://localhost:9000';
+  authentikConfig.get('url')?.replace(/\/+$/, '') ?? 'http://192.168.0.157:30900';
 export const authentikToken = authentikConfig.requireSecret('token');
 
 export const oidcClientId = wendigoConfig.get('clientId') ?? 'wendigo-dev';
@@ -28,14 +27,14 @@ export function parseRedirectUris(raw: string): { matchingMode: string; url: str
 }
 
 export const allowedRedirectUris = parseRedirectUris(
-  wendigoConfig.get('redirectUris') ?? 'http://localhost:5173/,http://localhost:5173/login',
+  wendigoConfig.get('redirectUris') ??
+    'http://wendigo.local/,http://wendigo.local/login,http://localhost:5173/,http://localhost:5173/login',
 );
 
 export function createAuthentikProvider(): authentik.Provider {
-  const configUrl = authentikConfig.get('url')?.replace(/\/+$/, '') ?? 'http://localhost:9000';
+  const configUrl = authentikConfig.get('url')?.replace(/\/+$/, '') ?? authentikBaseUrl;
   const url = process.env.AUTHENTIK_URL?.replace(/\/+$/, '') ?? configUrl;
-  // AUTHENTIK_TOKEN env prioritaire sur le secret stack (rotation manuelle / outils).
-  // pour éviter un refresh avec le token figé dans l'état du provider.
+  // AUTHENTIK_TOKEN env prioritaire sur le secret stack (rotation manuelle / CI).
   const token =
     process.env.AUTHENTIK_TOKEN !== undefined
       ? pulumi.secret(process.env.AUTHENTIK_TOKEN)
@@ -43,19 +42,16 @@ export function createAuthentikProvider(): authentik.Provider {
   return new authentik.Provider('wendigo-authentik', {
     url,
     token,
-    insecure: authentikConfig.getBoolean('insecure') ?? false,
+    insecure: authentikConfig.getBoolean('insecure') ?? true,
   });
 }
 
-// Docker Compose secrets (written to .env by the dotenv resource)
+// Secrets runtime Authentik (Helm → Secret K8s `authentik-credentials`)
 export const authentikSecretKey = wendigoConfig.requireSecret('authentikSecretKey');
 export const authentikPgPass = wendigoConfig.requireSecret('authentikPgPass');
-export const authentikBootstrapPassword = wendigoConfig.requireSecret('authentikBootstrapPassword');
+export const authentikBootstrapPassword = wendigoConfig.requireSecret(
+  'authentikBootstrapPassword',
+);
+export const authentikBootstrapToken = wendigoConfig.requireSecret('authentikBootstrapToken');
+/** Mot de passe du rôle Postgres admin (`wendigo`) — création DB/role Authentik. */
 export const pgPassword = wendigoConfig.requireSecret('pgPassword');
-
-export const prometheusUrl = wendigoConfig.get('prometheusUrl') ?? 'http://prometheus:9090';
-export const prometheusReloadUrl =
-  wendigoConfig.get('prometheusReloadUrl') ?? 'http://localhost:9090';
-
-// __dirname = infrastructure/src; one level up reaches infrastructure/
-export const prometheusConfigPath = path.resolve(__dirname, '../assets/prometheus/prometheus.yml');

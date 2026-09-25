@@ -1,37 +1,39 @@
 {
-  description = "WendigoGame reproducible dev environment";
+  description = "WendigoGame reproducible dev environment (Go + React + Pulumi + k3s tooling)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { nixpkgs, flake-utils, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    { nixpkgs, flake-utils, ... }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = import nixpkgs { inherit system; };
       in
       {
-        # Outils locaux (Go/Node/Pulumi/Docker build). Plus de bootstrap Docker Compose.
-        # Stack runtime = k3s ; déploiement = GitHub Actions push (ci-cd.yml).
+        # Outils locaux uniquement. Runtime = k3s ; déploiement = GitHub Actions (ci-cd.yml).
+        # Frontend engines: Node >= 22.19 ; backend go.mod: Go 1.25.
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             go
-            nodejs_20
+            nodejs_22
             pnpm
             typescript
             docker
             go-task
             gnumake
+            kubectl
+            kubernetesustomize
             skopeo
             curl
             jq
             wget
             bind.dnsutils
-            prometheus
             pulumi
             pulumiPackages.pulumi-nodejs
-            kubectl
           ];
 
           shellHook = ''
@@ -62,8 +64,9 @@
               cp -a "$_sdk/bin/." "$_ak_bin/"
             fi
 
-            echo "WendigoGame shell — runtime = k3s (push CI/CD), images = GHCR"
+            echo "WendigoGame shell — Node $(node -v), Go $(go env GOVERSION) — runtime = k3s (push CI/CD)"
           '';
         };
-      });
+      }
+    );
 }

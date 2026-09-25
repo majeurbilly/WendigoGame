@@ -20,20 +20,11 @@ import {
 } from './authentik/flows-and-stages/stages/user-login';
 import { createGoogleEnrollmentUserWriteStage } from './authentik/flows-and-stages/stages/user-write';
 // Authentik
-import { createSystemReferences, flowUuidFromLookup } from './authentik/system/references';
-import {
-  createAuthentikProvider,
-  prometheusConfigPath,
-  prometheusReloadUrl,
-} from './config';
-
-// Observability
-import { createDotEnv } from './docker-env';
-import { PrometheusConfigResource } from './observability/prometheus/config-resource';
-import { renderPrometheusYaml } from './observability/prometheus/scrape-config';
+import { createSystemReferences } from './authentik/system/references';
+import { createAuthentikProvider } from './config';
 
 export function deploy() {
-  // Authentik
+  // Authentik (config API uniquement — le runtime est déployé via Helm, voir src/k8s/authentik.ts)
   const authentikProvider = createAuthentikProvider();
   const system = createSystemReferences(authentikProvider);
 
@@ -125,24 +116,6 @@ export function deploy() {
     { dependsOn: [oidc.provider] },
   );
 
-  // Observability — config Prometheus (fichier) ; Loki/Grafana retirés (OOM homelab)
-  const prometheusConfig = new PrometheusConfigResource('prometheus-config', {
-    configPath: prometheusConfigPath,
-    reloadUrl: prometheusReloadUrl,
-    content: renderPrometheusYaml({
-      scrapeIntervalSeconds: 15,
-      evaluationIntervalSeconds: 15,
-      scrapeJobs: [
-        { name: 'prometheus', targets: ['localhost:9090'] },
-        { name: 'cadvisor', targets: ['cadvisor:8080'], metricsPath: '/metrics' },
-        { name: 'backend', targets: ['backend:8080'], metricsPath: '/metrics' },
-      ],
-    }),
-  });
-
-  // Docker Compose environment file — single source of truth for all container secrets
-  const dotEnv = createDotEnv();
-
   return {
     system,
     scopeMappings,
@@ -158,8 +131,6 @@ export function deploy() {
     wendigoApp,
     googleCallbackUri: google.source.callbackUri,
     googleSourceId: google.source.id,
-    prometheusConfig,
-    dotEnv,
   };
 }
 

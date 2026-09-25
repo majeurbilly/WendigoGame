@@ -2,17 +2,17 @@
 
 ## État actuel
 
-**Loki, Grafana et Promtail ont été retirés** du dépôt (saturation RAM / OOM kernel panics sur le nœud k3s homelab).
+**Loki, Grafana, Promtail et Prometheus ont été retirés** du dépôt (saturation RAM / OOM sur le nœud k3s homelab).
 
-Conservé éventuellement :
-
-- `deploy/prometheus/prometheus.yml` + `infrastructure/assets/prometheus/` — scrape Prometheus (métriques backend `/metrics`), hors stack Loki/Grafana.
+- Plus de manifests `deploy/prometheus/`
+- Plus de assets / ressources Pulumi `infrastructure/assets/prometheus/` ni `PrometheusConfigResource`
+- L’endpoint backend Go `/metrics` (`promhttp`) peut rester exposé pour un scrape externe futur ; aucun scraper n’est provisionné dans ce dépôt
 
 ## Impacts
 
 | Composant | Impact |
 |-----------|--------|
-| `deploy/grafana/` | Supprimé |
-| `deploy/promtail/` | Supprimé (push vers Loki inutile) |
-| Pulumi `grafana:*` / `lokiUrl` | Retiré de `config.ts`, `docker-env.ts`, `Pulumi.dev.yaml` |
-| Runtime k3s | Aucun manifeste Loki/Grafana dans `deploy/k8s/` — si des pods existent encore sur le cluster, les supprimer manuellement (`kubectl delete …`) |
+| `deploy/grafana/`, `deploy/promtail/`, `deploy/prometheus/` | Supprimés |
+| Pulumi `prometheusUrl` / `prometheusConfigPath` / `PrometheusConfigResource` | Retiré de `config.ts`, `deploy.ts`, `index.full.ts` |
+| `flake.nix` | Paquet `prometheus` retiré du `devShell` |
+| Runtime k3s | Aucun manifeste d’observabilité dans `deploy/k8s/` — pods résiduels à supprimer manuellement si présents |

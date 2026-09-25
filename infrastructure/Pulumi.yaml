@@ -1,5 +1,5 @@
 name: wendigo-authentik
-description: Wendigo infrastructure (Authentik OIDC — cible k3s / CI push)
+description: Wendigo infrastructure — Authentik Helm (K3s) + lookup OIDC
 runtime:
   name: nodejs
   options:
@@ -12,8 +12,21 @@ packages:
       - goauthentik/authentik
       - 2024.12.1
 config:
+  # URL LAN (NodePort 30900) — override via AUTHENTIK_URL si besoin
   authentik:url:
-    value: http://192.168.0.157:9000
-  # Token : AUTHENTIK_TOKEN (env) ou pulumi config set authentik:token --secret
+    value: http://192.168.0.157:30900
   authentik:insecure:
     value: "true"
+  # Secrets (à définir une fois) :
+  #   pulumi config set --secret wendigo:authentikSecretKey <50+ chars>
+  #   pulumi config set --secret wendigo:authentikPgPass <password>
+  #   pulumi config set --secret wendigo:authentikBootstrapPassword <password>
+  #   pulumi config set --secret wendigo:authentikBootstrapToken <token>
+  #   pulumi config set --secret wendigo:pgPassword <password-postgres-wendigo>
+  # Optionnels :
+  #   wendigo:namespace (wendigo)
+  #   wendigo:postgresHost (postgres)
+  #   wendigo:redisHost (redis)
+  #   wendigo:authentikIngressHost (auth.wendigo.local — Ingress Kustomize)
+  #   wendigo:authentikNodePort (30900)
+  #   wendigo:authentikChartVersion (2024.12.3)

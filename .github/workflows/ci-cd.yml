@@ -118,7 +118,7 @@ jobs:
             ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
           build-args: |
             VITE_API_URL=${{ vars.VITE_API_URL || 'http://wendigo.local' }}
-            VITE_AUTHENTIK_URL=${{ vars.VITE_AUTHENTIK_URL || 'http://192.168.0.157:9000/application/o/wendigo/' }}
+            VITE_AUTHENTIK_URL=${{ vars.VITE_AUTHENTIK_URL || 'http://192.168.0.157:30900/application/o/wendigo/' }}
             VITE_AUTHENTIK_CLIENT_ID=${{ vars.VITE_AUTHENTIK_CLIENT_ID || 'wendigo-dev' }}
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
@@ -133,48 +133,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Sync Authentik Compose + blueprints (gaston)
-        env:
-          AUTHENTIK_BOOTSTRAP_PASSWORD: ${{ secrets.AUTHENTIK_BOOTSTRAP_PASSWORD }}
-          AUTHENTIK_BOOTSTRAP_TOKEN: ${{ secrets.AUTHENTIK_BOOTSTRAP_TOKEN }}
-          AUTHENTIK_BOOTSTRAP_EMAIL: admin@stringempty.dev
-          # Runner (moumou) → hôte Docker Compose (gaston)
-          AUTHENTIK_SSH_HOST: gaston@192.168.0.157
-          AUTHENTIK_REMOTE_DIR: ${{ vars.AUTHENTIK_REMOTE_DIR }}
+      - name: Ensure Postgres/Redis (and app baseline) on k3s
+        working-directory: deploy/k8s
         run: |
           set -euo pipefail
-          REMOTE_DIR="${AUTHENTIK_REMOTE_DIR:-/home/gaston/WendigoGame}"
-          SSH_OPTS=(-o BatchMode=yes -o StrictHostKeyChecking=accept-new)
-
-          command -v ssh >/dev/null || { echo "ssh introuvable sur le runner"; exit 1; }
-          command -v scp >/dev/null || { echo "scp introuvable sur le runner"; exit 1; }
-
-          # Toujours synchroniser Compose + blueprints (volume /blueprints/custom)
-          ssh "${SSH_OPTS[@]}" "${AUTHENTIK_SSH_HOST}" "mkdir -p '${REMOTE_DIR}/authentik/blueprints'"
-          scp "${SSH_OPTS[@]}" docker-compose.yml "${AUTHENTIK_SSH_HOST}:${REMOTE_DIR}/docker-compose.yml"
-          scp "${SSH_OPTS[@]}" authentik/blueprints/*.yaml \
-            "${AUTHENTIK_SSH_HOST}:${REMOTE_DIR}/authentik/blueprints/"
-
-          # .env écrit sur gaston (pas sur le runner)
-          ssh "${SSH_OPTS[@]}" "${AUTHENTIK_SSH_HOST}" "cat > '${REMOTE_DIR}/.env'" <<EOF
-          AUTHENTIK_BOOTSTRAP_PASSWORD=${AUTHENTIK_BOOTSTRAP_PASSWORD}
-          AUTHENTIK_BOOTSTRAP_EMAIL=${AUTHENTIK_BOOTSTRAP_EMAIL}
-          AUTHENTIK_BOOTSTRAP_TOKEN=${AUTHENTIK_BOOTSTRAP_TOKEN}
-          EOF
-
-          # up -d : applique le mount blueprints même si Authentik était déjà up
-          echo "docker compose up -d sur ${AUTHENTIK_SSH_HOST}:${REMOTE_DIR}"
-          ssh "${SSH_OPTS[@]}" "${AUTHENTIK_SSH_HOST}" \
-            "cd '${REMOTE_DIR}' && docker compose up -d"
-
-      - name: Attendre que l'API Authentik soit prête
-        run: |
-          set -euo pipefail
-          echo "Attente /-/health/ready/ (max 10 minutes — cold boot / migrations Postgres)..."
-          timeout 600 bash -c 'until curl -sSf http://192.168.0.157:9000/-/health/ready/ > /dev/null 2>&1; do echo "En attente..."; sleep 5; done'
-          echo "Attente JWKS blueprint Wendigo (max 3 minutes)..."
-          timeout 180 bash -c 'until curl -sS http://192.168.0.157:9000/application/o/wendigo/jwks/ 2>/dev/null | grep -q "\"keys\""; do echo "Blueprint OIDC en attente..."; sleep 5; done'
-          echo "Authentik + blueprint OIDC prêts pour Pulumi (lookup)."
+          command -v kubectl >/dev/null || { echo "kubectl introuvable sur le runner self-hosted"; exit 1; }
+          # Namespace + datastore avant Authentik Helm (Pulumi)
+          kubectl apply -f base/namespace.yaml
+          kubectl apply -f base/postgres.yaml
+          kubectl apply -f base/redis.yaml
+          kubectl -n wendigo rollout status deployment/postgres --timeout=180s
+          kubectl -n wendigo rollout status deployment/redis --timeout=180s
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -191,23 +160,45 @@ jobs:
       - name: Installer Pulumi CLI
         uses: pulumi/setup-pulumi@v2
 
-      - name: Déployer l'infrastructure (Pulumi)
+      - name: Déployer Authentik Helm + lookup OIDC (Pulumi)
         working-directory: infrastructure
         env:
-          # Même secret que AUTHENTIK_BOOTSTRAP_TOKEN injecté au boot Authentik
           AUTHENTIK_TOKEN: ${{ secrets.AUTHENTIK_BOOTSTRAP_TOKEN }}
-          AUTHENTIK_URL: http://192.168.0.157:9000
+          AUTHENTIK_URL: http://192.168.0.157:30900
           PULUMI_CONFIG_PASSPHRASE: "wendigo-local-state"
-          # PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
           cd "${GITHUB_WORKSPACE}/infrastructure"
-          pwd
-          test -f package.json
           pnpm install
           pulumi login --local
           pulumi stack select dev || pulumi stack init dev
+          # Secrets runtime (idempotent) — bootstrap token = AUTHENTIK_TOKEN
+          pulumi config set --secret wendigo:authentikBootstrapToken "${AUTHENTIK_TOKEN}"
+          pulumi config set --secret wendigo:authentikBootstrapPassword "${{ secrets.AUTHENTIK_BOOTSTRAP_PASSWORD }}"
+          # pgPassword doit correspondre à deploy/k8s/base/postgres.yaml
+          if ! pulumi config get wendigo:pgPassword >/dev/null 2>&1; then
+            echo "wendigo:pgPassword manquant dans le stack Pulumi — le définir une fois (secret)."
+            exit 1
+          fi
+          if ! pulumi config get wendigo:authentikSecretKey >/dev/null 2>&1; then
+            echo "wendigo:authentikSecretKey manquant — le définir une fois (secret, ≥50 chars)."
+            exit 1
+          fi
+          if ! pulumi config get wendigo:authentikPgPass >/dev/null 2>&1; then
+            echo "wendigo:authentikPgPass manquant — le définir une fois (secret)."
+            exit 1
+          fi
           pulumi up -y
+
+      - name: Attendre Authentik (NodePort) + blueprint JWKS
+        run: |
+          set -euo pipefail
+          AK_URL="http://192.168.0.157:30900"
+          echo "Attente ${AK_URL}/-/health/ready/ (max 10 minutes)..."
+          timeout 600 bash -c "until curl -sSf ${AK_URL}/-/health/ready/ > /dev/null 2>&1; do echo En attente...; sleep 5; done"
+          echo "Attente JWKS blueprint Wendigo (max 3 minutes)..."
+          timeout 180 bash -c "until curl -sS ${AK_URL}/application/o/wendigo/jwks/ 2>/dev/null | grep -q '\"keys\"'; do echo Blueprint OIDC en attente...; sleep 5; done"
+          echo "Authentik K8s + blueprint OIDC prêts."
 
       - name: Ensure kustomize
         run: |

@@ -2,9 +2,10 @@
 
 | Élément | Détail |
 |--------|--------|
-| **Support interactif** | `Pre-Wendigo/index.html` (25 diapositives) |
 | **Présentation orale** | ~25 min + questions |
 | **Structure** | **Contenant** → **Contenu** → **Ingrédients** |
+| **Support** | Ce guide (`docs/PRESENTATION.md`) — diapos orales |
+| **Contenu jeu** | `docs/WENDIGO_GAME_DOCUMENTATION.md`, `docs/party-game.md` |
 
 > **Règle d'or** : une diapo = une idée. Le détail va dans la bouche, pas sur l'écran.  
 > **Public** : classe peu technique — commencer par « c'est quoi / pourquoi », finir par « avec quoi c'est codé ».

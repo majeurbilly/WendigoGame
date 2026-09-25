@@ -10,6 +10,6 @@
     "outDir": "bin",
     "rootDir": "."
   },
-  "include": ["index.ts"],
-  "exclude": ["node_modules", "bin", "sdks", "src", "scripts"]
+  "include": ["index.ts", "src/k8s/**/*.ts"],
+  "exclude": ["node_modules", "bin", "sdks", "scripts"]
 }

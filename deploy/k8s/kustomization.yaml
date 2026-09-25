@@ -7,3 +7,4 @@ resources:
   - apps/backend.yaml
   - apps/frontend.yaml
   - apps/ingress.yaml
+  - apps/authentik-ingress.yaml

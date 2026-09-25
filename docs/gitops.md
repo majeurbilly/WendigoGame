@@ -9,6 +9,8 @@ deploy/k8s/
 ├── kustomization.yaml
 ├── base/          # namespace, postgres, redis
 └── apps/          # backend, frontend, ingress (Traefik → wendigo.local)
+
+infrastructure/    # Pulumi : Authentik Helm + lookup OIDC
 ```
 
 Pipeline : `.github/workflows/ci-cd.yml` (push sur `main`)
@@ -17,7 +19,7 @@ Pipeline : `.github/workflows/ci-cd.yml` (push sur `main`)
 |-----|--------|------|
 | `lint-test` | `ubuntu-latest` | `go test` + ESLint + `tsc -b` |
 | `build-backend` / `build-frontend` | `ubuntu-latest` | Build/push GHCR `:latest` + `:${{ github.sha }}` |
-| `deploy` | `self-hosted` | `kustomize edit set image` → `kubectl apply -k deploy/k8s` |
+| `deploy` | `self-hosted` | Postgres/Redis → Pulumi Authentik Helm → `kubectl apply -k` apps |
 
 ## Choix techniques
 
@@ -29,37 +31,26 @@ Pipeline : `.github/workflows/ci-cd.yml` (push sur `main`)
 | Backend `replicas: 1` | Hub WebSocket in-memory |
 | `ALLOWED_ORIGINS=*` | CORS permissif temporaire |
 | `imagePullSecrets: ghcr-creds` | Packages GHCR privés — auth docker-registry côté cluster |
-| OIDC / JWKS → `192.168.0.157:9000` | Authentik hors cluster (LAN) ; évite les défauts Go `localhost:9000` |
-| Ingress Traefik `wendigo.local` | Frontend `/` + backend chemins natifs (`/auth`, `/lobbies`, `/ws`…) — voir `docs/ingress.md` |
+| Authentik in-cluster | Helm Pulumi ; NodePort **30900** + Ingress `auth.wendigo.local` |
+| Ingress Traefik `wendigo.local` | Frontend `/` + backend chemins natifs — voir `docs/ingress.md` |
 
 ## Prérequis runner self-hosted
 
-- Runner GitHub installé sur le serveur (ou machine LAN) avec accès API k3s (`kubectl` configuré).
+- Runner GitHub avec accès API k3s (`kubectl` configuré).
 - Labels : au minimum `self-hosted` (job `deploy`).
-- Docker + Compose : exécutés **sur gaston** via SSH depuis le runner (`moumou`) — pas de Docker local requis sur le runner.
-- Secrets bootstrap injectés dans `.env` distant ; healthcheck HTTP puis Pulumi (`AUTHENTIK_TOKEN` = bootstrap token).
-- Sync `authentik/blueprints/` vers gaston (volume Compose `/blueprints/custom`).
+- Stack Pulumi `dev` avec secrets `wendigo:authentik*` et `wendigo:pgPassword` (voir `docs/authentik-k8s.md`).
+- `AUTHENTIK_TOKEN` CI = `AUTHENTIK_BOOTSTRAP_TOKEN` (secret GitHub).
 
 ## Secrets GitHub Actions (Authentik)
 
-À définir dans le dépôt (Settings → Secrets) :
-
 | Secret | Usage |
 |--------|--------|
-| `AUTHENTIK_BOOTSTRAP_PASSWORD` | Mot de passe admin initial (`akadmin`) |
-| `AUTHENTIK_BOOTSTRAP_TOKEN` | Token API bootstrap Authentik (+ `AUTHENTIK_TOKEN` pour Pulumi) |
+| `AUTHENTIK_BOOTSTRAP_PASSWORD` | Mot de passe admin initial + config Pulumi |
+| `AUTHENTIK_BOOTSTRAP_TOKEN` | Token API bootstrap (+ `AUTHENTIK_TOKEN` pour lookup) |
 
-Email bootstrap fixé dans le workflow : `admin@stringempty.dev`.
-
-Compose Authentik : `docker-compose.yml` à la racine (postgres + redis + server + worker, port **9000**) + mount blueprints OIDC.
-
-Après Compose, le job attend le JWKS `/application/o/wendigo/jwks/` puis lance **Pulumi** en **lookup** (`getProviderOauth2Config`) — plus de création `ProviderOauth2` via le bridge TF.
+Email bootstrap : `admin@stringempty.dev` (Secret K8s / values Helm).
 
 ## Secret GHCR (`ghcr-creds`)
-
-Les Deployments `backend` et `frontend` référencent `imagePullSecrets: [{ name: ghcr-creds }]`.
-
-Créer une fois dans le namespace `wendigo` (PAT GitHub avec `read:packages`) :
 
 ```bash
 kubectl -n wendigo create secret docker-registry ghcr-creds \
@@ -69,11 +60,10 @@ kubectl -n wendigo create secret docker-registry ghcr-creds \
   --docker-email=<email>
 ```
 
-Si les packages GHCR sont **publics**, le secret est inutile mais inoffensif tant qu’il existe (sinon `ImagePullBackOff`).
-
 ## Impacts
 
-- **CI** : un seul workflow `ci-cd.yml` ; plus de `build-and-push-ghcr.yml` ni `argocd-app.yaml`.
-- **Frontend** : Variables repo `VITE_*` (sinon défauts localhost).
-- **Authentik** : Compose sur l’hôte ; OIDC via blueprint + lookup Pulumi.
-- **Loki / Grafana / Promtail** : **retirés** du dépôt (OOM sur homelab).
+- **CI** : Authentik via Pulumi Helm — `docker-compose.yml` retiré du dépôt.
+- **Frontend** : Variables repo `VITE_*` (défaut Authentik `:30900`).
+- **Loki / Grafana / Promtail** : retirés (OOM homelab).
+
+Voir aussi `docs/authentik-k8s.md`, `docs/infrastructure.md`.

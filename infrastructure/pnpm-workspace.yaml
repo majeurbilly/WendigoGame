@@ -5,4 +5,5 @@ packages:
 allowBuilds:
   '@pulumi/authentik': true
   '@pulumi/authentik@file:sdks/authentik': true
+  '@pulumi/kubernetes': true
   protobufjs: true

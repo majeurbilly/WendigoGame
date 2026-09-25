@@ -1,0 +1,26 @@
+# Traefik Ingress — Authentik UI + OIDC (host dédié).
+# Service créé par le chart Helm Pulumi (`authentik-server`, port HTTP 80).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: authentik-ingress
+  namespace: wendigo
+  labels:
+    app.kubernetes.io/name: authentik
+    app.kubernetes.io/part-of: wendigo
+    app.kubernetes.io/component: ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: auth.wendigo.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: authentik-server
+                port:
+                  number: 80

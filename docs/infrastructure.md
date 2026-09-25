@@ -1,37 +1,25 @@
-# Authentik OIDC — Blueprints + lookup Pulumi
+# Authentik OIDC — Helm K8s + lookup Pulumi
 
 ## État actuel
 
-Provisioning OIDC **hors** création de ressources Terraform/Pulumi (évite le crash `EOF` du bridge) :
+1. **Runtime** : chart Helm Authentik dans K3s (`infrastructure/src/k8s/authentik.ts`) — Postgres/Redis **partagés** `wendigo`
+2. **Blueprint** `authentik/blueprints/wendigo-oidc.yaml` via ConfigMap `wendigo-oidc-blueprint`
+3. **Pulumi** (`infrastructure/index.ts`) : deploy Helm puis **lookup** différé `getProviderOauth2Config`
+4. Exports `OIDC_ISSUER_URL` / `AUTHENTIK_JWKS_URL`
 
-1. **Blueprint natif** `authentik/blueprints/wendigo-oidc.yaml` monté dans Compose (`/blueprints/custom`)
-2. Crée `oauth2provider` (`client_id: wendigo-dev`, public) + `Application` slug `wendigo`
-3. **Pulumi** (`infrastructure/index.ts`) ne fait qu’un **lookup** : `authentik.getProviderOauth2Config({ name: "wendigo-dev-provider" })`
-4. Exports `OIDC_ISSUER_URL` / `AUTHENTIK_JWKS_URL` depuis les URLs officielles renvoyées par l’API
+Détail opérationnel (secrets, preview/up) : **`docs/authentik-k8s.md`**.
 
 ## Choix techniques
 
 | Couche | Rôle |
 |--------|------|
-| Blueprint Authentik | Source de vérité OIDC (flows défaut, cert self-signed, scopes, redirects) |
-| Compose volume `./authentik/blueprints:/blueprints/custom:ro` | Découverte auto (server + worker) |
-| Pulumi `getProviderOauth2Config` | Lecture safe — pas de `ProviderOauth2` / `Application` |
-| Provider TF `2024.12.1` | Aligné Compose `2024.12.5` (data sources uniquement) |
+| Helm `goauthentik/authentik` 2024.12.3 | Server + worker in-cluster |
+| Job `authentik-db-init` | Crée rôle/DB `authentik` sur Postgres central |
+| Secret `authentik-credentials` | PG user/pass, bootstrap, secret-key |
+| Blueprint + lookup | OIDC sans `ProviderOauth2` TF (évite EOF) |
+| `docker-compose.yml` | **Supprimé** — runtime 100 % K3s / Helm |
 
-## Prérequis CI
+## Impacts
 
-- Sync SSH : `docker-compose.yml` + `authentik/blueprints/*.yaml` puis `docker compose up -d`
-- Attente `/-/health/ready/` puis JWKS `/application/o/wendigo/jwks/`
-- `AUTHENTIK_TOKEN` = bootstrap token (lookup API)
-
-## Migration depuis ProviderOauth2 Pulumi
-
-Si le stack `dev` contient encore d’anciennes ressources `ProviderOauth2` / `Application`, `pulumi up` tentera de les **supprimer** via l’API (risque EOF). Dans ce cas, retirer les URNs du state sans appeler Authentik :
-
-```bash
-cd infrastructure
-pulumi stack select dev
-pulumi state delete '<urn ProviderOauth2>'
-pulumi state delete '<urn Application>'
-# puis pulumi up -y (lookup only)
-```
+- CI : Authentik via Pulumi Helm uniquement — voir `docs/gitops.md`
+- URL LAN Authentik : **NodePort 30900**

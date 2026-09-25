@@ -44,4 +44,12 @@ infrastructure/Pulumi.*.yaml
 !infrastructure/Pulumi.yaml
 
 # Script
-infrastructure/setup-pulumi.sh*Zone.Identifier*
+infrastructure/setup-pulumi.sh
+
+# Accidental / local junk
+*Zone.Identifier*
+__pycache__/
+*.pyc
+arborescence.txt
+main
+0_deploy.txt
