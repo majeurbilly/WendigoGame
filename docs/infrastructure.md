@@ -16,6 +16,7 @@
 |--------|------|
 | Helm `goauthentik/authentik` | Server + worker in-cluster |
 | Pulumi OIDC | `OidcProviderResource` (HTTP) + `Application` — contourne EOF du bridge TF |
+| Flows → provider | `authorizationFlow.uuid` / `invalidationFlow.uuid` (pas `.id` = slug) pour l’API REST |
 | Outputs dynamiques | `declare public readonly pk/clientSecret` — empêche TS (`useDefineForClassFields`) d’écraser les Outputs après `super()` |
 | `CertificateKeyPair` + `@pulumi/tls` | Signing key explicite |
 | Lookups différés (scopes) | Attente post-Helm pour openid/email/profile/offline_access |

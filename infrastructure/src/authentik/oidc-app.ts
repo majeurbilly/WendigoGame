@@ -181,7 +181,7 @@ export function provisionWendigoOidc(args: WendigoOidcArgs): WendigoOidcResult {
   ]);
 
   const propertyMappings = pulumi
-    .all([authorizationFlow.id, invalidationFlow.id, signingCertificate.id])
+    .all([authorizationFlow.uuid, invalidationFlow.uuid, signingCertificate.id])
     .apply(async () => waitForBuiltinScopes(authentikProvider));
 
   const oidcProvider = new OidcProviderResource(
@@ -192,8 +192,9 @@ export function provisionWendigoOidc(args: WendigoOidcArgs): WendigoOidcResult {
       name: OIDC_PROVIDER_NAME,
       clientId: OIDC_CLIENT_ID,
       clientType: 'public',
-      authorizationFlow: authorizationFlow.id,
-      invalidationFlow: invalidationFlow.id,
+      // API REST Authentik exige des UUID (Flow.id = slug côté provider TF)
+      authorizationFlow: authorizationFlow.uuid,
+      invalidationFlow: invalidationFlow.uuid,
       signingKey: signingCertificate.id,
       issuerMode: 'per_provider',
       subMode: 'user_uuid',

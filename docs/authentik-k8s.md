@@ -10,7 +10,7 @@ Authentik tourne **dans K3s** (namespace `wendigo`) via le chart Helm officiel `
 | Postgres | Service partagé `postgres` (DB/role dédiés `authentik`) — Job `authentik-db-init` |
 | Redis | Service partagé `redis` (chart Bitnami redis **désactivé**) |
 | Secrets | Secret K8s `authentik-credentials` + config Pulumi / GitHub Secrets |
-| OIDC app | `OidcProviderResource` (HTTP API) + `Application` — `declare` Outputs `pk`/`clientSecret` |
+| OIDC app | `OidcProviderResource` (HTTP) + `Application` ; flows liés via `.uuid` (API REST) |
 
 `docker-compose.yml` et les blueprints YAML OIDC ont été **supprimés**.
 
